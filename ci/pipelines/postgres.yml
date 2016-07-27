@@ -1,0 +1,35 @@
+groups:
+- name: postgres
+  jobs:
+  - deploy-with-cf
+
+resources:
+- name: cf-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-release.git
+    branch: master
+
+- name: postgres-release-develop
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/postgres-release.git
+    branch: develop
+
+#- name: postgres-ci-env
+  #type: git
+  #source:
+    #uri: git@github.com:cloudfoundry/postgres-ci-env.git
+    #branch: master
+    #private_key: {{postgres-ci-env-readonly-private-key}}
+
+jobs:
+- name: deploy-with-cf
+  public: true
+  plan:
+  - aggregate:
+    - get: cf-release
+    - get: postgres-release
+      resource: postgres-release-develop
+  - task: deploy-with-cf
+    file: postgres-release/ci/scripts/deploy-with-cf/task.yml
