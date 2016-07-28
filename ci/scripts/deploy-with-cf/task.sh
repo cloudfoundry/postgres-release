@@ -1,6 +1,98 @@
 #!/bin/bash -exu
 
-ROOT="${PWD}"
+preflight_check() {
+  set +x
+  test -n "${BOSH_DIRECTOR}"
+  test -n "${BOSH_USER}"
+  test -n "${BOSH_PASSWORD}"
+  set -x
+}
 
-getent hosts api.apps.pgci-cf.microbosh
-echo "getent finished with status : $?"
+deploy() {
+  bosh \
+    -n \
+    -t "${1}" \
+    -d "${2}" \
+    deploy
+}
+
+generate_releases_stub() {
+  local build_dir
+  build_dir="${1}"
+
+  cat <<EOF
+---
+releases:
+- name: cf
+  version: latest
+- name: postgres
+  version: create
+  url: file://${build_dir}/postgres-release
+- name: consul
+  version: latest
+EOF
+}
+
+generate_stemcell_stub() {
+  pushd /tmp > /dev/null
+    curl -Ls -o /dev/null -w %{url_effective} https://bosh.io/d/stemcells/bosh-softlayer-esxi-ubuntu-trusty-go_agent | xargs -n 1 curl -O
+  popd > /dev/null
+
+  local stemcell_filename
+  stemcell_filename=$(echo /tmp/light-bosh-stemcell-*-softlayer-esxi-ubuntu-trusty-go_agent.tgz)
+
+  local stemcell_version
+  stemcell_version=$(echo ${stemcell_filename} | cut -d "-" -f4)
+
+  cat <<EOF
+---
+meta:
+  stemcell:
+    name: bosh-softlayer-esxi-ubuntu-trusty-go_agent
+    version: ${stemcell_version}
+    url: file://${stemcell_filename}
+EOF
+}
+
+generate_job_templates_stub() {
+  cat <<EOF
+meta:
+  <<: (( merge ))
+  postgres_templates:
+  - name: postgres
+    release: postgres
+  consul_templates:
+  - name: consul_agent
+    release: consul
+EOF
+}
+
+function main(){
+  local root="${1}"
+
+  mkdir stubs
+
+  pushd stubs
+    generate_releases_stub ${root} > releases.yml
+    generate_stemcell_stub > stemcells.yml
+    generate_job_templates_stub > job_templates.yml
+  popd
+
+  pushd "${root}/cf-release"
+    spiff merge \
+      "templates/generic-manifest-mask.yml" \
+      "templates/cf.yml" \
+      "${root}/postgres-ci-env/deployments/cf/cf-infrastructure-softlayer.yml" \
+      "${root}/stubs/releases.yml" \
+      "${root}/stubs/stemcells.yml" \
+      "${root}/stubs/job_templates.yml" \
+      "${root}/postgres-ci-env/deployments/cf/pgci-cf.yml" > "${root}/cf-final.yml"
+  popd
+
+  deploy \
+    "${BOSH_DIRECTOR}" \
+    "${root}/cf-final.yml"
+}
+
+
+main "${PWD}"

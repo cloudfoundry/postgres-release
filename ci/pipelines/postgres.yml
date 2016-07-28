@@ -16,12 +16,12 @@ resources:
     uri: https://github.com/cloudfoundry/postgres-release.git
     branch: develop
 
-#- name: postgres-ci-env
-  #type: git
-  #source:
-    #uri: git@github.com:cloudfoundry/postgres-ci-env.git
-    #branch: master
-    #private_key: {{postgres-ci-env-readonly-private-key}}
+- name: postgres-ci-env
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/postgres-ci-env
+    branch: master
+    private_key: {{postgres-ci-env-private-key}}
 
 jobs:
 - name: deploy-with-cf
@@ -33,3 +33,10 @@ jobs:
       resource: postgres-release-develop
   - task: deploy-with-cf
     file: postgres-release/ci/scripts/deploy-with-cf/task.yml
+    config:
+      params:
+        BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
+        BOSH_USER: {{postgres_cf_bosh_user}}
+        BOSH_PASSWORD: {{postgres_cf_bosh_password}}
+        CF_DEPLOYMENT_TRACE: true
+
