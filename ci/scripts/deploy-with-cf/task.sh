@@ -24,12 +24,11 @@ generate_releases_stub() {
 ---
 releases:
 - name: cf
-  version: latest
+  version: create
+  url: file://${build_dir}/cf-release
 - name: postgres
   version: create
   url: file://${build_dir}/postgres-release
-- name: consul
-  version: latest
 EOF
 }
 
@@ -61,9 +60,6 @@ meta:
   postgres_templates:
   - name: postgres
     release: postgres
-  consul_templates:
-  - name: consul_agent
-    release: consul
 EOF
 }
 
