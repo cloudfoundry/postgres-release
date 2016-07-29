@@ -88,6 +88,8 @@ function main(){
   deploy \
     "${BOSH_DIRECTOR}" \
     "${root}/pgci_cf.yml"
+
+  bosh -t ${BOSH_DIRECTOR} -d ${HAPROXY_DEPLOYMENT} -n restart ha_proxy 0
 }
 
 

@@ -48,7 +48,7 @@ jobs:
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
-      CF_DEPLOYMENT_TRACE: true
+      HAPROXY_DEPLOYMENT: pgci-ha
 
 - name: deploy-with-diego
   serial_groups: [cf]
