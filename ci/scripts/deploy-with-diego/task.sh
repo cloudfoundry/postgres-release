@@ -13,8 +13,6 @@ function deploy_diego() {
       -n $ROOT/postgres-ci-env/deployments/diego/instance-count-overrides.yml \
       -v $ROOT/postgres-ci-env/deployments/diego/release-versions.yml \
       > $ROOT/pgci_diego.yml
-    netdata=$(cat $ROOT/postgres-ci-env/deployments/diego/dns.yml)
-    sed -i "s/.*subnets: null.*/$netdata/g" $ROOT/pgci_diego.yml
 
   popd > /dev/null
 
