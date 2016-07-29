@@ -86,12 +86,12 @@ function main(){
       "${root}/stubs/releases.yml" \
       "${root}/stubs/stemcells.yml" \
       "${root}/stubs/job_templates.yml" \
-      "${root}/postgres-ci-env/deployments/cf/pgci-cf.yml" > "${root}/cf-final.yml"
+      "${root}/postgres-ci-env/deployments/cf/pgci-cf.yml" > "${root}/pgci_cf.yml"
   popd
 
   deploy \
     "${BOSH_DIRECTOR}" \
-    "${root}/cf-final.yml"
+    "${root}/pgci_cf.yml"
 }
 
 

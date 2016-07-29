@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image: docker:///cfinfrastructure/deployment
+
+inputs:
+- name: diego-release
+- name: postgres-release
+- name: postgres-ci-env
+
+run:
+  path: postgres-release/ci/scripts/deploy-with-diego/task.sh
+
+params:
+  BOSH_DIRECTOR:
+  BOSH_USER:
+  BOSH_PASSWORD:
+
