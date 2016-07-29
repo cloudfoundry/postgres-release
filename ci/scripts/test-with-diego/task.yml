@@ -7,7 +7,7 @@ inputs:
   - name: postgres-release
 
 run:
-  path: postgres-release/ci/scripts/test-diego/task.sh
+  path: postgres-release/ci/scripts/test-with-diego/task.sh
 
 params:
   BOSH_DIRECTOR:
