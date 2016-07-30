@@ -89,7 +89,9 @@ function main(){
     "${BOSH_DIRECTOR}" \
     "${root}/pgci_cf.yml"
 
-  bosh -t ${BOSH_DIRECTOR} -d ${HAPROXY_DEPLOYMENT} -n restart ha_proxy 0
+  bosh -t $BOSH_DIRECTOR download manifest $HAPROXY_DEPLOYMENT ha_manifest.yml
+
+  bosh -t ${BOSH_DIRECTOR} -d ha_manifest.yml -n restart ha_proxy 0
 }
 
 
