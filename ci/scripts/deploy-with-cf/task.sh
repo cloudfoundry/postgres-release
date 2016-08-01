@@ -78,7 +78,7 @@ function main(){
     spiff merge \
       "${root}/postgres-ci-env/deployments/cf/pgci-cf.yml" \
       "${root}/postgres-ci-env/deployments/common/properties.yml" \
-      "${root}/postgres-ci-env/deployments/common/common.yml" > "${root}\partial-pgci-cf.yml"
+      "${root}/postgres-ci-env/deployments/common/common.yml" > "${root}/partial-pgci-cf.yml"
 
     spiff merge \
       "templates/generic-manifest-mask.yml" \
