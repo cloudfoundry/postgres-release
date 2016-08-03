@@ -6,6 +6,7 @@ groups:
   - test-with-diego
   - delete-deployments
   - create-final-release
+  - merge-master-into-develop
 
 resources:
 - name: cf-release
@@ -46,6 +47,13 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/postgres-release.git
     branch: master
+    private_key: {{postgres-release-private-key}}
+
+- name: postgres-release-merge-target
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/postgres-release.git
+    branch: develop
     private_key: {{postgres-release-private-key}}
 
 jobs:
@@ -153,3 +161,20 @@ jobs:
       repository: final-release-repo
       tag: final-release-repo/version_number
       tag_prefix: v
+
+- name: merge-master-into-develop
+  serial_groups: [cf]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+    - get: release-repo-master
+      resource: postgres-release-master
+      trigger: true
+    - get: release-repo
+      resource: postgres-release-merge-target
+  - task: merge-master-into-develop
+    file: postgres-release/ci/scripts/merge-master-into-develop/task.yml
+  - put: postgres-release-merge-target
+    params:
+      repository: final-release-repo
