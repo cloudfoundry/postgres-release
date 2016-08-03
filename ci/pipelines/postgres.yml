@@ -44,8 +44,9 @@ resources:
 - name: postgres-release-master
   type: git
   source:
-    uri: https://github.com/cloudfoundry/postgres-release.git
+    uri: git@github.com:cloudfoundry/postgres-release.git
     branch: master
+    private_key: {{postgres-release-private-key}}
 
 jobs:
 - name: deploy-with-cf
@@ -147,8 +148,8 @@ jobs:
     file: postgres-release/ci/scripts/create-final-release/task.yml
     params:
       RELEASE_NAME: postgres
-  #- put: postgres-release-master
-    #params:
-      #repository: final-release-repo
-      #tag: final-release-repo/version_number
-      #tag_prefix: v
+  - put: postgres-release-master
+    params:
+      repository: final-release-repo
+      tag: final-release-repo/version_number
+      tag_prefix: v
