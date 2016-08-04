@@ -42,7 +42,7 @@ function upload_stemcell() {
 
 function upload_remote_release() {
   local release_url=$1
-  ssh ${SSH_CONNECTION_STRING} "wget '${release_url}' -O remote_release.tgz"
+  ssh ${SSH_CONNECTION_STRING} "wget --quiet '${release_url}' -O remote_release.tgz"
   ssh ${SSH_CONNECTION_STRING} "bosh upload release remote_release.tgz"
 }
 
