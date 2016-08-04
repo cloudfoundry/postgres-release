@@ -47,7 +47,7 @@ function upload_remote_release() {
 }
 
 function deploy_release() {
-  scp "${ROOT}/postgres-ci-env/deployments/boshlite/cf-${OLD_CF_RELEASE}.yml" ${SCP_CONN}:/tmp 
+  scp -i ${PWD}/.ssh-key ${ROOT}/postgres-ci-env/deployments/boshlite/cf-${OLD_CF_RELEASE}.yml root@${BAREMETAL_IP}:/tmp
   ssh ${SSH_CONNECTION_STRING} "bosh -d /tmp/cf-${OLD_CF_RELEASE}.yml -n deploy"
 }
 
