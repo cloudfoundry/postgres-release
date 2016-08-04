@@ -2,6 +2,7 @@ groups:
 - name: postgres-upgrade
   jobs:
   - test-postgres-upgrade-with-cf
+  - run-bosh-lite-cleanup
 
 resources:
 - name: cf-release
@@ -26,7 +27,7 @@ resources:
 
 jobs:
 - name: test-postgres-upgrade-with-cf
-  serial: true
+  serial_groups: [postgres-upgrade]
   plan:
   - aggregate:
     - get: cf-release
@@ -42,3 +43,20 @@ jobs:
       BOSH_PASSWORD: {{bosh_lite_password}}
       SSH_KEY: {{bosh_lite_ssh_key}}
       OLD_CF_RELEASE: 225
+- name: run-bosh-lite-cleanup
+  serial_groups: [postgres-upgrade]
+  plan:
+  - aggregate:
+    - get: postgres-ci-env
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [test-postgres-upgrade-with-cf]
+      trigger: true
+  - task: run-bosh-lite-cleanup
+    file: postgres-release/ci/scripts/run-bosh-lite-cleanup/task.yml
+    params:
+      BOSH_DIRECTOR: 192.168.50.4
+      BAREMETAL_IP: {{baremetal_ip}}
+      BOSH_USER: {{bosh_lite_user}}
+      BOSH_PASSWORD: {{bosh_lite_password}}
+      SSH_KEY: {{bosh_lite_ssh_key}}
