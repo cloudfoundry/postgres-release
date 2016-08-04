@@ -1,0 +1,44 @@
+groups:
+- name: postgres-upgrade
+  jobs:
+  - test-postgres-upgrade-with-cf
+
+resources:
+- name: cf-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-release.git
+    branch: develop
+
+- name: postgres-release-develop
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/postgres-release.git
+    branch: develop
+
+- name: postgres-ci-env
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/postgres-ci-env
+    branch: master
+    private_key: {{postgres_ci_env_private_key}}
+
+
+jobs:
+- name: test-postgres-upgrade-with-cf
+  serial: true
+  plan:
+  - aggregate:
+    - get: cf-release
+    - get: postgres-ci-env
+    - get: postgres-release
+      resource: postgres-release-develop
+  - task: test-postgres-upgrade-with-cf
+    file: postgres-release/ci/scripts/test-postgres-upgrade-with-cf/task.yml
+    params:
+      BOSH_DIRECTOR: 192.168.50.4
+      BAREMETAL_IP: {{baremetal_ip}}
+      BOSH_USER: {{bosh_lite_user}}
+      BOSH_PASSWORD: {{bosh_lite_password}}
+      SSH_KEY: {{bosh_lite_ssh_key}}
+      OLD_CF_RELEASE: 225
