@@ -29,6 +29,8 @@ function cleanup_boshlite() {
   ssh ${SSH_CONNECTION_STRING} "bosh login ${BOSH_USER} ${BOSH_PASSWORD}"
   ssh ${SSH_CONNECTION_STRING} "bosh -n delete deployment cf-warden"
   ssh ${SSH_CONNECTION_STRING} "bosh cleanup --all"
+  ssh ${SSH_CONNECTION_STRING} "rm -rf /tmp/cloudfoundry"
+  ssh ${SSH_CONNECTION_STRING} "rm -rf /tmp/cf*yml; rm -rf /tmp/cf*tgz"
   set -x
 }
 
