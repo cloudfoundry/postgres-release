@@ -2,7 +2,7 @@
 
 function main() {
   local pgversion
-  pgversion="postgres-9.4.6"
+  pgversion="postgres-9.4.9"
 
   JOB_DIR=/var/vcap/jobs/postgres
   PACKAGE_DIR="/var/vcap/packages/${pgversion}"
@@ -12,8 +12,8 @@ function main() {
   DATA_DIR_PREVIOUS="${STORE_DIR}/postgres-previous"
   DATA_DIR_OLD="${STORE_DIR}/postgres-unknown"
 
-  if [ -d "${STORE_DIR}/postgres-9.4.2" -a -f "${STORE_DIR}/postgres-9.4.2/postgresql.conf" ]; then
-    DATA_DIR_OLD="${STORE_DIR}/postgres-9.4.2"
+  if [ -d "${STORE_DIR}/postgres-9.4.6" -a -f "${STORE_DIR}/postgres-9.4.6/postgresql.conf" ]; then
+    DATA_DIR_OLD="${STORE_DIR}/postgres-9.4.6"
   fi
 
   if [ -d "${STORE_DIR}/postgres-9.4.5" -a -f "${STORE_DIR}/postgres-9.4.5/postgresql.conf" ]; then

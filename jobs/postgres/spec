@@ -12,7 +12,7 @@ templates:
 
 packages:
   - postgres-common
-  - postgres-9.4.6
+  - postgres-9.4.9
 
 properties:
   databases.db_scheme:

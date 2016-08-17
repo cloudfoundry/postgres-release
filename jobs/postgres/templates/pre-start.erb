@@ -1,6 +1,6 @@
 #!/bin/bash -exu
 
-pgversion="postgres-9.4.6"
+pgversion="postgres-9.4.9"
 LOG_DIR=/var/vcap/sys/log/postgres
 STORE_DIR=/var/vcap/store
 DATA_DIR="${STORE_DIR}/${pgversion}"
@@ -11,14 +11,14 @@ DATA_DIR_PREVIOUS="${STORE_DIR}/postgres-previous"
 DATA_DIR_OLD="${STORE_DIR}/postgres-unknown"
 
 function main() {
+  if [[ -d "${STORE_DIR}/postgres-9.4.6" ]]; then
+    chown -R vcap:vcap "${STORE_DIR}/postgres-9.4.6"
+    chmod 700 "${STORE_DIR}/postgres-9.4.6"
+  fi
+
   if [[ -d "${STORE_DIR}/postgres-9.4.5" ]]; then
     chown -R vcap:vcap "${STORE_DIR}/postgres-9.4.5"
     chmod 700 "${STORE_DIR}/postgres-9.4.5"
-  fi
-
-  if [[ -d "${STORE_DIR}/postgres-9.4.2" ]]; then
-    chown -R vcap:vcap "${STORE_DIR}/postgres-9.4.2"
-    chmod 700 "${STORE_DIR}/postgres-9.4.2"
   fi
 
   mkdir -p "${LOG_DIR}"
