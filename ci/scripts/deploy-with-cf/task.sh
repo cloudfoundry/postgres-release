@@ -1,4 +1,4 @@
-#!/bin/bash -exu
+#!/bin/bash -eu
 
 preflight_check() {
   set +x
@@ -63,6 +63,29 @@ meta:
 EOF
 }
 
+generate_env_stub() {
+  local vm_prefix
+  local cf1_domain
+  local apps_domain
+  vm_prefix="${CF_DEPLOYMENT}-"
+  apps_domain="apps.${CF_DEPLOYMENT}.microbosh"
+  cf1_domain="cf1.${CF_DEPLOYMENT}.microbosh"
+  cat <<EOF
+---
+common_data:
+  <<: (( merge ))
+  VmNamePrefix: ${vm_prefix}
+  cf1_domain: ${cf1_domain}
+  env_name: ${CF_DEPLOYMENT}
+  apps_domain: ${apps_domain}
+  api_user: ${API_USER}
+  api_password: ${API_PASSWORD}
+  default_env:
+    bosh:
+      password: ~
+EOF
+}
+
 function main(){
   local root="${1}"
 
@@ -72,12 +95,14 @@ function main(){
     generate_releases_stub ${root} > releases.yml
     generate_stemcell_stub > stemcells.yml
     generate_job_templates_stub > job_templates.yml
+    generate_env_stub > env.yml
   popd
 
   pushd "${root}/cf-release"
     spiff merge \
       "${root}/postgres-ci-env/deployments/cf/pgci-cf.yml" \
       "${root}/postgres-ci-env/deployments/common/properties.yml" \
+      "${root}/stubs/env.yml" \
       "${root}/postgres-ci-env/deployments/common/common.yml" > "${root}/partial-pgci-cf.yml"
 
     spiff merge \
@@ -94,9 +119,10 @@ function main(){
     "${BOSH_DIRECTOR}" \
     "${root}/pgci_cf.yml"
 
-  bosh -t $BOSH_DIRECTOR download manifest $HAPROXY_DEPLOYMENT ha_manifest.yml
-
-  bosh -t ${BOSH_DIRECTOR} -d ha_manifest.yml -n restart ha_proxy 0
+  if [ "$HAPROXY_DEPLOYMENT" != "none" ]; then
+    bosh -t $BOSH_DIRECTOR download manifest $HAPROXY_DEPLOYMENT ha_manifest.yml
+    bosh -t ${BOSH_DIRECTOR} -d ha_manifest.yml -n restart ha_proxy 0
+  fi
 }
 
 

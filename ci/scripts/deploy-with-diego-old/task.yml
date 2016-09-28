@@ -8,18 +8,18 @@ image_resource:
     repository: cfinfrastructure/deployment
 
 inputs:
-- name: cf-release
-- name: postgres-release
 - name: postgres-ci-env
 
 run:
-  path: postgres-release/ci/scripts/deploy-with-cf/task.sh
+  path: postgres-release/ci/scripts/deploy-with-diego-old/task.sh
 
 params:
   BOSH_DIRECTOR:
   BOSH_USER:
   BOSH_PASSWORD:
-  HAPROXY_DEPLOYMENT:
+  OLD_CF_RELEASE:
+  OLD_DIEGO_RELEASE:
+  OLD_GARDEN_RELEASE:
+  OLD_ETCD_RELEASE:
   CF_DEPLOYMENT:
-  API_USER:
-  API_PASSWORD:
+  DIEGO_DEPLOYMENT:
