@@ -8,6 +8,14 @@ preflight_check() {
   set -x
 }
 
+deploy() {
+  bosh \
+    -n \
+    -t "${1}" \
+    -d "${2}" \
+    deploy
+}
+
 function upload_remote_release() {
   local release_url=$1
   wget --quiet '${release_url}' -O remote_release.tgz

@@ -8,9 +8,17 @@ preflight_check() {
   set -x
 }
 
+deploy() {
+  bosh \
+    -n \
+    -t "${1}" \
+    -d "${2}" \
+    deploy
+}
+
 function upload_stemcell() {
-  wget --quiet 'https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent' --output-document=stemcell.tgz
-  bosh upload stemcell stemcell.tgz
+  wget --quiet 'https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent' --output-document=stemcell.tgz
+  bosh upload stemcell stemcell.tgz --skip-if-exists
 }
 
 function upload_remote_release() {

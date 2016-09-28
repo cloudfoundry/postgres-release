@@ -34,11 +34,11 @@ EOF
 
 generate_stemcell_stub() {
   pushd /tmp > /dev/null
-    curl -Ls -o /dev/null -w %{url_effective} https://bosh.io/d/stemcells/bosh-softlayer-esxi-ubuntu-trusty-go_agent | xargs -n 1 curl -O
+    curl -Ls -o /dev/null -w %{url_effective} https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent | xargs -n 1 curl -O
   popd > /dev/null
 
   local stemcell_filename
-  stemcell_filename=$(echo /tmp/light-bosh-stemcell-*-softlayer-esxi-ubuntu-trusty-go_agent.tgz)
+  stemcell_filename=$(echo /tmp/light-bosh-stemcell-*-softlayer-xen-ubuntu-trusty-go_agent.tgz)
 
   local stemcell_version
   stemcell_version=$(echo ${stemcell_filename} | cut -d "-" -f4)
@@ -47,7 +47,7 @@ generate_stemcell_stub() {
 ---
 meta:
   stemcell:
-    name: bosh-softlayer-esxi-ubuntu-trusty-go_agent
+    name: bosh-softlayer-xen-ubuntu-trusty-go_agent
     version: ${stemcell_version}
     url: file://${stemcell_filename}
 EOF
