@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
 - name: postgres-ci-env
+- name: postgres-release
 
 run:
   path: postgres-release/ci/scripts/deploy-with-diego-old/task.sh
