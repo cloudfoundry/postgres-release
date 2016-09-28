@@ -33,6 +33,8 @@ jobs:
   serial_groups: [postgres-upgrade]
   plan:
   - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
     - get: postgres-ci-env
   - task: deploy-with-cf-old
     file: postgres-release/ci/scripts/deploy-with-cf-old/task.yml
@@ -48,9 +50,11 @@ jobs:
   serial_groups: [postgres-upgrade]
   plan:
   - aggregate:
-    - get: postgres-ci-env
+    - get: postgres-release
+      resource: postgres-release-develop
       passed: [deploy-with-cf-upg1]
       trigger: true
+    - get: postgres-ci-env
   - task: deploy-with-diego-old
     file: postgres-release/ci/scripts/deploy-with-diego-old/task.yml
     params:
@@ -82,11 +86,11 @@ jobs:
   - aggregate:
     - get: cf-release
     - get: postgres-ci-env
+    - get: postgres-release
+      resource: postgres-release-develop
       #passed: [populate-db-upg1]
       passed: [deploy-with-diego-upg1]
       trigger: true
-    - get: postgres-release
-      resource: postgres-release-develop
   - task: deploy-with-cf
     file: postgres-release/ci/scripts/deploy-with-cf/task.yml
     params:
