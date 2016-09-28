@@ -23,7 +23,7 @@ function upload_stemcell() {
 
 function upload_remote_release() {
   local release_url=$1
-  wget --quiet '${release_url}' -O remote_release.tgz
+  wget --quiet "${release_url}" -O remote_release.tgz
   bosh upload release remote_release.tgz
 }
 
