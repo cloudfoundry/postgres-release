@@ -16,6 +16,14 @@ deploy() {
     deploy
 }
 
+function upload_stemcell() {
+  local old_stemcell_url="https://s3.amazonaws.com/bosh-softlayer-cpi-stemcells/light-bosh-stemcell-${OLD_STEMCELL}-softlayer-esxi-ubuntu-trusty-go_agent.tgz"
+  wget --quiet 'https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent' --output-document=stemcell.tgz
+  bosh upload stemcell stemcell.tgz --skip-if-exists
+  wget --quiet "${old_stemcell_url}" --output-document=stemcell.tgz
+  bosh upload stemcell stemcell.tgz --skip-if-exists
+}
+
 function upload_remote_release() {
   local release_url=$1
   wget --quiet "${release_url}" -O remote_release.tgz
@@ -37,6 +45,9 @@ common_data:
   cf1_domain: ${cf1_domain}
   env_name: ${DIEGO_DEPLOYMENT}
   apps_domain: ${apps_domain}
+  cell_stemcell:
+    name: bosh-softlayer-esxi-ubuntu-trusty-go_agent
+    version: ${OLD_STEMCELL}
   default_env:
     bosh:
       password: ~
@@ -63,8 +74,8 @@ function main(){
 
   upload_stemcell
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/diego-release?v=${OLD_DIEGO_RELEASE}"
-  upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-linux-release?v=${OLD_DIEGO_RELEASE}"
-  upload_remote_release "https://bosh.io/d/github.com/cloudfoundry-incubator/etcd-release?v=${OLD_DIEGO_RELEASE}"
+  upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-linux-release?v=${OLD_GARDEN_RELEASE}"
+  upload_remote_release "https://bosh.io/d/github.com/cloudfoundry-incubator/etcd-release?v=${OLD_ETCD_RELEASE}"
 
   deploy \
     "${BOSH_DIRECTOR}" \
