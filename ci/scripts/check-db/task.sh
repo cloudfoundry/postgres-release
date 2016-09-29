@@ -15,4 +15,4 @@ function main() {
 
 }
 
-main
+main "${PWD}"
