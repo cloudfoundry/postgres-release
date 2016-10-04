@@ -94,7 +94,8 @@ jobs:
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
       CF_DEPLOYMENT: {{cf_deployment}}
-      DIEGO_DEPLOYMENT: {{diego_deployment}}
+      API_USER: {{api_user}}
+      API_PASSWORD: {{api_password}}
 
 - name: test-with-diego
   serial_groups: [cf]
@@ -123,8 +124,8 @@ jobs:
   - task: delete-diego-deployment
     file: postgres-release/ci/scripts/run-bosh-command/task.yml
     params:
-      DEPLOYMENT_NAME: {{diego_deployment}}
-      COMMAND: delete deployment {{diego_deployment}}
+      DEPLOYMENT_NAME: pgci-cf-diego
+      COMMAND: delete deployment pgci-cf-diego
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}

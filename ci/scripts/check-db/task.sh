@@ -9,6 +9,7 @@ function main() {
   set +x
   cf auth $API_USER $API_PASSWORD
   set -x
+  cf target -o ${CF_DEPLOYMENT} -s ${CF_DEPLOYMENT}
 
   cf apps
   curl --fail dora.apps.${CF_DEPLOYMENT}.microbosh

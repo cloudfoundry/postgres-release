@@ -16,6 +16,12 @@ deploy() {
     deploy
 }
 
+function upload_remote_release() {
+  local release_url=$1
+  wget --quiet "${release_url}" -O remote_release.tgz
+  bosh upload release remote_release.tgz
+}
+
 generate_releases_stub() {
   local build_dir
   build_dir="${1}"
@@ -26,6 +32,21 @@ releases:
 - name: cf
   version: create
   url: file://${build_dir}/cf-release
+- name: postgres
+  version: create
+  url: file://${build_dir}/postgres-release
+EOF
+}
+
+generate_releases_stub_test() {
+  local build_dir
+  build_dir="${1}"
+
+  cat <<EOF
+---
+releases:
+- name: cf
+  version: latest
 - name: postgres
   version: create
   url: file://${build_dir}/postgres-release
@@ -67,9 +88,15 @@ generate_env_stub() {
   local vm_prefix
   local cf1_domain
   local apps_domain
+  local haproxy_instances
   vm_prefix="${CF_DEPLOYMENT}-"
   apps_domain="apps.${CF_DEPLOYMENT}.microbosh"
   cf1_domain="cf1.${CF_DEPLOYMENT}.microbosh"
+  if [ "$HAPROXY_DEPLOYMENT" != "none" ]; then
+    haproxy_instances=0
+  else
+    haproxy_instances=1
+  fi
   cat <<EOF
 ---
 common_data:
@@ -80,6 +107,7 @@ common_data:
   apps_domain: ${apps_domain}
   api_user: ${API_USER}
   api_password: ${API_PASSWORD}
+  haproxy_instances: ${haproxy_instances}
   default_env:
     bosh:
       password: ~
@@ -89,9 +117,15 @@ EOF
 function main(){
   local root="${1}"
 
+  set +x
+  bosh target https://${BOSH_DIRECTOR}:25555
+  bosh login ${BOSH_USER} ${BOSH_PASSWORD}
+  set -x
   mkdir stubs
 
+  #upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/cf-release"
   pushd stubs
+    #generate_releases_stub_test ${root} > releases.yml
     generate_releases_stub ${root} > releases.yml
     generate_stemcell_stub > stemcells.yml
     generate_job_templates_stub > job_templates.yml
