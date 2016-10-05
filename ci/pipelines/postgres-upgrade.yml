@@ -132,18 +132,16 @@ jobs:
       passed: [check-db-upg1]
       trigger: true
   - task: delete-diego-deployment
-    file: postgres-release/ci/scripts/run-bosh-command/task.yml
+    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
       DEPLOYMENT_NAME: {{upg1_diego_deployment}}
-      COMMAND: delete deployment {{upg1_diego_deployment}}
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
   - task: delete-cf-deployment
-    file: postgres-release/ci/scripts/run-bosh-command/task.yml
+    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
       DEPLOYMENT_NAME: {{upg1_cf_deployment}}
-      COMMAND: delete deployment {{upg1_cf_deployment}}
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
