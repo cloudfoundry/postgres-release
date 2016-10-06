@@ -51,6 +51,10 @@ common_data:
   default_env:
     bosh:
       password: ~
+  diego_version: ${OLD_DIEGO_RELEASE}
+  garden_version: ${OLD_GARDEN_RELEASE}
+  etcd_version: ${OLD_ETCD_RELEASE}
+  cf_version: ${OLD_CF_RELEASE}
 EOF
 }
 
