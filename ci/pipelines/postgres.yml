@@ -76,7 +76,7 @@ resources:
 
 jobs:
 - name: deploy-with-cf
-  serial_groups: [cf]
+  serial_groups: [cf,deploy]
   plan:
   - aggregate:
     - get: cf-release
@@ -95,7 +95,7 @@ jobs:
       API_PASSWORD: {{api_password}}
 
 - name: deploy-with-diego
-  serial_groups: [cf]
+  serial_groups: [cf,deploy]
   plan:
   - aggregate:
     - get: postgres-ci-env
@@ -132,7 +132,7 @@ jobs:
         DEPLOYMENT_NAME: {{cf_deployment}}
 
 - name: delete-deployments
-  serial_groups: [cf]
+  serial_groups: [cf,deploy]
   plan:
   - aggregate:
     - get: postgres-release
@@ -161,7 +161,7 @@ jobs:
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
 
 - name: deploy-with-cf-upg1
-  serial_groups: [postgres-upgrade]
+  serial_groups: [postgres-upgrade,deploy]
   plan:
   - aggregate:
     - get: postgres-release
@@ -181,7 +181,7 @@ jobs:
       API_PASSWORD: {{upg1_api_password}}
 
 - name: deploy-with-diego-upg1
-  serial_groups: [postgres-upgrade]
+  serial_groups: [postgres-upgrade,deploy]
   plan:
   - aggregate:
     - get: postgres-release
@@ -220,7 +220,7 @@ jobs:
       API_PASSWORD: {{upg1_api_password}}
 
 - name: upgrade-cf-upg1
-  serial_groups: [postgres-upgrade]
+  serial_groups: [postgres-upgrade,deploy]
   plan:
   - aggregate:
     - get: cf-release
@@ -256,7 +256,7 @@ jobs:
       API_PASSWORD: {{upg1_api_password}}
 
 - name: delete-deployments-upg1
-  serial_groups: [postgres-upgrade]
+  serial_groups: [postgres-upgrade,deploy]
   plan:
   - aggregate:
     - get: postgres-release
@@ -285,7 +285,7 @@ jobs:
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
 
 - name: deploy-with-cf-upg2
-  serial_groups: [postgres-upgrade2]
+  serial_groups: [postgres-upgrade2,deploy]
   plan:
   - aggregate:
     - get: postgres-release
@@ -305,7 +305,7 @@ jobs:
       API_PASSWORD: {{upg2_api_password}}
 
 - name: deploy-with-diego-upg2
-  serial_groups: [postgres-upgrade2]
+  serial_groups: [postgres-upgrade2,deploy]
   plan:
   - aggregate:
     - get: postgres-release
@@ -344,7 +344,7 @@ jobs:
       API_PASSWORD: {{upg2_api_password}}
 
 - name: upgrade-cf-upg2
-  serial_groups: [postgres-upgrade2]
+  serial_groups: [postgres-upgrade2,deploy]
   plan:
   - aggregate:
     - get: cf-release
@@ -379,7 +379,7 @@ jobs:
       API_PASSWORD: {{upg2_api_password}}
 
 - name: delete-deployments-upg2
-  serial_groups: [postgres-upgrade2]
+  serial_groups: [postgres-upgrade2,deploy]
   plan:
   - aggregate:
     - get: postgres-release
