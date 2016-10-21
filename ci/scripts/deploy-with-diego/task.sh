@@ -44,6 +44,10 @@ function deploy_diego() {
     "${root}/env.yml" \
     "${root}/postgres-ci-env/deployments/common/common.yml" > "${root}/iaas-settings.yml"
 
+  spiff merge \
+    "$root/postgres-ci-env/deployments/diego/sql_overrides.yml" \
+    "${root}/env.yml" > "${root}/sql_overrides.yml"
+
   pushd diego-release > /dev/null
     ./scripts/generate-deployment-manifest \
       -c $root/pgci_cf.yml \
@@ -51,6 +55,7 @@ function deploy_diego() {
       -p $root/property-overrides.yml \
       -n $root/postgres-ci-env/deployments/diego/instance-count-overrides.yml \
       -v $root/postgres-ci-env/deployments/diego/release-versions.yml \
+      -s $root/sql_overrides.yml \
       -g \
       > $root/pgci_diego.yml
 
