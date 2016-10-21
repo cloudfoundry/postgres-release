@@ -51,6 +51,7 @@ function deploy_diego() {
       -p $root/property-overrides.yml \
       -n $root/postgres-ci-env/deployments/diego/instance-count-overrides.yml \
       -v $root/postgres-ci-env/deployments/diego/release-versions.yml \
+      -g \
       > $root/pgci_diego.yml
 
   popd > /dev/null
@@ -70,7 +71,7 @@ function upload_release() {
 function main() {
   upload_release "cloudfoundry/cflinuxfs2-rootfs-release"
   upload_release "cloudfoundry/diego-release"
-  upload_release "cloudfoundry/garden-linux-release"
+  upload_release "cloudfoundry/garden-runc-release"
   upload_release "cloudfoundry-incubator/etcd-release"
 
   deploy_diego
