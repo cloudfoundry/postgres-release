@@ -4,7 +4,6 @@ platform: linux
 image: docker:///cfinfrastructure/deployment
 
 inputs:
-  - name: postgres-release
   - name: oss-s3-buckets-stack
   - name: release-repo
   - name: release-repo-master

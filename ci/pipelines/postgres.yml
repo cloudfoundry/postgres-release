@@ -411,13 +411,11 @@ jobs:
   serial_groups: [cf]
   plan:
   - aggregate:
-    - get: postgres-release
-      resource: postgres-release-develop
     - get: oss-s3-buckets-stack
       resource: oss-s3-buckets-stack
     - get: release-repo
       resource: postgres-release-develop
-      passed: [delete-deployments,delete-deployments-upg1,delete-deployments-upg2]
+      passed: [check-db-upg1,check-db-upg2, test-with-diego]
       trigger: true
     - get: release-repo-master
       resource: postgres-release-master

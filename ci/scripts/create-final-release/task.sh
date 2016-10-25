@@ -26,7 +26,7 @@ function configure_bucket() {
   release_name="${1}"
 
   set +x
-  ./postgres-release/ci/scripts/configure_final_release_bucket "${release_name}" ./oss-s3-buckets-stack ./release-repo/config
+  ./release-repo/ci/scripts/configure_final_release_bucket "${release_name}" ./oss-s3-buckets-stack ./release-repo/config
   set -x
 }
 
