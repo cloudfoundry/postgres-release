@@ -25,7 +25,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/cf-release.git
-    branch: develop
+    branch: release-candidate
 
 - name: postgres-release-develop
   type: git
@@ -420,7 +420,7 @@ jobs:
     - get: release-repo-master
       resource: postgres-release-master
   - task: create-final-release
-    file: postgres-release/ci/scripts/create-final-release/task.yml
+    file: release-repo/ci/scripts/create-final-release/task.yml
     params:
       RELEASE_NAME: postgres
   - put: postgres-release-master
