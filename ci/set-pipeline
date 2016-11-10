@@ -3,6 +3,7 @@
 # We generally assume that postgres-ci-env is cloned to ../postgres-ci-env
 
 SCRIPT_PATH=$(dirname $(realpath -s $0))
+pipeline="${1:-postgres}"
 
 function grab() {
   local key=${1:?"Missing key to grab"}
@@ -23,8 +24,8 @@ function set-pipeline(){
   fly \
       --target pgci \
     set-pipeline \
-      --pipeline=postgres \
-      --config="${SCRIPT_PATH}/pipelines/postgres.yml" \
+      --pipeline=$pipeline \
+      --config="${SCRIPT_PATH}/pipelines/$pipeline.yml" \
       --load-vars-from="${SCRIPT_PATH}/../../postgres-ci-env/pipeline_vars/postgres.yml"
 }
 
