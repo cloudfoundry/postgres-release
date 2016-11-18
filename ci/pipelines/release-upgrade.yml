@@ -2,9 +2,9 @@ groups:
 - name: release-upgrade
   jobs:
   - deploy-master-postgres
-#  - populate-db
+  - load-postgres-db
   - upgrade-master-postgres
-#  - check-db
+  - check-postgres-db
   - delete-deployment-master
   - cleanup-resources
 
@@ -44,6 +44,28 @@ jobs:
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
       PG_DEPLOYMENT: pgci-master
       PG_VERSION: master
+      PG_USER: {{pg_user}}
+      PG_PSW: {{pg_password}}
+      PG_PORT: 5524
+      PG_DB: {{pg_db}}
+
+- name: load-postgres-db
+  serial_groups: [master]
+  plan:
+  - aggregate:
+    - get: postgres-ci-env
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [deploy-master-postgres]
+      trigger: true
+  - task: load-postgres-db
+    file: postgres-release/ci/scripts/load-postgres-db/task.yml
+    params:
+      PG_USER: {{pg_user}}
+      PG_PSW: {{pg_password}}
+      PG_HOST: 0.postgres.default.pgci-master.microbosh
+      PG_PORT: 5524
+      PG_DB: {{pg_db}}
 
 - name: upgrade-master-postgres
   serial_groups: [deploy,master]
@@ -52,7 +74,7 @@ jobs:
     - get: postgres-ci-env
     - get: postgres-release
       resource: postgres-release-develop
-      passed: [deploy-master-postgres]
+      passed: [load-postgres-db]
       trigger: true
   - task: deploy-latest-postgres
     file: postgres-release/ci/scripts/deploy-postgres/task.yml
@@ -62,6 +84,28 @@ jobs:
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
       PG_DEPLOYMENT: pgci-master
       PG_VERSION: develop
+      PG_USER: {{pg_user}}
+      PG_PSW: {{pg_password}}
+      PG_PORT: 5524
+      PG_DB: {{pg_db}}
+
+- name: check-postgres-db
+  serial_groups: [master]
+  plan:
+  - aggregate:
+    - get: postgres-ci-env
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [upgrade-master-postgres]
+      trigger: true
+  - task: check-postgres-db
+    file: postgres-release/ci/scripts/check-postgres-db/task.yml
+    params:
+      PG_USER: {{pg_user}}
+      PG_PSW: {{pg_password}}
+      PG_HOST: 0.postgres.default.pgci-master.microbosh
+      PG_PORT: 5524
+      PG_DB: {{pg_db}}
 
 - name: delete-deployment-master
   serial_groups: [master,deploy]
@@ -69,7 +113,7 @@ jobs:
   - aggregate:
     - get: postgres-release
       resource: postgres-release-develop
-      passed: [upgrade-master-postgres]
+      passed: [check-postgres-db]
       trigger: true
   - task: delete-postgres-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml

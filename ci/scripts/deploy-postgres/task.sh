@@ -55,15 +55,24 @@ upload_stemcell() {
 }
 
 generate_env_stub() {
-local vm_prefix
-vm_prefix="${PG_DEPLOYMENT}-"
+  local vm_prefix
+  local hostname
+  vm_prefix="${PG_DEPLOYMENT}-"
+  hostname="0.postgres.default.${PG_DEPLOYMENT}.microbosh"
+  set +x
   cat <<EOF
 ---
 common_data:
   <<: (( merge ))
   VmNamePrefix: ${vm_prefix}
   env_name: ${PG_DEPLOYMENT}
+  pg_user: ${PG_USER}
+  pg_password: ${PG_PSW}
+  pg_db: ${PG_DB}
+  pg_port: ${PG_PORT}
+  pg_host: ${hostname}
 EOF
+  set -x
 }
 
 function main(){

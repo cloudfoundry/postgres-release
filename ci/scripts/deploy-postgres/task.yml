@@ -19,3 +19,7 @@ params:
   BOSH_PASSWORD:
   PG_DEPLOYMENT:
   PG_VERSION:
+  PG_USER:
+  PG_PSW:
+  PG_PORT:
+  PG_DB:
