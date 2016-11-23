@@ -1,36 +1,7 @@
 #!/bin/bash -exu
 
 function main() {
-  local pgversion
-  pgversion="postgres-9.4.9"
-
-  JOB_DIR=/var/vcap/jobs/postgres
-  PACKAGE_DIR="/var/vcap/packages/${pgversion}"
-  STORE_DIR=/var/vcap/store
-  DATA_DIR="${STORE_DIR}/${pgversion}"
-
-  DATA_DIR_PREVIOUS="${STORE_DIR}/postgres-previous"
-  DATA_DIR_OLD="${STORE_DIR}/postgres-unknown"
-
-  if [ -d "${STORE_DIR}/postgres-9.4.6" -a -f "${STORE_DIR}/postgres-9.4.6/postgresql.conf" ]; then
-    DATA_DIR_OLD="${STORE_DIR}/postgres-9.4.6"
-  fi
-
-  if [ -d "${STORE_DIR}/postgres-9.4.5" -a -f "${STORE_DIR}/postgres-9.4.5/postgresql.conf" ]; then
-    DATA_DIR_OLD="${STORE_DIR}/postgres-9.4.5"
-  fi
-
-  RUN_DIR=/var/vcap/sys/run/postgres
-  PIDFILE="${RUN_DIR}/postgres.pid"
-
-  HOST="0.0.0.0"
-  PORT="<%= p("databases.port") %>"
-
-  if [[ -n "${LD_LIBRARY_PATH:-}" ]]; then
-    LD_LIBRARY_PATH="${PACKAGE_DIR}/lib:${LD_LIBRARY_PATH}"
-  else
-    LD_LIBRARY_PATH="${PACKAGE_DIR}/lib"
-  fi
+  source /var/vcap/jobs/postgres/bin/pgconfig.sh
 
   if [ ! -d "${STORE_DIR}" ]; then
     echo "ERROR: storage directory doesn't exist"

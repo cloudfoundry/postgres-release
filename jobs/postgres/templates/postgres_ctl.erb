@@ -7,34 +7,7 @@ function main() {
   local action
   action="${1}"
 
-  local pgversion
-  pgversion="postgres-9.4.9"
-
-  JOB_DIR=/var/vcap/jobs/postgres
-  PACKAGE_DIR="/var/vcap/packages/${pgversion}"
-  STORE_DIR=/var/vcap/store
-  DATA_DIR="${STORE_DIR}/${pgversion}"
-
-  PACKAGE_DIR_OLD=/var/vcap/packages/postgres-unknown
-  DATA_DIR_OLD="${STORE_DIR}/postgres-unknown"
-
-  if [[ -d "${STORE_DIR}/postgres-9.4.6" ]]; then
-    DATA_DIR_OLD="${STORE_DIR}/postgres-9.4.6"
-    PACKAGE_DIR_OLD=/var/vcap/packages/postgres-9.4.6
-  fi
-
-  if [[ -d "${STORE_DIR}/postgres-9.4.5" ]]; then
-    DATA_DIR_OLD="${STORE_DIR}/postgres-9.4.5"
-    PACKAGE_DIR_OLD=/var/vcap/packages/postgres-9.4.5
-  fi
-
-  RUN_DIR=/var/vcap/sys/run/postgres
-  LOG_DIR=/var/vcap/sys/log/postgres
-
-  # external_pid_file in postgresql.conf takes care of
-  # overwriting $PIDFILE with actual DB server pid
-  PIDFILE="${RUN_DIR}/postgres.pid"
-
+  source /var/vcap/jobs/postgres/bin/pgconfig.sh
   set +u
   source /var/vcap/packages/postgres-common/utils.sh
   set -u

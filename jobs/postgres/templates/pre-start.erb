@@ -1,14 +1,6 @@
 #!/bin/bash -exu
 
-pgversion="postgres-9.4.9"
-LOG_DIR=/var/vcap/sys/log/postgres
-STORE_DIR=/var/vcap/store
-DATA_DIR="${STORE_DIR}/${pgversion}"
-RUN_DIR=/var/vcap/sys/run/postgres
-JOB_DIR=/var/vcap/jobs/postgres
-PACKAGE_DIR="/var/vcap/packages/${pgversion}"
-DATA_DIR_PREVIOUS="${STORE_DIR}/postgres-previous"
-DATA_DIR_OLD="${STORE_DIR}/postgres-unknown"
+source /var/vcap/jobs/postgres/bin/pgconfig.sh
 
 function main() {
   if [[ -d "${STORE_DIR}/postgres-9.4.6" ]]; then
