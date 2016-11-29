@@ -62,11 +62,6 @@ function main() {
 
       ;;
 
-    "status")
-      su - vcap -c "${PACKAGE_DIR}/bin/pg_ctl status -D ${DATA_DIR}"
-
-      ;;
-
     *)
       echo "Usage: ${0} {start|stop|status}"
       exit 1
