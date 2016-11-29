@@ -10,6 +10,13 @@ function main() {
   fi
 
   if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
+    mkdir -p ${DATA_DIR_PREVIOUS}
+    chown -R vcap:vcap "${DATA_DIR_PREVIOUS}"
+    chmod 700 "${DATA_DIR_PREVIOUS}"
+    mkdir -p "${DATA_DIR}"
+    chown -R vcap:vcap "${DATA_DIR}"
+    chmod 700 "${DATA_DIR}"
+
     pushd "${DATA_DIR_PREVIOUS}" > /dev/null
       if [ -a "postgresql.conf" ]; then
         rm -r *

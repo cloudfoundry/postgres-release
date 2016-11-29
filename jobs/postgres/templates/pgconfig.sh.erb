@@ -1,23 +1,27 @@
 #!/bin/bash -ex
-pgversion="postgres-9.4.9"
+pgversion_current="postgres-9.4.9"
+pgversion_old="postgres-9.4.6"
+pgversion_older="postgres-9.4.5"
 
 JOB_DIR=/var/vcap/jobs/postgres
-PACKAGE_DIR="/var/vcap/packages/${pgversion}"
+PACKAGE_DIR="/var/vcap/packages/${pgversion_current}"
 STORE_DIR=/var/vcap/store
-DATA_DIR="${STORE_DIR}/${pgversion}"
+PG_STORE_DIR=${STORE_DIR}/postgres
 
-DATA_DIR_PREVIOUS="${STORE_DIR}/postgres-previous"
-DATA_DIR_OLD="${STORE_DIR}/postgres-unknown"
+DATA_DIR="${PG_STORE_DIR}/${pgversion_current}"
+
+DATA_DIR_PREVIOUS="${PG_STORE_DIR}/postgres-previous"
+DATA_DIR_OLD="${PG_STORE_DIR}/postgres-unknown"
 PACKAGE_DIR_OLD=/var/vcap/packages/postgres-unknown
 
-if [ -d "${STORE_DIR}/postgres-9.4.6" -a -f "${STORE_DIR}/postgres-9.4.6/postgresql.conf" ]; then
-  DATA_DIR_OLD="${STORE_DIR}/postgres-9.4.6"
-  PACKAGE_DIR_OLD=/var/vcap/packages/postgres-9.4.6
+if [ -d "${PG_STORE_DIR}/${pgversion_old}" -a -f "${PG_STORE_DIR}/${pgversion_old}/postgresql.conf" ]; then
+  DATA_DIR_OLD="${PG_STORE_DIR}/${pgversion_old}"
+  PACKAGE_DIR_OLD=/var/vcap/packages/${pgversion_old}
 fi
 
-if [ -d "${STORE_DIR}/postgres-9.4.5" -a -f "${STORE_DIR}/postgres-9.4.5/postgresql.conf" ]; then
-  DATA_DIR_OLD="${STORE_DIR}/postgres-9.4.5"
-  PACKAGE_DIR_OLD=/var/vcap/packages/postgres-9.4.5
+if [ -d "${PG_STORE_DIR}/${pgversion_older}" -a -f "${PG_STORE_DIR}/${pgversion_older}/postgresql.conf" ]; then
+  DATA_DIR_OLD="${PG_STORE_DIR}/${pgversion_older}"
+  PACKAGE_DIR_OLD=/var/vcap/packages/${pgversion_older}
 fi
 
 RUN_DIR=/var/vcap/sys/run/postgres
