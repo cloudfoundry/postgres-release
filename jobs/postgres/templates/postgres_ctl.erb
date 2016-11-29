@@ -40,6 +40,14 @@ function main() {
 
     "stop")
       echo "Stopping PostgreSQL: "
+      for dir in ${pgversion_older} ${pgversion_old} ${pgversion_current}; do
+        if [ -d "${STORE_DIR}/${dir}" -a -f "${STORE_DIR}/${dir}/postgresql.conf" ]; then
+          set +e
+           su - vcap -c "${PACKAGE_DIR_OLD}/bin/pg_ctl stop -m fast -w -D ${STORE_DIR}/${dir}"
+          set -e
+        fi
+      done
+
       if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
         set +e
          su - vcap -c "${PACKAGE_DIR_OLD}/bin/pg_ctl stop -m fast -w -D ${DATA_DIR_OLD}"

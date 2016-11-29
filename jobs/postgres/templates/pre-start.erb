@@ -1,37 +1,34 @@
 #!/bin/bash -exu
 
+set +u
+source /var/vcap/packages/postgres-common/utils.sh
+set -u
 source /var/vcap/jobs/postgres/bin/pgconfig.sh
 
 function main() {
-  if [[ -d "${STORE_DIR}/postgres-9.4.6" ]]; then
-    chown -R vcap:vcap "${STORE_DIR}/postgres-9.4.6"
-    chmod 700 "${STORE_DIR}/postgres-9.4.6"
-  fi
+  echo "Checking PostgreSQL is stopped"
+  check_pidfile "${PIDFILE}" 60
+  mkdir -p "${PG_STORE_DIR}"
+  chown -R vcap:vcap "${PG_STORE_DIR}"
+  chmod 700 "${PG_STORE_DIR}"
 
-  if [[ -d "${STORE_DIR}/postgres-9.4.5" ]]; then
-    chown -R vcap:vcap "${STORE_DIR}/postgres-9.4.5"
-    chmod 700 "${STORE_DIR}/postgres-9.4.5"
-  fi
+  for dir in ${pgversion_older} ${pgversion_old} ${pgversion_current} postgres-previous; do
+    if [[ -d "${STORE_DIR}/${dir}" ]]; then
+      if [[ -f "${STORE_DIR}/${dir}/postgresql.conf" ]]; then
+        mv "${STORE_DIR}/${dir}" "${PG_STORE_DIR}"
+        chown -R vcap:vcap "${PG_STORE_DIR}/${dir}"
+        chmod 700 "${PG_STORE_DIR}/${dir}"
+      else
+        rm -r ${STORE_DIR}/${dir}
+      fi
+    fi
+  done
 
   mkdir -p "${LOG_DIR}"
   chown -R vcap:vcap "${LOG_DIR}"
 
-  mkdir -p "${DATA_DIR}"
-  chown -R vcap:vcap "${DATA_DIR}"
-  chmod 700 "${DATA_DIR}"
-
-  mkdir -p "${DATA_DIR_PREVIOUS}"
-  chown -R vcap:vcap "${DATA_DIR_PREVIOUS}"
-  chmod 700 "${DATA_DIR_PREVIOUS}"
-
   mkdir -p "${RUN_DIR}"
   chown -R vcap:vcap "${RUN_DIR}"
-
-  mkdir -p "${JOB_DIR}"
-  chown -R vcap:vcap "${JOB_DIR}"
-
-  mkdir -p "${PACKAGE_DIR}"
-  chown -R vcap:vcap "${PACKAGE_DIR}"
 
   sysctl -w "kernel.shmmax=284934144"
 }
