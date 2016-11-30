@@ -31,7 +31,7 @@ generate_dev_release_stub() {
 releases:
 - name: postgres
   version: create
-  url: file://${build_dir}/postgres-release
+  url: file://${build_dir}
 EOF
 }
 
@@ -87,10 +87,9 @@ function main(){
   upload_stemcell
   pushd stubs
     if [ "${PG_VERSION}" == "master" ]; then
-      upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/postgres-release"
-      generate_uploaded_release_stub "latest" > releases.yml
+      generate_dev_release_stub ${root}/postgres-release-master > releases.yml
     elif [ "${PG_VERSION}" == "develop" ]; then
-      generate_dev_release_stub ${root} > releases.yml
+      generate_dev_release_stub ${root}/postgres-release > releases.yml
     else
       upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=${PG_VERSION}"
       generate_uploaded_release_stub ${PG_VERSION} > releases.yml

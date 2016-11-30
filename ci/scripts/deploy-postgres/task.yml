@@ -8,6 +8,7 @@ image_resource:
 
 inputs:
 - name: postgres-release
+- name: postgres-release-master
 - name: postgres-ci-env
 
 run:
