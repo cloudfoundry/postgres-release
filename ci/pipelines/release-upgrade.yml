@@ -26,6 +26,7 @@ jobs:
     - get: postgres-ci-env
     - get: postgres-release
       resource: postgres-release-develop
+      trigger: true
     - get: postgres-release-master
       resource: postgres-release-master
   - task: deploy-master-postgres
@@ -70,6 +71,7 @@ jobs:
     - get: postgres-ci-env
     - get: postgres-release
       passed: [test-upgrade-from-master]
+      trigger: true
       resource: postgres-release-develop
     - get: postgres-release-master
       resource: postgres-release-master
