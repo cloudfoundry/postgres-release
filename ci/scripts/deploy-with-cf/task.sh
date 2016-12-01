@@ -92,11 +92,7 @@ generate_env_stub() {
   vm_prefix="${CF_DEPLOYMENT}-"
   apps_domain="apps.${CF_DEPLOYMENT}.microbosh"
   cf1_domain="cf1.${CF_DEPLOYMENT}.microbosh"
-  if [ "$HAPROXY_DEPLOYMENT" != "none" ]; then
-    haproxy_instances=0
-  else
-    haproxy_instances=1
-  fi
+  haproxy_instances=1
   cat <<EOF
 ---
 common_data:
@@ -152,12 +148,6 @@ function main(){
   deploy \
     "${BOSH_DIRECTOR}" \
     "${root}/pgci_cf.yml"
-
-  if [ "$HAPROXY_DEPLOYMENT" != "none" ]; then
-    bosh -t $BOSH_DIRECTOR download manifest $HAPROXY_DEPLOYMENT ha_manifest.yml
-    bosh -t ${BOSH_DIRECTOR} -d ha_manifest.yml -n restart ha_proxy 0
-  fi
 }
-
 
 main "${PWD}"

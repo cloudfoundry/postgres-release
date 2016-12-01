@@ -89,7 +89,6 @@ jobs:
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
-      HAPROXY_DEPLOYMENT: pgci-ha
       CF_DEPLOYMENT: {{cf_deployment}}
       API_USER: {{api_user}}
       API_PASSWORD: {{api_password}}
@@ -235,7 +234,6 @@ jobs:
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
-      HAPROXY_DEPLOYMENT: none
       CF_DEPLOYMENT: {{upg1_cf_deployment}}
       API_USER: {{upg1_api_user}}
       API_PASSWORD: {{upg1_api_password}}
@@ -359,7 +357,6 @@ jobs:
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
-      HAPROXY_DEPLOYMENT: none
       CF_DEPLOYMENT: {{upg2_cf_deployment}}
       API_USER: {{upg2_api_user}}
       API_PASSWORD: {{upg2_api_password}}
