@@ -1,0 +1,280 @@
+resources:
+- name: cf-release
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-release.git
+    branch: release-candidate
+
+- name: postgres-release-develop
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/postgres-release.git
+    branch: develop
+
+- name: postgres-ci-env
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/postgres-ci-env
+    branch: master
+    private_key: {{postgres_ci_env_private_key}}
+
+- name: diego-release-master
+  type: git
+  source:
+    branch: master
+    ignore_paths: [.final_builds, releases]
+    uri: https://github.com/cloudfoundry/diego-release.git
+
+- name: oss-s3-buckets-stack
+  type: git
+  source:
+    branch: master
+    private_key: {{oss-s3-buckets-stack-private-key}}
+    uri: git@github.com:cloudfoundry/oss-s3-buckets-stack.git
+
+- name: postgres-release-master
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/postgres-release.git
+    branch: master
+    private_key: {{postgres-release-private-key}}
+
+- name: postgres-release-merge-target
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/postgres-release.git
+    branch: develop
+    private_key: {{postgres-release-private-key}}
+
+- name: cf-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
+    branch: master
+
+jobs:
+- name: upload-stemcells-releases
+  serial_groups: [cf-fresh,cf-upgrade,cf-upgrade2,deploy]
+  plan:
+  - aggregate:
+    - get: cf-release
+    - get: postgres-release
+      resource: postgres-release-develop
+  - task: upload-stemcell
+    file: postgres-release/ci/scripts/upload-stemcell/task.yml
+    params: &base_params
+      BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
+      BOSH_USER: {{postgres_cf_bosh_user}}
+      BOSH_PASSWORD: {{postgres_cf_bosh_password}}
+  - task: upload-postgres-dev-release
+    file: postgres-release/ci/scripts/upload-dev-release/task.yml
+    input_mapping: {dev-release: postgres-release}
+    params:
+      <<: *base_params
+      REL_NAME: postgres
+      REL_VERSION: v999+dev.1
+  - task: upload-cf-dev-release
+    file: postgres-release/ci/scripts/upload-dev-release/task.yml
+    input_mapping: {dev-release: cf-release}
+    params:
+      <<: *base_params
+      REL_NAME: cf
+      REL_VERSION: v999+dev.1
+
+- name: deploy-fresh-env
+  serial_groups: [cf-fresh,deploy]
+  plan:
+  - aggregate:
+    - get: cf-release
+      passed: [upload-stemcells-releases]
+    - get: postgres-ci-env
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [upload-stemcells-releases]
+      trigger: true
+    - get: diego-release
+      resource: diego-release-master
+  - task: deploy-with-cf
+    file: postgres-release/ci/scripts/deploy-with-cf/task.yml
+    params: &base_params_fresh
+      <<: *base_params
+      CF_DEPLOYMENT: {{cf_deployment}}
+      API_USER: {{api_user}}
+      API_PASSWORD: {{api_password}}
+      REL_VERSION: v999+dev.1
+  - task: deploy-with-diego
+    file: postgres-release/ci/scripts/deploy-with-diego/task.yml
+    params:
+      <<: *base_params_fresh
+
+- name: test-with-diego
+  serial_groups: [cf-fresh]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [deploy-fresh-env]
+      trigger: true
+  - task: test-with-diego
+    file: postgres-release/ci/scripts/test-with-diego/task.yml
+    params:
+      <<: *base_params
+      DEPLOYMENT_NAME: {{cf_deployment}}
+
+- name: delete-deployments-fresh
+  serial_groups: [cf-fresh,deploy]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [test-with-diego]
+      trigger: true
+  - task: delete-diego-deployment
+    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
+    params:
+      <<: *base_params
+      DEPLOYMENT_NAME: pgci-cf-diego
+  - task: delete-cf-deployment
+    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
+    params:
+      <<: *base_params
+      DEPLOYMENT_NAME: {{cf_deployment}}
+
+- name: test-upgrade-from-old
+  serial_groups: [cf-old,deploy]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [upload-stemcells-releases]
+      trigger: true
+    - get: postgres-ci-env
+    - get: cf-acceptance-tests
+    - get: cf-release
+      passed: [upload-stemcells-releases]
+  - task: deploy-with-cf-old
+    file: postgres-release/ci/scripts/deploy-with-cf-old/task.yml
+    params: &base_params_old
+      <<: *base_params
+      OLD_CF_RELEASE: 231
+      CF_DEPLOYMENT: {{upg1_cf_deployment}}
+      API_USER: {{upg1_api_user}}
+      API_PASSWORD: {{upg1_api_password}}
+  - task: deploy-with-diego-old
+    file: postgres-release/ci/scripts/deploy-with-diego-old/task.yml
+    params:
+      <<: *base_params_old
+      OLD_CF_RELEASE: 231
+      OLD_DIEGO_RELEASE: 0.1454.0
+      OLD_GARDEN_RELEASE: 0.333.0
+      OLD_ETCD_RELEASE: 36
+      OLD_STEMCELL: 3262.4
+      DIEGO_DEPLOYMENT: {{upg1_diego_deployment}}
+  - task: populate-db
+    file: postgres-release/ci/scripts/populate-db/task.yml
+    params:
+      <<: *base_params_old
+  - task: deploy-with-cf
+    file: postgres-release/ci/scripts/deploy-with-cf/task.yml
+    params:
+      <<: *base_params_old
+      REL_VERSION: v999+dev.1
+  - task: check-db
+    file: postgres-release/ci/scripts/check-db/task.yml
+    params:
+      <<: *base_params_old
+
+- name: delete-deployments-old
+  serial_groups: [cf-old,deploy]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [test-upgrade-from-old]
+      trigger: true
+  - task: delete-diego-deployment
+    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
+    params:
+      <<: *base_params
+      DEPLOYMENT_NAME: {{upg1_diego_deployment}}
+  - task: delete-cf-deployment
+    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
+    params:
+      <<: *base_params
+      DEPLOYMENT_NAME: {{upg1_cf_deployment}}
+
+- name: test-upgrade-from-older
+  serial_groups: [cf-older,deploy]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [upload-stemcells-releases]
+      trigger: true
+    - get: postgres-ci-env
+    - get: cf-acceptance-tests
+    - get: cf-release
+      passed: [upload-stemcells-releases]
+  - task: deploy-with-cf-old
+    file: postgres-release/ci/scripts/deploy-with-cf-old/task.yml
+    params: &base_params_older
+      <<: *base_params
+      OLD_CF_RELEASE: 233
+      CF_DEPLOYMENT: {{upg2_cf_deployment}}
+      API_USER: {{upg2_api_user}}
+      API_PASSWORD: {{upg2_api_password}}
+  - task: deploy-with-diego-old
+    file: postgres-release/ci/scripts/deploy-with-diego-old/task.yml
+    params:
+      <<: *base_params_older
+      OLD_CF_RELEASE: 233
+      OLD_DIEGO_RELEASE: 0.1460.0
+      OLD_GARDEN_RELEASE: 0.334.0
+      OLD_ETCD_RELEASE: 38
+      OLD_STEMCELL: 3262.4
+      DIEGO_DEPLOYMENT: {{upg2_diego_deployment}}
+  - task: populate-db
+    file: postgres-release/ci/scripts/populate-db/task.yml
+    params:
+      <<: *base_params_older
+  - task: deploy-with-cf
+    file: postgres-release/ci/scripts/deploy-with-cf/task.yml
+    params:
+      <<: *base_params_older
+      REL_VERSION: v999+dev.1
+  - task: check-db
+    file: postgres-release/ci/scripts/check-db/task.yml
+    params:
+      <<: *base_params_older
+
+- name: delete-deployments-older
+  serial_groups: [cf-older,deploy]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [test-upgrade-from-older]
+      trigger: true
+  - task: delete-diego-deployment
+    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
+    params:
+      <<: *base_params
+      DEPLOYMENT_NAME: {{upg2_diego_deployment}}
+  - task: delete-cf-deployment
+    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
+    params:
+      <<: *base_params
+      DEPLOYMENT_NAME: {{upg2_cf_deployment}}
+
+- name: cleanup-releases
+  serial_groups: [deploy,cf-fresh,cf-old,cf-older]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+      passed: [delete-deployments-fresh,delete-deployments-old,delete-deployments-older]
+      trigger: true
+  - task: cleanup-releases
+    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
+    params:
+      <<: *base_params

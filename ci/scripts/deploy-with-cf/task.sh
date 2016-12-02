@@ -30,26 +30,9 @@ generate_releases_stub() {
 ---
 releases:
 - name: cf
-  version: create
-  url: file://${build_dir}/cf-release
+  version: ${REL_VERSION}
 - name: postgres
-  version: create
-  url: file://${build_dir}/postgres-release
-EOF
-}
-
-generate_releases_stub_test() {
-  local build_dir
-  build_dir="${1}"
-
-  cat <<EOF
----
-releases:
-- name: cf
-  version: latest
-- name: postgres
-  version: create
-  url: file://${build_dir}/postgres-release
+  version: ${REL_VERSION}
 EOF
 }
 
@@ -121,7 +104,6 @@ function main(){
 
   #upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/cf-release"
   pushd stubs
-    #generate_releases_stub_test ${root} > releases.yml
     generate_releases_stub ${root} > releases.yml
     generate_stemcell_stub > stemcells.yml
     generate_job_templates_stub > job_templates.yml

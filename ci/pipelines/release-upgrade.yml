@@ -75,7 +75,7 @@ jobs:
       resource: postgres-release-develop
     - get: postgres-release-master
       resource: postgres-release-master
-  - task: deploy-master-postgres
+  - task: deploy-old-postgres
     file: postgres-release/ci/scripts/deploy-postgres/task.yml
     params: &old_params
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
