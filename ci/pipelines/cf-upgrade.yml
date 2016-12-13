@@ -54,7 +54,7 @@ resources:
 
 jobs:
 - name: upload-stemcells-releases
-  serial_groups: [cf-fresh,cf-upgrade,cf-upgrade2,deploy]
+  serial_groups: [cf-fresh,cf-old,cf-older,deploy]
   plan:
   - aggregate:
     - get: cf-release
@@ -98,9 +98,9 @@ jobs:
     file: postgres-release/ci/scripts/deploy-with-cf/task.yml
     params: &base_params_fresh
       <<: *base_params
-      CF_DEPLOYMENT: {{cf_deployment}}
-      API_USER: {{api_user}}
-      API_PASSWORD: {{api_password}}
+      CF_DEPLOYMENT: {{fresh_cf_deployment}}
+      API_USER: {{cf_api_user}}
+      API_PASSWORD: {{cf_api_password}}
       REL_VERSION: v999+dev.1
   - task: deploy-with-diego
     file: postgres-release/ci/scripts/deploy-with-diego/task.yml
@@ -119,7 +119,7 @@ jobs:
     file: postgres-release/ci/scripts/test-with-diego/task.yml
     params:
       <<: *base_params
-      DEPLOYMENT_NAME: {{cf_deployment}}
+      DEPLOYMENT_NAME: {{fresh_cf_deployment}}
 
 - name: delete-deployments-fresh
   serial_groups: [cf-fresh,deploy]
@@ -133,12 +133,12 @@ jobs:
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
       <<: *base_params
-      DEPLOYMENT_NAME: pgci-cf-diego
+      DEPLOYMENT_NAME: {{fresh_diego_deployment}}
   - task: delete-cf-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
       <<: *base_params
-      DEPLOYMENT_NAME: {{cf_deployment}}
+      DEPLOYMENT_NAME: {{fresh_cf_deployment}}
 
 - name: test-upgrade-from-old
   serial_groups: [cf-old,deploy]
@@ -156,20 +156,20 @@ jobs:
     file: postgres-release/ci/scripts/deploy-with-cf-old/task.yml
     params: &base_params_old
       <<: *base_params
-      OLD_CF_RELEASE: 231
-      CF_DEPLOYMENT: {{upg1_cf_deployment}}
-      API_USER: {{upg1_api_user}}
-      API_PASSWORD: {{upg1_api_password}}
+      OLD_CF_RELEASE: {{old_cf_version}}
+      CF_DEPLOYMENT: {{old_cf_deployment}}
+      API_USER: {{cf_api_user}}
+      API_PASSWORD: {{cf_api_password}}
   - task: deploy-with-diego-old
     file: postgres-release/ci/scripts/deploy-with-diego-old/task.yml
     params:
       <<: *base_params_old
-      OLD_CF_RELEASE: 231
-      OLD_DIEGO_RELEASE: 0.1454.0
-      OLD_GARDEN_RELEASE: 0.333.0
-      OLD_ETCD_RELEASE: 36
+      OLD_CF_RELEASE: {{old_cf_version}}
+      OLD_DIEGO_RELEASE: {{old_diego_version}}
+      OLD_GARDEN_RELEASE: {{old_garden_version}}
+      OLD_ETCD_RELEASE: {{old_etcd_version}}
       OLD_STEMCELL: 3262.4
-      DIEGO_DEPLOYMENT: {{upg1_diego_deployment}}
+      DIEGO_DEPLOYMENT: {{old_diego_deployment}}
   - task: populate-db
     file: postgres-release/ci/scripts/populate-db/task.yml
     params:
@@ -196,12 +196,12 @@ jobs:
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
       <<: *base_params
-      DEPLOYMENT_NAME: {{upg1_diego_deployment}}
+      DEPLOYMENT_NAME: {{old_diego_deployment}}
   - task: delete-cf-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
       <<: *base_params
-      DEPLOYMENT_NAME: {{upg1_cf_deployment}}
+      DEPLOYMENT_NAME: {{old_cf_deployment}}
 
 - name: test-upgrade-from-older
   serial_groups: [cf-older,deploy]
@@ -219,20 +219,20 @@ jobs:
     file: postgres-release/ci/scripts/deploy-with-cf-old/task.yml
     params: &base_params_older
       <<: *base_params
-      OLD_CF_RELEASE: 233
-      CF_DEPLOYMENT: {{upg2_cf_deployment}}
-      API_USER: {{upg2_api_user}}
-      API_PASSWORD: {{upg2_api_password}}
+      OLD_CF_RELEASE: {{older_cf_version}}
+      CF_DEPLOYMENT: {{older_cf_deployment}}
+      API_USER: {{cf_api_user}}
+      API_PASSWORD: {{cf_api_password}}
   - task: deploy-with-diego-old
     file: postgres-release/ci/scripts/deploy-with-diego-old/task.yml
     params:
       <<: *base_params_older
-      OLD_CF_RELEASE: 233
-      OLD_DIEGO_RELEASE: 0.1460.0
-      OLD_GARDEN_RELEASE: 0.334.0
-      OLD_ETCD_RELEASE: 38
+      OLD_CF_RELEASE: {{older_cf_version}}
+      OLD_DIEGO_RELEASE: {{older_diego_version}}
+      OLD_GARDEN_RELEASE: {{older_garden_version}}
+      OLD_ETCD_RELEASE: {{older_etcd_version}}
       OLD_STEMCELL: 3262.4
-      DIEGO_DEPLOYMENT: {{upg2_diego_deployment}}
+      DIEGO_DEPLOYMENT: {{older_diego_deployment}}
   - task: populate-db
     file: postgres-release/ci/scripts/populate-db/task.yml
     params:
@@ -259,12 +259,12 @@ jobs:
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
       <<: *base_params
-      DEPLOYMENT_NAME: {{upg2_diego_deployment}}
+      DEPLOYMENT_NAME: {{older_diego_deployment}}
   - task: delete-cf-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
       <<: *base_params
-      DEPLOYMENT_NAME: {{upg2_cf_deployment}}
+      DEPLOYMENT_NAME: {{older_cf_deployment}}
 
 - name: cleanup-releases
   serial_groups: [deploy,cf-fresh,cf-old,cf-older]
@@ -278,3 +278,42 @@ jobs:
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
     params:
       <<: *base_params
+
+- name: create-final-release
+  serial_groups: [cf-fresh,cf-old,cf-older]
+  plan:
+  - aggregate:
+    - get: oss-s3-buckets-stack
+      resource: oss-s3-buckets-stack
+    - get: release-repo
+      resource: postgres-release-develop
+      passed: [test-upgrade-from-old,test-upgrade-from-older,test-with-diego]
+      trigger: true
+    - get: release-repo-master
+      resource: postgres-release-master
+  - task: create-final-release
+    file: release-repo/ci/scripts/create-final-release/task.yml
+    params:
+      RELEASE_NAME: postgres
+  - put: postgres-release-master
+    params:
+      repository: final-release-repo
+      tag: final-release-repo/version_number
+      tag_prefix: v
+
+- name: merge-master-into-develop
+  serial_groups: [cf-fresh]
+  plan:
+  - aggregate:
+    - get: postgres-release
+      resource: postgres-release-develop
+    - get: release-repo-master
+      resource: postgres-release-master
+      trigger: true
+    - get: release-repo
+      resource: postgres-release-merge-target
+  - task: merge-master-into-develop
+    file: postgres-release/ci/scripts/merge-master-into-develop/task.yml
+  - put: postgres-release-merge-target
+    params:
+      repository: final-release-repo

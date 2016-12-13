@@ -17,7 +17,7 @@ function main(){
   set -x
 
   pushd ${root}/dev-release
-  git submodule update --init --recursive
+  #git submodule update --init --recursive
   bosh -t ${BOSH_DIRECTOR} create release --force --version "${REL_VERSION}" --name "${REL_NAME}"
   bosh -t ${BOSH_DIRECTOR} upload release --version "${REL_VERSION}" --name "${REL_NAME}"
   popd
