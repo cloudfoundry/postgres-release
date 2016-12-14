@@ -5,6 +5,8 @@ meta:
 
 director_uuid: <%= %x[bosh status --uuid] %>
 
+name: postgres-lite
+
 jobs:
 - name: postgres
   networks:
