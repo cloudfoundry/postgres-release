@@ -35,7 +35,7 @@ jobs:
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
-      PG_DEPLOYMENT: pgci-master
+      PG_DEPLOYMENT: {{master_pg_deployment}}
       PG_VERSION: master
       PG_USER: {{pg_user}}
       PG_PSW: {{pg_password}}
@@ -59,7 +59,7 @@ jobs:
   - task: delete-postgres-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      DEPLOYMENT_NAME: pgci-master
+      DEPLOYMENT_NAME: {{master_pg_deployment}}
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
@@ -75,13 +75,13 @@ jobs:
       resource: postgres-release-develop
     - get: postgres-release-master
       resource: postgres-release-master
-  - task: deploy-master-postgres
+  - task: deploy-old-postgres
     file: postgres-release/ci/scripts/deploy-postgres/task.yml
     params: &old_params
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}
-      PG_DEPLOYMENT: pgci-old
+      PG_DEPLOYMENT: {{old_pg_deployment}}
       PG_VERSION: 1
       PG_USER: {{pg_user}}
       PG_PSW: {{pg_password}}
@@ -105,7 +105,7 @@ jobs:
   - task: delete-postgres-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      DEPLOYMENT_NAME: pgci-old
+      DEPLOYMENT_NAME: {{old_pg_deployment}}
       BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
       BOSH_USER: {{postgres_cf_bosh_user}}
       BOSH_PASSWORD: {{postgres_cf_bosh_password}}

@@ -8,18 +8,15 @@ image_resource:
     repository: cfinfrastructure/deployment
 
 inputs:
-- name: cf-release
 - name: postgres-release
-- name: postgres-ci-env
+- name: dev-release
 
 run:
-  path: postgres-release/ci/scripts/deploy-with-cf/task.sh
+  path: postgres-release/ci/scripts/upload-dev-release/task.sh
 
 params:
   BOSH_DIRECTOR:
   BOSH_USER:
   BOSH_PASSWORD:
-  CF_DEPLOYMENT:
-  API_USER:
-  API_PASSWORD:
+  REL_NAME:
   REL_VERSION:
