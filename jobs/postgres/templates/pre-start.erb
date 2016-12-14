@@ -7,7 +7,7 @@ source /var/vcap/jobs/postgres/bin/pgconfig.sh
 
 function main() {
   echo "Checking PostgreSQL is stopped"
-  check_pidfile "${PIDFILE}" 60
+  check_pidfile "${PIDFILE}" 30
   mkdir -p "${PG_STORE_DIR}"
   chown -R vcap:vcap "${PG_STORE_DIR}"
   chmod 700 "${PG_STORE_DIR}"
