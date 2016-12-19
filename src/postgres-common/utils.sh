@@ -87,9 +87,7 @@ check_pidfile() {
 
     if [ -z "$pid" ]; then
       echo "Unable to get pid from $pidfile"
-    fi
-
-    if [ -e /proc/$pid ]; then
+    elif [ -e /proc/$pid ]; then
       while [ -e /proc/$pid ]; do
         sleep 1
         [ "$countdown" != '0' -a $(( $countdown % 10 )) = '0' ] && echo -n .
