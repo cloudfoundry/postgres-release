@@ -20,7 +20,6 @@ resources:
 
 jobs:
 - name: test-upgrade-from-master
-  serial_groups: [deploy]
   plan:
   - aggregate:
     - get: postgres-ci-env
@@ -62,9 +61,12 @@ jobs:
     params:
       <<: *master_params
       DEPLOYMENT_NAME: {{master_pg_deployment}}
+  - task: cleanup-releases-master
+    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
+    params:
+      <<: *master_params
 
 - name: test-upgrade-from-old
-  serial_groups: [deploy]
   plan:
   - aggregate:
     - get: postgres-ci-env
@@ -107,18 +109,6 @@ jobs:
     params:
       <<: *old_params
       DEPLOYMENT_NAME: {{old_pg_deployment}}
-
-- name: cleanup-resources
-  plan:
-  - aggregate:
-    - get: postgres-release
-      resource: postgres-release-develop
-      passed: [test-upgrade-from-old]
-      trigger: true
-  - task: cleanup-releases-master
-    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
-    params:
-      <<: *master_params
   - task: cleanup-releases-old
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
     params:
