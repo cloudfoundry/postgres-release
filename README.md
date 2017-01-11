@@ -17,6 +17,9 @@ In order to deploy the postgres-release you must follow the standard steps for d
 1. Install and target a bosh director.
    Please refer to [bosh documentation](http://bosh.io/docs) for instructions on how to do that.
    Bosh-lite specific instructions can be found [here](https://github.com/cloudfoundry/bosh-lite).
+   
+1. Install spiff on your dev machine
+   Please refer to https://github.com/cloudfoundry-incubator/spiff/releases/
 
 1. Upload the desired stemcell directly to bosh. [bosh.io](http://bosh.io/stemcells) provides a resource to find and download stemcells.
    For bosh-lite:
