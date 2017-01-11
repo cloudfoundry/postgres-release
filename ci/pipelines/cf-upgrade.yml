@@ -54,35 +54,78 @@ resources:
 
 jobs:
 - name: upload-stemcells-releases
-  serial_groups: [cf-fresh,cf-old,cf-older,deploy]
+  serial_groups: [cf-fresh,cf-old,cf-older]
   plan:
   - aggregate:
     - get: cf-release
     - get: postgres-release
       resource: postgres-release-develop
-  - task: upload-stemcell
+  - task: upload-stemcell-fresh
     file: postgres-release/ci/scripts/upload-stemcell/task.yml
-    params: &base_params
-      BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
-      BOSH_USER: {{postgres_cf_bosh_user}}
-      BOSH_PASSWORD: {{postgres_cf_bosh_password}}
-  - task: upload-postgres-dev-release
+    params: &bosh_params_fresh
+      BOSH_DIRECTOR: {{fresh_bosh_director}}
+      BOSH_USER: {{fresh_bosh_user}}
+      BOSH_PASSWORD: {{fresh_bosh_password}}
+      BOSH_PUBLIC_IP: {{fresh_bosh_public_ip}}
+  - task: upload-postgres-dev-release-fresh
     file: postgres-release/ci/scripts/upload-dev-release/task.yml
     input_mapping: {dev-release: postgres-release}
     params:
-      <<: *base_params
+      <<: *bosh_params_fresh
       REL_NAME: postgres
       REL_VERSION: v999+dev.1
-  - task: upload-cf-dev-release
+  - task: upload-cf-dev-release-fresh
     file: postgres-release/ci/scripts/upload-dev-release/task.yml
     input_mapping: {dev-release: cf-release}
     params:
-      <<: *base_params
+      <<: *bosh_params_fresh
+      REL_NAME: cf
+      REL_VERSION: v999+dev.1
+  - task: upload-stemcell-old
+    file: postgres-release/ci/scripts/upload-stemcell/task.yml
+    params: &bosh_params_old
+      BOSH_DIRECTOR: {{old_bosh_director}}
+      BOSH_USER: {{old_bosh_user}}
+      BOSH_PASSWORD: {{old_bosh_password}}
+      BOSH_PUBLIC_IP: {{old_bosh_public_ip}}
+  - task: upload-postgres-dev-release-old
+    file: postgres-release/ci/scripts/upload-dev-release/task.yml
+    input_mapping: {dev-release: postgres-release}
+    params:
+      <<: *bosh_params_old
+      REL_NAME: postgres
+      REL_VERSION: v999+dev.1
+  - task: upload-cf-dev-release-old
+    file: postgres-release/ci/scripts/upload-dev-release/task.yml
+    input_mapping: {dev-release: cf-release}
+    params:
+      <<: *bosh_params_old
+      REL_NAME: cf
+      REL_VERSION: v999+dev.1
+  - task: upload-stemcell-older
+    file: postgres-release/ci/scripts/upload-stemcell/task.yml
+    params: &bosh_params_older
+      BOSH_DIRECTOR: {{older_bosh_director}}
+      BOSH_USER: {{older_bosh_user}}
+      BOSH_PASSWORD: {{older_bosh_password}}
+      BOSH_PUBLIC_IP: {{older_bosh_public_ip}}
+  - task: upload-postgres-dev-release-older
+    file: postgres-release/ci/scripts/upload-dev-release/task.yml
+    input_mapping: {dev-release: postgres-release}
+    params:
+      <<: *bosh_params_older
+      REL_NAME: postgres
+      REL_VERSION: v999+dev.1
+  - task: upload-cf-dev-release-older
+    file: postgres-release/ci/scripts/upload-dev-release/task.yml
+    input_mapping: {dev-release: cf-release}
+    params:
+      <<: *bosh_params_older
       REL_NAME: cf
       REL_VERSION: v999+dev.1
 
-- name: deploy-fresh-env
-  serial_groups: [cf-fresh,deploy]
+- name: test-fresh-deployment
+  serial_groups: [cf-fresh]
   plan:
   - aggregate:
     - get: cf-release
@@ -97,7 +140,7 @@ jobs:
   - task: deploy-with-cf
     file: postgres-release/ci/scripts/deploy-with-cf/task.yml
     params: &base_params_fresh
-      <<: *base_params
+      <<: *bosh_params_fresh
       CF_DEPLOYMENT: {{fresh_cf_deployment}}
       API_USER: {{cf_api_user}}
       API_PASSWORD: {{cf_api_password}}
@@ -106,42 +149,33 @@ jobs:
     file: postgres-release/ci/scripts/deploy-with-diego/task.yml
     params:
       <<: *base_params_fresh
+  - task: test-with-diego
+    file: postgres-release/ci/scripts/test-with-diego/task.yml
+    params:
+      <<: *bosh_params_fresh
+      DEPLOYMENT_NAME: {{fresh_cf_deployment}}
 
-- name: test-with-diego
+- name: delete-deployments-fresh
   serial_groups: [cf-fresh]
   plan:
   - aggregate:
     - get: postgres-release
       resource: postgres-release-develop
-      passed: [deploy-fresh-env]
-      trigger: true
-  - task: test-with-diego
-    file: postgres-release/ci/scripts/test-with-diego/task.yml
-    params:
-      <<: *base_params
-      DEPLOYMENT_NAME: {{fresh_cf_deployment}}
-
-- name: delete-deployments-fresh
-  serial_groups: [cf-fresh,deploy]
-  plan:
-  - aggregate:
-    - get: postgres-release
-      resource: postgres-release-develop
-      passed: [test-with-diego]
+      passed: [test-fresh-deployment]
       trigger: true
   - task: delete-diego-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *bosh_params_fresh
       DEPLOYMENT_NAME: {{fresh_diego_deployment}}
   - task: delete-cf-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *bosh_params_fresh
       DEPLOYMENT_NAME: {{fresh_cf_deployment}}
 
 - name: test-upgrade-from-old
-  serial_groups: [cf-old,deploy]
+  serial_groups: [cf-old]
   plan:
   - aggregate:
     - get: postgres-release
@@ -155,7 +189,7 @@ jobs:
   - task: deploy-with-cf-old
     file: postgres-release/ci/scripts/deploy-with-cf-old/task.yml
     params: &base_params_old
-      <<: *base_params
+      <<: *bosh_params_old
       OLD_CF_RELEASE: {{old_cf_version}}
       CF_DEPLOYMENT: {{old_cf_deployment}}
       API_USER: {{cf_api_user}}
@@ -185,7 +219,7 @@ jobs:
       <<: *base_params_old
 
 - name: delete-deployments-old
-  serial_groups: [cf-old,deploy]
+  serial_groups: [cf-old]
   plan:
   - aggregate:
     - get: postgres-release
@@ -195,16 +229,16 @@ jobs:
   - task: delete-diego-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *bosh_params_old
       DEPLOYMENT_NAME: {{old_diego_deployment}}
   - task: delete-cf-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *bosh_params_old
       DEPLOYMENT_NAME: {{old_cf_deployment}}
 
 - name: test-upgrade-from-older
-  serial_groups: [cf-older,deploy]
+  serial_groups: [cf-older]
   plan:
   - aggregate:
     - get: postgres-release
@@ -218,7 +252,7 @@ jobs:
   - task: deploy-with-cf-old
     file: postgres-release/ci/scripts/deploy-with-cf-old/task.yml
     params: &base_params_older
-      <<: *base_params
+      <<: *bosh_params_older
       OLD_CF_RELEASE: {{older_cf_version}}
       CF_DEPLOYMENT: {{older_cf_deployment}}
       API_USER: {{cf_api_user}}
@@ -248,7 +282,7 @@ jobs:
       <<: *base_params_older
 
 - name: delete-deployments-older
-  serial_groups: [cf-older,deploy]
+  serial_groups: [cf-older]
   plan:
   - aggregate:
     - get: postgres-release
@@ -258,26 +292,34 @@ jobs:
   - task: delete-diego-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *bosh_params_older
       DEPLOYMENT_NAME: {{older_diego_deployment}}
   - task: delete-cf-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *bosh_params_older
       DEPLOYMENT_NAME: {{older_cf_deployment}}
 
 - name: cleanup-releases
-  serial_groups: [deploy,cf-fresh,cf-old,cf-older]
+  serial_groups: [cf-fresh,cf-old,cf-older]
   plan:
   - aggregate:
     - get: postgres-release
       resource: postgres-release-develop
       passed: [delete-deployments-fresh,delete-deployments-old,delete-deployments-older]
       trigger: true
-  - task: cleanup-releases
+  - task: cleanup-releases-fresh
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
     params:
-      <<: *base_params
+      <<: *bosh_params_fresh
+  - task: cleanup-releases-old
+    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
+    params:
+      <<: *bosh_params_old
+  - task: cleanup-releases-older
+    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
+    params:
+      <<: *bosh_params_older
 
 - name: create-final-release
   serial_groups: [cf-fresh,cf-old,cf-older]
@@ -287,7 +329,7 @@ jobs:
       resource: oss-s3-buckets-stack
     - get: release-repo
       resource: postgres-release-develop
-      passed: [test-upgrade-from-old,test-upgrade-from-older,test-with-diego]
+      passed: [test-upgrade-from-old,test-upgrade-from-older,test-fresh-deployment]
       trigger: true
     - get: release-repo-master
       resource: postgres-release-master

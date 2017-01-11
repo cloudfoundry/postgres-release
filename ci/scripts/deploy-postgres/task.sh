@@ -71,6 +71,8 @@ common_data:
   pg_db: ${PG_DB}
   pg_port: ${PG_PORT}
   pg_host: ${hostname}
+  Bosh_ip: ${BOSH_DIRECTOR}
+  Bosh_public_ip: ${BOSH_PUBLIC_IP}
 EOF
   set -x
 }

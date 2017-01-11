@@ -87,6 +87,8 @@ common_data:
   api_user: ${API_USER}
   api_password: ${API_PASSWORD}
   haproxy_instances: ${haproxy_instances}
+  Bosh_ip: ${BOSH_DIRECTOR}
+  Bosh_public_ip: ${BOSH_PUBLIC_IP}
   default_env:
     bosh:
       password: ~

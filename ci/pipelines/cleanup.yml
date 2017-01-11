@@ -14,15 +14,17 @@ jobs:
       resource: postgres-release
   - task: delete-pg-master-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
-    params: &base_params
-      BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
-      BOSH_USER: {{postgres_cf_bosh_user}}
-      BOSH_PASSWORD: {{postgres_cf_bosh_password}}
+    params: &base_params_fresh
+      BOSH_DIRECTOR: {{fresh_bosh_director}}
+      BOSH_USER: {{fresh_bosh_user}}
+      BOSH_PASSWORD: {{fresh_bosh_password}}
       DEPLOYMENT_NAME: {{master_pg_deployment}}
   - task: delete-pg-old-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
-    params:
-      <<: *base_params
+    params: &base_params_old
+      BOSH_DIRECTOR: {{old_bosh_director}}
+      BOSH_USER: {{old_bosh_user}}
+      BOSH_PASSWORD: {{old_bosh_password}}
       DEPLOYMENT_NAME: {{old_pg_deployment}}
 
 - name: delete-deployments-cf-diego
@@ -33,35 +35,37 @@ jobs:
       resource: postgres-release
       passed: [delete-deployments-postgres]
       trigger: true
-  - task: delete-diego-deployment
+  - task: delete-diego-fresh-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *base_params_fresh
       DEPLOYMENT_NAME: {{fresh_diego_deployment}}
-  - task: delete-cf-old-deployment
+  - task: delete-cf-fresh-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *base_params_fresh
       DEPLOYMENT_NAME: {{fresh_cf_deployment}}
   - task: delete-diego-old-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *base_params_old
       DEPLOYMENT_NAME: {{old_diego_deployment}}
   - task: delete-cf-old-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *base_params_old
       DEPLOYMENT_NAME: {{old_cf_deployment}}
   - task: delete-diego-older-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
-    params:
-      <<: *base_params
+    params: &base_params_older
+      BOSH_DIRECTOR: {{older_bosh_director}}
+      BOSH_USER: {{older_bosh_user}}
+      BOSH_PASSWORD: {{older_bosh_password}}
       DEPLOYMENT_NAME: {{older_diego_deployment}}
   - task: delete-cf-older-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
-      <<: *base_params
+      <<: *base_params_older
       DEPLOYMENT_NAME: {{older_cf_deployment}}
 
 - name: cleanup-resources
@@ -72,7 +76,15 @@ jobs:
       resource: postgres-release
       passed: [delete-deployments-cf-diego]
       trigger: true
-  - task: cleanup-releases
+  - task: cleanup-releases-fresh
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
     params:
-      <<: *base_params
+      <<: *base_params_fresh
+  - task: cleanup-releases-old
+    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
+    params:
+      <<: *base_params_old
+  - task: cleanup-releases-older
+    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
+    params:
+      <<: *base_params_older

@@ -32,9 +32,10 @@ jobs:
   - task: deploy-master-postgres
     file: postgres-release/ci/scripts/deploy-postgres/task.yml
     params: &master_params
-      BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
-      BOSH_USER: {{postgres_cf_bosh_user}}
-      BOSH_PASSWORD: {{postgres_cf_bosh_password}}
+      BOSH_DIRECTOR: {{fresh_bosh_director}}
+      BOSH_PUBLIC_IP: {{fresh_bosh_public_ip}}
+      BOSH_USER: {{fresh_bosh_user}}
+      BOSH_PASSWORD: {{fresh_bosh_password}}
       PG_DEPLOYMENT: {{master_pg_deployment}}
       PG_VERSION: master
       PG_USER: {{pg_user}}
@@ -59,10 +60,8 @@ jobs:
   - task: delete-postgres-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
+      <<: *master_params
       DEPLOYMENT_NAME: {{master_pg_deployment}}
-      BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
-      BOSH_USER: {{postgres_cf_bosh_user}}
-      BOSH_PASSWORD: {{postgres_cf_bosh_password}}
 
 - name: test-upgrade-from-old
   serial_groups: [deploy]
@@ -78,9 +77,10 @@ jobs:
   - task: deploy-old-postgres
     file: postgres-release/ci/scripts/deploy-postgres/task.yml
     params: &old_params
-      BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
-      BOSH_USER: {{postgres_cf_bosh_user}}
-      BOSH_PASSWORD: {{postgres_cf_bosh_password}}
+      BOSH_DIRECTOR: {{old_bosh_director}}
+      BOSH_PUBLIC_IP: {{old_bosh_public_ip}}
+      BOSH_USER: {{old_bosh_user}}
+      BOSH_PASSWORD: {{old_bosh_password}}
       PG_DEPLOYMENT: {{old_pg_deployment}}
       PG_VERSION: 1
       PG_USER: {{pg_user}}
@@ -105,10 +105,8 @@ jobs:
   - task: delete-postgres-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params:
+      <<: *old_params
       DEPLOYMENT_NAME: {{old_pg_deployment}}
-      BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
-      BOSH_USER: {{postgres_cf_bosh_user}}
-      BOSH_PASSWORD: {{postgres_cf_bosh_password}}
 
 - name: cleanup-resources
   plan:
@@ -117,9 +115,11 @@ jobs:
       resource: postgres-release-develop
       passed: [test-upgrade-from-old]
       trigger: true
-  - task: cleanup-releases
+  - task: cleanup-releases-master
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
     params:
-      BOSH_DIRECTOR: {{postgres_cf_bosh_director}}
-      BOSH_USER: {{postgres_cf_bosh_user}}
-      BOSH_PASSWORD: {{postgres_cf_bosh_password}}
+      <<: *master_params
+  - task: cleanup-releases-old
+    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
+    params:
+      <<: *old_params

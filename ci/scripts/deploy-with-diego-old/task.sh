@@ -45,6 +45,8 @@ common_data:
   cf1_domain: ${cf1_domain}
   env_name: ${DIEGO_DEPLOYMENT}
   apps_domain: ${apps_domain}
+  Bosh_ip: ${BOSH_DIRECTOR}
+  Bosh_public_ip: ${BOSH_PUBLIC_IP}
   cell_stemcell:
     name: bosh-softlayer-esxi-ubuntu-trusty-go_agent
     version: ${OLD_STEMCELL}
