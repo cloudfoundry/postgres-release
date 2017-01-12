@@ -74,6 +74,10 @@ function create_roles() {
       echo "Adding permissions <%= role["permissions"].join(' ') %> for role <%= role["name"] %>..."
       pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH <%= role["permissions"].join(' ') %>"
     <% end %>
+    <% if role["conn_limit"] %>
+      echo "Setting max connections to <%= role["conn_limit"] %> for role <%= role["name"] %>..."
+      pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH CONNECTION LIMIT <%= role["conn_limit"] %>"
+    <% end %>
   <% end %>
 }
 
