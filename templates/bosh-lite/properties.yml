@@ -12,3 +12,8 @@ properties:
     - name: pgadmin
       password: admin
       tag: admin
+    - name: pgother
+      password: other
+      tag: other
+      permissions:
+      - CONNECTION LIMIT 10

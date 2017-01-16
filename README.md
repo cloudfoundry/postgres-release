@@ -98,6 +98,7 @@ databases.databases[n].citext | If `true` the citext extension is created for th
 databases.roles | A list of database roles and associated properties to create
 databases.roles[n].name | Role name
 databases.roles[n].password | Login password for the role
+databases.roles[n].permissions| A list of attributes for the role. For the complete list of attributes, refer to [ALTER ROLE command options](https://www.postgresql.org/docs/9.4/static/sql-alterrole.html).
 databases.max_connections | Maximum number of database connections
 databases.log_line_prefix | The postgres `printf` style string that is output at the beginning of each log line. Default: `%m:`
 databases.collect_statement_statistics | Enable the `pg_stat_statements` extension and collect statement execution statistics. Default: `false`
