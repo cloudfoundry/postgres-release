@@ -19,7 +19,7 @@ max_connections = <%= p("databases.max_connections", 500) %>
 external_pid_file = '/var/vcap/sys/run/postgres/postgres.pid'
 authentication_timeout = 1min
 
-shared_buffers = 128MB
+shared_buffers = <%= p("databases.shared_buffers", 128MB) %>
 temp_buffers = 8MB
 
 max_files_per_process = 1000
