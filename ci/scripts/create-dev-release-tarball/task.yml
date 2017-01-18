@@ -1,0 +1,25 @@
+---
+platform: linux
+
+
+image_resource:
+  type: docker-image
+  source:
+    repository: cfinfrastructure/deployment
+
+inputs:
+- name: postgres-release
+- name: dev-release
+
+outputs:
+- name: dev-release-tarball
+
+run:
+  path: postgres-release/ci/scripts/create-dev-release-tarball/task.sh
+
+params:
+  BOSH_DIRECTOR:
+  BOSH_USER:
+  BOSH_PASSWORD:
+  REL_NAME:
+  REL_VERSION:
