@@ -17,7 +17,7 @@ In order to deploy the postgres-release you must follow the standard steps for d
 1. Install and target a bosh director.
    Please refer to [bosh documentation](http://bosh.io/docs) for instructions on how to do that.
    Bosh-lite specific instructions can be found [here](https://github.com/cloudfoundry/bosh-lite).
-   
+
 1. Install spiff on your dev machine
    Please refer to https://github.com/cloudfoundry-incubator/spiff/releases/
 
@@ -95,6 +95,7 @@ databases.port | The database port
 databases.databases | A list of databases and associated properties to create when Postgres starts
 databases.databases[n].name | Database name
 databases.databases[n].citext | If `true` the citext extension is created for the db
+databases.databases[n].run_on_every_startup | A list of SQL commands run at each postgres start against the given database as `vcap`
 databases.roles | A list of database roles and associated properties to create
 databases.roles[n].name | Role name
 databases.roles[n].password | Login password for the role
@@ -120,9 +121,16 @@ that process.
 
 ### Developer Workflow
 
-Make sure that you are working against the `develop` branch. PRs submitted
-against other branches will need to be resubmitted with the correct branch
-targeted.
+1. [Fork](https://help.github.com/articles/fork-a-repo) the repository and make a local [clone](https://help.github.com/articles/fork-a-repo#step-2-create-a-local-clone-of-your-fork)
+1. Create a feature branch from the development branch
+
+   ```bash
+   cd postgres-release
+   git checkout develop
+   git checkout -b feature-branch
+   ```
+
+Make sure that you are working against the `develop` branch. PRs submitted against other branches will need to be resubmitted with the correct branch targeted.
 
 ## Known Limitations
 
