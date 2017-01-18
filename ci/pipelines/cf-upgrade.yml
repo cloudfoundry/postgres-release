@@ -58,6 +58,7 @@ jobs:
   plan:
   - aggregate:
     - get: cf-release
+      attempts: 3
     - get: postgres-release
       resource: postgres-release-develop
   - task: upload-stemcell-fresh
