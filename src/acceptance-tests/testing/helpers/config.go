@@ -10,55 +10,66 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const MissingTargetMsg = "missing `target` - specify BOSH target"
-const MissingPasswordMsg = "missing `password` - specify password for authenticating with BOSH"
-const MissingUsernameMsg = "missing `username` - specify username for authenticating with BOSH"
+const MissingCertificateMsg = "missing `director_ca_cert` - specify BOSH director CA certificate"
 const IncorrectEnvMsg = "$PGATS_CONFIG %q does not specify an absolute path to test config file"
 
-type Config struct {
-	Target          string `yaml:"target"`
-	Username        string `yaml:"username"`
-	Password        string `yaml:"password"`
-	DirectorCACert  string `yaml:"director_ca_cert,omitempty"`
-	CloudConfigPath string `yaml:"cloud_config_path,omitempty"`
-	CloudConfig     []byte
+type PgatsConfig struct {
+	Bosh             PgatsBoshConfig  `yaml:"bosh"`
+	BoshCC           PgatsCloudConfig `yaml:"cloud_configs"`
+	PGReleaseVersion string           `yaml:"postgres_release_version"`
+}
+type PgatsBoshConfig struct {
+	Target         string `yaml:"target"`
+	Username       string `yaml:"username"`
+	Password       string `yaml:"password"`
+	DirectorCACert string `yaml:"director_ca_cert"`
+}
+type PgatsCloudConfig struct {
+	AZs                []string          `yaml:"default_azs"`
+	Networks           []PgatsJobNetwork `yaml:"default_networks"`
+	PersistentDiskType string            `yaml:"default_persistent_disk_type"`
+	VmType             string            `yaml:"default_vm_type"`
+}
+type PgatsJobNetwork struct {
+	Name      string   `yaml:"name"`
+	StaticIPs []string `yaml:"static_ips,omitempty"`
+	Default   []string `yaml:"default,omitempty"`
 }
 
-func LoadConfig(configFilePath string) (Config, error) {
+var DefaultPgatsConfig = PgatsConfig{
+	Bosh: PgatsBoshConfig{
+		Target:   "192.168.50.4",
+		Username: "admin",
+		Password: "admin",
+	},
+	BoshCC: PgatsCloudConfig{
+		AZs: []string{"z1"},
+		Networks: []PgatsJobNetwork{
+			PgatsJobNetwork{
+				Name: "private",
+			},
+		},
+		PersistentDiskType: "10GB",
+		VmType:             "m3.medium",
+	},
+	PGReleaseVersion: "latest",
+}
+
+func LoadConfig(configFilePath string) (PgatsConfig, error) {
+	var config PgatsConfig
+	config = DefaultPgatsConfig
+
 	configFile, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		return Config{}, err
+		return PgatsConfig{}, err
 	}
-
-	var config Config
 	if err := yaml.Unmarshal(configFile, &config); err != nil {
-		return Config{}, err
+		return PgatsConfig{}, err
 	}
 
-	if config.Target == "" {
-		return Config{}, errors.New(MissingTargetMsg)
+	if config.Bosh.DirectorCACert == "" {
+		return PgatsConfig{}, errors.New(MissingCertificateMsg)
 	}
-
-	if config.Username == "" {
-		return Config{}, errors.New(MissingUsernameMsg)
-	}
-
-	if config.Password == "" {
-		return Config{}, errors.New(MissingPasswordMsg)
-	}
-
-	if config.CloudConfigPath != "" {
-		config.CloudConfig, err = ioutil.ReadFile(config.CloudConfigPath)
-		if err != nil {
-			return Config{}, err
-		}
-		m := make(map[interface{}]interface{})
-		err = yaml.Unmarshal(config.CloudConfig, &m)
-		if err != nil {
-			return Config{}, err
-		}
-	}
-
 	return config, nil
 }
 
@@ -69,12 +80,4 @@ func ConfigPath() (string, error) {
 	}
 
 	return path, nil
-}
-
-func PostgresReleaseVersion() string {
-	version := os.Getenv("POSTGRES_RELEASE_VERSION")
-	if version == "" {
-		version = "latest"
-	}
-	return version
 }

@@ -1,0 +1,64 @@
+meta:
+  # override these properties in your stub
+  azs: (( merge || .meta.default_azs ))
+  environment: (( merge || "pgats-errand" ))
+  networks: (( merge || .meta.default_networks ))
+  persistent_disk_type: (( merge || "10GB" ))
+  releases: (( merge || .meta.default_releases ))
+  stemcells: (( merge || .meta.default_stemcells ))
+  vm_type: (( merge || "m3.medium" ))
+  #
+  default_azs: [z1]
+  default_networks:
+  - name: private
+  default_releases: [{name: postgres, version: latest}]
+  default_stemcells:
+  - alias: linux
+    os: ubuntu-trusty
+    version: latest
+
+director_uuid: <%= %x[bosh status --uuid] %>
+
+name: (( meta.environment ))
+
+releases: (( meta.releases ))
+
+stemcells: (( meta.stemcells ))
+
+instance_groups:
+- name: acceptance-tests
+  instances: 1
+  lifecycle: errand
+  stemcell: linux
+  networks: (( meta.networks ))
+  azs: (( meta.azs ))
+  vm_type: (( meta.vm_type ))
+  #
+  jobs:
+  - name: acceptance-tests
+    release: postgres
+
+properties:
+  <<: (( merge ))
+  postgres:
+    acceptance_tests:
+      postgres_release_version: latest
+      bosh:
+        # CUSTOMIZE BOSH DIRECTOR PROPERTIES
+        target: DIRECTOR_TARGET
+        username: DIRECTOR_USER
+        password: DIRECTOR_PASSWORD
+        director_ca_cert: DIRECTOR_CA_CERT
+      # CLOUD-CONFIG PROPERTIES USED BY PGATS WHILE DEPLOYING
+      cloud_configs:
+        default_azs: (( meta.azs ))
+        default_networks: (( meta.networks ))
+        default_persistent_disk_type: (( meta.persistent_disk_type ))
+        default_vm_type: (( meta.vm_type ))
+
+update:
+  canaries: 1
+  canary_watch_time: 30000-600000
+  max_in_flight: 1
+  serial: true
+  update_watch_time: 5000-600000

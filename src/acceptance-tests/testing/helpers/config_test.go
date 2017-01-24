@@ -30,45 +30,76 @@ var _ = Describe("Configuration", func() {
 	Describe("Load configuration", func() {
 		Context("With a valid config file", func() {
 			var configFilePath string
-			var cloudConfigPath string
-
-			BeforeEach(func() {
-				var err error
-				cloudConfigPath, err = writeConfigFile("info: some-info")
-				Expect(err).NotTo(HaveOccurred())
-
-				var data = `
-target: some-target
-username: some-username
-password: some-password
-director_ca_cert: some-ca-cert
-cloud_config_path: %s
-`
-				configFilePath, err = writeConfigFile(fmt.Sprintf(data, cloudConfigPath))
-				Expect(err).NotTo(HaveOccurred())
-			})
 
 			AfterEach(func() {
 				err := os.Remove(configFilePath)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			It("Load the yaml content from the provided path", func() {
+			It("Load the yaml content from the provided path without defaults", func() {
+				var err error
+				var data = `
+postgres_release_version: "some-version"
+bosh:
+  target: some-target
+  username: some-username
+  password: some-password
+  director_ca_cert: some-ca-cert
+cloud_configs:
+  default_azs: ["some-az1", "some-az2"]
+  default_networks:
+  - name: some-net1
+  - name: some-net2
+    static_ips:
+    - some-ip1
+    - some-ip2
+    default: [some-default1, some-default2]
+  default_persistent_disk_type: some-type
+  default_vm_type: some-vm-type
+`
+				configFilePath, err = writeConfigFile(data)
+				Expect(err).NotTo(HaveOccurred())
 				config, err := helpers.LoadConfig(configFilePath)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(config).To(Equal(helpers.Config{
-					Target:          "some-target",
-					Username:        "some-username",
-					Password:        "some-password",
-					DirectorCACert:  "some-ca-cert",
-					CloudConfigPath: cloudConfigPath,
-					CloudConfig:     []byte("info: some-info"),
+				Expect(config).To(Equal(helpers.PgatsConfig{
+					PGReleaseVersion: "some-version",
+					Bosh: helpers.PgatsBoshConfig{
+						Target:         "some-target",
+						Username:       "some-username",
+						Password:       "some-password",
+						DirectorCACert: "some-ca-cert",
+					},
+					BoshCC: helpers.PgatsCloudConfig{
+						AZs: []string{"some-az1", "some-az2"},
+						Networks: []helpers.PgatsJobNetwork{
+							helpers.PgatsJobNetwork{
+								Name: "some-net1",
+							},
+							helpers.PgatsJobNetwork{
+								Name:      "some-net2",
+								StaticIPs: []string{"some-ip1", "some-ip2"},
+								Default:   []string{"some-default1", "some-default2"},
+							},
+						},
+						PersistentDiskType: "some-type",
+						VmType:             "some-vm-type",
+					},
 				}))
 			})
-			It("Get the proper CloudConfig file content", func() {
+
+			It("Load the yaml content from the provided path with defaults", func() {
+				var err error
+				var data = `
+bosh:
+  director_ca_cert: some-ca-cert
+`
+				configFilePath, err = writeConfigFile(data)
+				Expect(err).NotTo(HaveOccurred())
 				config, err := helpers.LoadConfig(configFilePath)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(config.CloudConfig).To(Equal([]byte("info: some-info")))
+				result := helpers.DefaultPgatsConfig
+				result.Bosh.DirectorCACert = "some-ca-cert"
+				Expect(config).To(Equal(result))
 			})
 		})
 
@@ -96,89 +127,14 @@ cloud_config_path: %s
 				Expect(err).To(MatchError(ContainSubstring("yaml: could not find expected directive name")))
 			})
 
-			It("Should return an error if BOSH target missing", func() {
+			It("Should return an error if BOSH CA Cert missing", func() {
 				var err error
-				configFilePath, err = writeConfigFile(`{
-						"username": "some-username",
-						"password": "some-password"
-					}`)
+				configFilePath, err = writeConfigFile("---")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = helpers.LoadConfig(configFilePath)
-				Expect(err).To(MatchError(errors.New(helpers.MissingTargetMsg)))
+				Expect(err).To(MatchError(errors.New(helpers.MissingCertificateMsg)))
 			})
-
-			It("Should return an error if BOSH username missing", func() {
-				var err error
-				configFilePath, err = writeConfigFile(`{
-						"target": "some-target",
-						"password": "some-password"
-					}`)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = helpers.LoadConfig(configFilePath)
-				Expect(err).To(MatchError(errors.New(helpers.MissingUsernameMsg)))
-			})
-
-			It("Should return an error if BOSH password missing", func() {
-				var err error
-				configFilePath, err = writeConfigFile(`{
-						"target": "some-target",
-						"username": "some-username"
-					}`)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = helpers.LoadConfig(configFilePath)
-				Expect(err).To(MatchError(errors.New(helpers.MissingPasswordMsg)))
-			})
-
-			It("Should return an error if given cloud config does not exist", func() {
-				var err error
-				configFilePath, err = writeConfigFile(`{
-						"target": "some-target",
-						"username": "some-username",
-						"password": "some-password",
-						"cloud_config_path": "/notexistentpath"
-					}`)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = helpers.LoadConfig(configFilePath)
-				Expect(err).To(MatchError(ContainSubstring("no such file or directory")))
-			})
-
-			It("Should return an error if given cloud config is not a valid yml", func() {
-				var err error
-				cloudConfigPath, err := writeConfigFile("%%%")
-				Expect(err).NotTo(HaveOccurred())
-
-				data := `{
-						"target": "some-target",
-						"username": "some-username",
-						"password": "some-password",
-						"cloud_config_path": "%s"
-					}`
-
-				configFilePath, err = writeConfigFile(fmt.Sprintf(data, cloudConfigPath))
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = helpers.LoadConfig(configFilePath)
-				Expect(err).To(MatchError(ContainSubstring("yaml: could not find expected directive name")))
-			})
-		})
-	})
-
-	Describe("PostgresReleaseVersion", func() {
-
-		It("retrieves the postgres_release version from the env if set", func() {
-			os.Setenv("POSTGRES_RELEASE_VERSION", "v999.9")
-			version := helpers.PostgresReleaseVersion()
-			Expect(version).To(Equal("v999.9"))
-		})
-
-		It("use default for the postgres_release version if not set", func() {
-			os.Setenv("POSTGRES_RELEASE_VERSION", "")
-			version := helpers.PostgresReleaseVersion()
-			Expect(version).To(Equal("latest"))
 		})
 	})
 

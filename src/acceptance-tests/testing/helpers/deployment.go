@@ -7,14 +7,13 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	boshman "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type DeploymentData struct {
 	ManifestBytes []byte
-	ManifestData  boshman.Manifest
+	ManifestData  map[string]interface{}
 	Director      boshdir.Director
 	Deployment    boshdir.Deployment
 }
@@ -42,7 +41,7 @@ func TargetDirector(directorURL string, username string, password string, caCert
 	return director, nil
 }
 
-func InitializeDeploymentFromManifestFile(manifestFilePath string, director boshdir.Director) (DeploymentData, error) {
+func InitializeDeploymentFromManifestFile(pgatsConfig PgatsConfig, manifestFilePath string, director boshdir.Director) (DeploymentData, error) {
 	var dd DeploymentData
 	var err error
 	dd.ManifestBytes, err = ioutil.ReadFile(manifestFilePath)
@@ -53,11 +52,44 @@ func InitializeDeploymentFromManifestFile(manifestFilePath string, director bosh
 	if err := yaml.Unmarshal(dd.ManifestBytes, &dd.ManifestData); err != nil {
 		return DeploymentData{}, err
 	}
-	if dd.ManifestData.Name == "" {
+
+	if dd.ManifestData["releases"] != nil {
+		for _, elem := range dd.ManifestData["releases"].([]interface{}) {
+			if elem.(map[interface{}]interface{})["name"] == "postgres" {
+				elem.(map[interface{}]interface{})["version"] = pgatsConfig.PGReleaseVersion
+				break
+			}
+		}
+	}
+	if dd.ManifestData["instance_groups"] != nil {
+
+		netBytes, err := yaml.Marshal(&pgatsConfig.BoshCC.Networks)
+		if err != nil {
+			return DeploymentData{}, err
+		}
+		var netData []map[string]interface{}
+		if err := yaml.Unmarshal(netBytes, &netData); err != nil {
+			return DeploymentData{}, err
+		}
+
+		for _, elem := range dd.ManifestData["instance_groups"].([]interface{}) {
+			elem.(map[interface{}]interface{})["azs"] = pgatsConfig.BoshCC.AZs
+			elem.(map[interface{}]interface{})["networks"] = netData
+			elem.(map[interface{}]interface{})["persistent_disk_type"] = pgatsConfig.BoshCC.PersistentDiskType
+			elem.(map[interface{}]interface{})["vm_type"] = pgatsConfig.BoshCC.VmType
+		}
+	}
+
+	dd.ManifestBytes, err = yaml.Marshal(&dd.ManifestData)
+	if err != nil {
+		return DeploymentData{}, err
+	}
+
+	if dd.ManifestData["name"] == nil || dd.ManifestData["name"] == "" {
 		return DeploymentData{}, errors.New(MissingDeploymentNameMsg)
 	}
 
-	dd.Deployment, err = director.FindDeployment(dd.ManifestData.Name)
+	dd.Deployment, err = director.FindDeployment(dd.ManifestData["name"].(string))
 	if err != nil {
 		return DeploymentData{}, err
 	}
@@ -105,7 +137,7 @@ func (dd DeploymentData) GetPostgresURL() (string, error) {
 }
 func (dd DeploymentData) GetPostgresProps() (Properties, error) {
 	var result Properties
-	bytes, err := yaml.Marshal(dd.ManifestData.Properties)
+	bytes, err := yaml.Marshal(dd.ManifestData["properties"])
 	if err != nil {
 		return Properties{}, err
 	}

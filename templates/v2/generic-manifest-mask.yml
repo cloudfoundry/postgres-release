@@ -1,0 +1,13 @@
+name: (( merge ))
+
+director_uuid: (( merge ))
+
+releases: (( merge ))
+
+stemcells: (( merge ))
+
+instance_groups: (( merge ))
+
+properties: (( merge ))
+
+update: (( merge ))

@@ -43,7 +43,7 @@ var _ = Describe("Deployment", func() {
 
 			It("Should return an error if not existent manifest", func() {
 				var err error
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile("/Not/existent/path", director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, "/Not/existent/path", director)
 				Expect(err).To(MatchError(ContainSubstring("no such file or directory")))
 			})
 		})
@@ -61,7 +61,7 @@ var _ = Describe("Deployment", func() {
 				var err error
 				manifestFilePath, err = writeConfigFile("%%%")
 				Expect(err).NotTo(HaveOccurred())
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(manifestFilePath, director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).To(MatchError(ContainSubstring("yaml: could not find expected directive name")))
 			})
 
@@ -76,7 +76,7 @@ stemcells:
 `
 				manifestFilePath, err = writeConfigFile(data)
 				Expect(err).NotTo(HaveOccurred())
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(manifestFilePath, director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).To(MatchError(errors.New(helpers.MissingDeploymentNameMsg)))
 			})
 		})
@@ -94,11 +94,23 @@ stemcells:
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{vmInfoFake}, nil)
 				director.FindDeploymentReturns(deploymentFake, nil)
 				data := `
-director_uuid: <%= %x[bosh status --uuid] %>
+director_uuid: xxx
 name: test
-jobs:
+releases:
+- version: "%s"
+  name: postgres
+instance_groups:
 - name: postgres
   instances: 1
+  azs: ["%s"]
+  networks:
+  - name: "%s"
+  jobs:
+  - name: postgres
+    release: postgres
+  persistent_disk_type: "%s"
+  vm_type: "%s"
+  stemcell: linux
 properties:
   databases:
     databases:
@@ -110,7 +122,7 @@ properties:
 `
 				manifestFilePath, err = writeConfigFile(data)
 				Expect(err).NotTo(HaveOccurred())
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(manifestFilePath, director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {
@@ -125,6 +137,7 @@ properties:
 				Expect(err).NotTo(HaveOccurred())
 				err = deploymentData.DeleteDeployment()
 				Expect(err).NotTo(HaveOccurred())
+				// TODO check substition of data from cloud config options
 			})
 		})
 	})
@@ -156,7 +169,7 @@ name: test
 				deploymentFake := &fakedir.FakeDeployment{}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{}, nil)
 				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(manifestFilePath, director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).NotTo(HaveOccurred())
 				_, err = deploymentData.GetVmAddress("postgres")
 				Expect(err).To(Equal(errors.New(fmt.Sprintf(helpers.VMNotPresentMsg, "postgres"))))
@@ -169,7 +182,7 @@ name: test
 				deploymentFake := &fakedir.FakeDeployment{}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{}, errors.New("fake-error"))
 				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(manifestFilePath, director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).NotTo(HaveOccurred())
 				_, err = deploymentData.GetVmAddress("postgres")
 				Expect(err).To(Equal(errors.New("fake-error")))
@@ -187,7 +200,7 @@ name: test
 				}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{vmInfoFake}, nil)
 				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(manifestFilePath, director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).NotTo(HaveOccurred())
 				address, err := deploymentData.GetVmAddress("postgres")
 				Expect(err).NotTo(HaveOccurred())
@@ -215,7 +228,7 @@ properties:
 				}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{vmInfoFake}, nil)
 				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(manifestFilePath, director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -256,7 +269,7 @@ properties:
 				}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{vmInfoFake}, nil)
 				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(manifestFilePath, director)
+				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).NotTo(HaveOccurred())
 			})
 

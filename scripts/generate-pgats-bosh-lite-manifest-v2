@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+cd $(dirname $0)/..
+
+./scripts/generate-pgats-manifest-v2 \
+  -p ./templates/v2/bosh-lite/pgats-properties.yml
