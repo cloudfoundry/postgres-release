@@ -1,6 +1,7 @@
 package helpers_test
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -394,6 +395,106 @@ var _ = Describe("Postgres", func() {
 				result, err := pg.ConvertToPostgresDate(inputQuotes)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).To(Equal(expected))
+			})
+		})
+	})
+	Describe("Load DB", func() {
+		var (
+			mock     sqlmock.Sqlmock
+			pg       *helpers.PGData
+			prepared string
+		)
+		Context("Load DB with a table", func() {
+
+			BeforeEach(func() {
+				var db *sql.DB
+				var err error
+				db, mock, err = sqlmock.New()
+				Expect(err).NotTo(HaveOccurred())
+				pg = &helpers.PGData{
+					Data: helpers.PGCommon{},
+					DBs: []helpers.PGConn{
+						helpers.PGConn{DB: db, TargetDB: "db1"},
+					},
+				}
+				prepared = `COPY "pgats_table_0" ("column0") FROM STDIN`
+				prepared = strings.Replace(prepared, ")", "\\)", -1)
+				prepared = strings.Replace(prepared, "(", "\\(", -1)
+			})
+			AfterEach(func() {
+				for _, conn := range pg.DBs {
+					conn.DB.Close()
+				}
+			})
+			It("Correctly create the table", func() {
+				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectBegin()
+				mock.ExpectPrepare(prepared)
+				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectCommit()
+
+				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
+			})
+			It("Fails to create the table", func() {
+				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnError(genericError)
+
+				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				Expect(err).To(MatchError(genericError))
+				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
+			})
+			It("Fails to begin the connection", func() {
+				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectBegin().WillReturnError(genericError)
+
+				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				Expect(err).To(MatchError(genericError))
+				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
+			})
+			It("Fails to prepare the statement", func() {
+				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectBegin()
+				mock.ExpectPrepare(prepared).WillReturnError(genericError)
+
+				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				Expect(err).To(MatchError(genericError))
+				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
+			})
+			It("Fails to populate row", func() {
+				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectBegin()
+				mock.ExpectPrepare(prepared)
+				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnError(genericError)
+
+				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				Expect(err).To(MatchError(genericError))
+				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
+			})
+			It("Fails to flush buffered data", func() {
+				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectBegin()
+				mock.ExpectPrepare(prepared)
+				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("").WillReturnError(genericError)
+
+				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				Expect(err).To(MatchError(genericError))
+				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
+			})
+			It("Fails to commit", func() {
+				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectBegin()
+				mock.ExpectPrepare(prepared)
+				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectCommit().WillReturnError(genericError)
+
+				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				Expect(err).To(MatchError(genericError))
+				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
 			})
 		})
 	})

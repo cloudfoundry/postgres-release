@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	_ "github.com/lib/pq"
 )
 
 type PGData struct {
@@ -163,6 +161,65 @@ func (pg PGConn) Run(query string) ([]string, error) {
 		}
 	}
 	return result, nil
+}
+
+func (pg PGConn) Exec(query string) error {
+	if _, err := pg.DB.Exec(query); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pg PGData) CreateAndPopulateTables(dbName string, loadType LoadType) error {
+
+	conn, err := pg.GetDBConnection(dbName)
+	if err != nil {
+		conn, err = pg.OpenConnection(dbName, pg.Data.DefUser, pg.Data.DefPassword)
+		if err != nil {
+			return err
+		}
+	}
+	tables := GetSampleLoad(loadType)
+
+	for _, table := range tables {
+		err = conn.Exec(table.PrepareCreate())
+		if err != nil {
+			return err
+		}
+		txn, err := conn.DB.Begin()
+		if err != nil {
+			return err
+		}
+
+		stmt, err := txn.Prepare(table.PrepareStatement())
+		if err != nil {
+			return err
+		}
+
+		for i := 0; i < table.NumRows; i++ {
+			_, err = stmt.Exec(table.PrepareRow(i)...)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, err = stmt.Exec()
+		if err != nil {
+			return err
+		}
+
+		err = stmt.Close()
+		if err != nil {
+			return err
+		}
+
+		err = txn.Commit()
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
 }
 
 func (pg PGData) ReadAllSettings() (map[string]string, error) {
