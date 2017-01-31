@@ -57,6 +57,25 @@ func mockDatabases(expected []helpers.PGDatabase, mocks map[string]sqlmock.Sqlmo
 				extrows = extrows.AddRow(extrow)
 			}
 			mocks[elem.Name].ExpectQuery(convertQuery(helpers.ListDBExtensionsQuery)).WillReturnRows(extrows)
+			tableRows := sqlmock.NewRows(expectedcolumns)
+			for _, tElem := range elem.Tables {
+				xx := "{\"schemaname\": \"%s\", \"tablename\":\"%s\",\"tableowner\":\"%s\"}"
+				tableRow := fmt.Sprintf(xx, tElem.SchemaName, tElem.TableName, tElem.TableOwner)
+				tableRows = tableRows.AddRow(tableRow)
+			}
+			mocks[elem.Name].ExpectQuery(convertQuery(helpers.ListTablesQuery)).WillReturnRows(tableRows)
+			for _, tElem := range elem.Tables {
+				columnRows := sqlmock.NewRows(expectedcolumns)
+				for _, col := range tElem.TableColumns {
+					xx := "{\"column_name\": \"%s\", \"data_type\":\"%s\",\"ordinal_position\":%d}"
+					columnRow := fmt.Sprintf(xx, col.ColumnName, col.DataType, col.Position)
+					columnRows = columnRows.AddRow(columnRow)
+				}
+				mocks[elem.Name].ExpectQuery(convertQuery(fmt.Sprintf(helpers.ListTableColumnsQuery, tElem.SchemaName, tElem.TableName))).WillReturnRows(columnRows)
+				countRows := sqlmock.NewRows(expectedcolumns)
+				countRows = countRows.AddRow(fmt.Sprintf("{\"count\": %d}", tElem.TableRowsCount.Num))
+				mocks[elem.Name].ExpectQuery(convertQuery(fmt.Sprintf(helpers.CountTableRowsQuery, tElem.TableName))).WillReturnRows(countRows)
+			}
 		}
 		mocks["postgres"].ExpectQuery(convertQuery(helpers.ListDatabasesQuery)).WillReturnRows(rows)
 	}
@@ -90,6 +109,78 @@ func mockDate(current string, expected string, mocks map[string]sqlmock.Sqlmock)
 }
 
 var _ = Describe("Postgres", func() {
+	Describe("Copy output data", func() {
+		Context("Validate that data is copied", func() {
+			var from helpers.PGOutputData
+
+			BeforeEach(func() {
+
+				from = helpers.PGOutputData{
+					Roles: []helpers.PGRole{
+						helpers.PGRole{
+							Name: "role1",
+						},
+					},
+					Databases: []helpers.PGDatabase{
+						helpers.PGDatabase{
+							Name: "db1",
+							DBExts: []helpers.PGDatabaseExtensions{
+								helpers.PGDatabaseExtensions{
+									Name: "exta",
+								},
+							},
+							Tables: []helpers.PGTable{
+								helpers.PGTable{
+									SchemaName: "myschema1",
+									TableName:  "mytable1",
+									TableOwner: "myowner1",
+									TableColumns: []helpers.PGTableColumn{
+										helpers.PGTableColumn{
+											ColumnName: "column1",
+											DataType:   "type1",
+											Position:   1,
+										},
+									},
+									TableRowsCount: helpers.PGCount{Num: 90},
+								},
+							},
+						},
+					},
+					Settings: map[string]string{
+						"max_connections": "30",
+					},
+				}
+			})
+			It("Correctly copies roles", func() {
+				to, err := from.CopyData()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(to).To(Equal(from))
+				to.Roles[0].Name = "role2"
+				Expect(to).NotTo(Equal(from))
+			})
+			It("Correctly copies settings", func() {
+				to, err := from.CopyData()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(to).To(Equal(from))
+				to.Settings["max_connections"] = "xxx"
+				Expect(to).NotTo(Equal(from))
+			})
+			It("Correctly copies tables", func() {
+				to, err := from.CopyData()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(to).To(Equal(from))
+				to.Databases[0].Tables[0].SchemaName = "xxxx"
+				Expect(to).NotTo(Equal(from))
+			})
+			It("Correctly copies columns", func() {
+				to, err := from.CopyData()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(to).To(Equal(from))
+				to.Databases[0].Tables[0].TableColumns[0].ColumnName = "xxxx"
+				Expect(to).NotTo(Equal(from))
+			})
+		})
+	})
 	Describe("Validate common data", func() {
 		Context("Fail if common data is invalid", func() {
 			It("Fail if no address provided", func() {
@@ -264,10 +355,12 @@ var _ = Describe("Postgres", func() {
 					helpers.PGDatabase{
 						Name:   "db1",
 						DBExts: []helpers.PGDatabaseExtensions{},
+						Tables: []helpers.PGTable{},
 					},
 					helpers.PGDatabase{
 						Name:   "db2",
 						DBExts: []helpers.PGDatabaseExtensions{},
+						Tables: []helpers.PGTable{},
 					},
 				}
 				mockDatabases(expected, mocks)
@@ -294,6 +387,58 @@ var _ = Describe("Postgres", func() {
 							},
 							helpers.PGDatabaseExtensions{
 								Name: "extb",
+							},
+						},
+						Tables: []helpers.PGTable{},
+					},
+				}
+				mockDatabases(expected, mocks)
+				result, err := pg.ListDatabases()
+				Expect(err).NotTo(HaveOccurred())
+				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+				if err = mocks["db1"].ExpectationsWereMet(); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+				Expect(result).To(Equal(expected))
+			})
+			It("Correctly lists databases with tables", func() {
+				expected := []helpers.PGDatabase{
+					helpers.PGDatabase{
+						Name:   "db1",
+						DBExts: []helpers.PGDatabaseExtensions{},
+						Tables: []helpers.PGTable{
+							helpers.PGTable{
+								SchemaName: "myschema1",
+								TableName:  "mytable1",
+								TableOwner: "myowner1",
+								TableColumns: []helpers.PGTableColumn{
+									helpers.PGTableColumn{
+										ColumnName: "column1",
+										DataType:   "type1",
+										Position:   1,
+									},
+									helpers.PGTableColumn{
+										ColumnName: "column2",
+										DataType:   "type2",
+										Position:   2,
+									},
+								},
+								TableRowsCount: helpers.PGCount{Num: 90},
+							},
+							helpers.PGTable{
+								SchemaName: "myschema2",
+								TableName:  "mytable2",
+								TableOwner: "myowner2",
+								TableColumns: []helpers.PGTableColumn{
+									helpers.PGTableColumn{
+										ColumnName: "column3",
+										DataType:   "type3",
+										Position:   0,
+									},
+								},
+								TableRowsCount: helpers.PGCount{Num: 0},
 							},
 						},
 					},
@@ -356,6 +501,7 @@ var _ = Describe("Postgres", func() {
 						helpers.PGDatabase{
 							Name:   "db1",
 							DBExts: []helpers.PGDatabaseExtensions{},
+							Tables: []helpers.PGTable{},
 						},
 					},
 					Settings: map[string]string{

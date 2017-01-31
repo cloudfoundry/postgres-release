@@ -52,6 +52,20 @@ func (a PgRolePropsSorter) Len() int           { return len(a) }
 func (a PgRolePropsSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a PgRolePropsSorter) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
+type PGTableSorter []PGTable
+
+func (a PGTableSorter) Len() int      { return len(a) }
+func (a PGTableSorter) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a PGTableSorter) Less(i, j int) bool {
+	return a[i].SchemaName < a[j].SchemaName || (a[i].SchemaName == a[j].SchemaName && a[i].TableName < a[j].TableName)
+}
+
+type PGColumnSorter []PGTableColumn
+
+func (a PGColumnSorter) Len() int           { return len(a) }
+func (a PGColumnSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a PGColumnSorter) Less(i, j int) bool { return a[i].Position < a[j].Position }
+
 func NewValidator(props PgProperties, pgData PGOutputData, pg PGData) Validator {
 	return Validator{
 		ManifestProps: props,
@@ -223,4 +237,48 @@ func (v Validator) ValidateAll() error {
 	}
 	err = v.ValidateSettings()
 	return err
+}
+func (v Validator) CompareTablesTo(data PGOutputData) bool {
+
+	aDBs := v.PostgresData.Databases
+	eDBs := data.Databases
+
+	result := (len(aDBs) == len(eDBs))
+	if result {
+		sort.Sort(PGDBSorter(aDBs))
+		sort.Sort(PGDBSorter(eDBs))
+		for i, db := range aDBs {
+			if db.Name != eDBs[i].Name ||
+				(len(db.Tables) != len(eDBs[i].Tables)) {
+				result = false
+				break
+			} else if len(db.Tables) > 0 {
+				sort.Sort(PGTableSorter(db.Tables))
+				sort.Sort(PGTableSorter(eDBs[i].Tables))
+				for j, table := range db.Tables {
+					vs := eDBs[i].Tables[j]
+					if vs.SchemaName != table.SchemaName ||
+						vs.TableName != table.TableName ||
+						vs.TableOwner != table.TableOwner ||
+						vs.TableRowsCount.Num != table.TableRowsCount.Num ||
+						len(vs.TableColumns) != len(table.TableColumns) {
+						result = false
+						break
+					}
+					sort.Sort(PGColumnSorter(vs.TableColumns))
+					sort.Sort(PGColumnSorter(table.TableColumns))
+					for k, col := range table.TableColumns {
+						vsc := eDBs[i].Tables[j].TableColumns[k]
+						if vsc.ColumnName != col.ColumnName ||
+							vsc.DataType != col.DataType ||
+							vsc.Position != col.Position {
+							result = false
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+	return result
 }

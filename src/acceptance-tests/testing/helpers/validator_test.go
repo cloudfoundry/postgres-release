@@ -90,6 +90,7 @@ var _ = Describe("Validate deployment", func() {
 							Name: "pg_stat_statements",
 						},
 					},
+					Tables: []helpers.PGTable{},
 				},
 			},
 			Settings: map[string]string{
@@ -253,6 +254,99 @@ var _ = Describe("Validate deployment", func() {
 				err := validator.ValidateSettings()
 				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, "log_line_prefix"))))
 			})
+		})
+	})
+	Describe("Check consistency after an upgrade", func() {
+		Context("Validate tables", func() {
+			var dataBefore helpers.PGOutputData
+
+			BeforeEach(func() {
+				dataBefore = helpers.PGOutputData{
+					Roles: []helpers.PGRole{},
+					Databases: []helpers.PGDatabase{
+						helpers.PGDatabase{
+							Name:   "postgres",
+							DBExts: []helpers.PGDatabaseExtensions{},
+							Tables: []helpers.PGTable{},
+						},
+						helpers.PGDatabase{
+							Name:   "db1",
+							DBExts: []helpers.PGDatabaseExtensions{},
+							Tables: []helpers.PGTable{
+								helpers.PGTable{
+									SchemaName: "myschema1",
+									TableName:  "mytable1",
+									TableOwner: "myowner1",
+									TableColumns: []helpers.PGTableColumn{
+										helpers.PGTableColumn{
+											ColumnName: "column1",
+											DataType:   "type1",
+											Position:   1,
+										},
+										helpers.PGTableColumn{
+											ColumnName: "column2",
+											DataType:   "type2",
+											Position:   2,
+										},
+									},
+									TableRowsCount: helpers.PGCount{Num: 90},
+								},
+								helpers.PGTable{
+									SchemaName:     "myschema2",
+									TableName:      "mytable2",
+									TableOwner:     "myowner2",
+									TableColumns:   []helpers.PGTableColumn{},
+									TableRowsCount: helpers.PGCount{Num: 0},
+								},
+							},
+						},
+					},
+					Settings: map[string]string{},
+				}
+				validator.PostgresData = dataBefore
+			})
+			It("Reports tables equals", func() {
+				dataAfter, err := dataBefore.CopyData()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(validator.CompareTablesTo(dataAfter)).To(BeTrue())
+			})
+			It("Reports tables equal if tables order differs", func() {
+				dataAfter, err := dataBefore.CopyData()
+				Expect(err).NotTo(HaveOccurred())
+				dataAfter.Databases[1].Tables[0] = dataBefore.Databases[1].Tables[1]
+				dataAfter.Databases[1].Tables[1] = dataBefore.Databases[1].Tables[0]
+
+				Expect(validator.CompareTablesTo(dataAfter)).To(BeTrue())
+			})
+			It("Reports tables equal if tables columns order differs", func() {
+				dataAfter, err := dataBefore.CopyData()
+				Expect(err).NotTo(HaveOccurred())
+				dataAfter.Databases[1].Tables[0].TableColumns[0] = dataBefore.Databases[1].Tables[0].TableColumns[1]
+				dataAfter.Databases[1].Tables[0].TableColumns[1] = dataBefore.Databases[1].Tables[0].TableColumns[0]
+
+				Expect(validator.CompareTablesTo(dataAfter)).To(BeTrue())
+			})
+			It("Reports table different if table missing", func() {
+				dataAfter, err := dataBefore.CopyData()
+				Expect(err).NotTo(HaveOccurred())
+				dataAfter.Databases[1].Tables = []helpers.PGTable{
+					helpers.PGTable{
+						SchemaName: "myschema2",
+						TableName:  "mytable2",
+						TableOwner: "myowner2",
+						TableColumns: []helpers.PGTableColumn{
+							helpers.PGTableColumn{
+								ColumnName: "column1",
+								DataType:   "type1",
+								Position:   1,
+							},
+						},
+						TableRowsCount: helpers.PGCount{Num: 0},
+					},
+				}
+				Expect(validator.CompareTablesTo(dataAfter)).To(BeFalse())
+			})
+
 		})
 	})
 })

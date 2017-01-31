@@ -1,7 +1,9 @@
 package helpers
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -36,9 +38,25 @@ type PGSetting struct {
 type PGDatabase struct {
 	Name   string `json:"datname"`
 	DBExts []PGDatabaseExtensions
+	Tables []PGTable
 }
 type PGDatabaseExtensions struct {
 	Name string `json:"extname"`
+}
+type PGTable struct {
+	SchemaName     string `json:"schemaname"`
+	TableName      string `json:"tablename"`
+	TableOwner     string `json:"tableowner"`
+	TableColumns   []PGTableColumn
+	TableRowsCount PGCount
+}
+type PGTableColumn struct {
+	ColumnName string `json:"column_name"`
+	DataType   string `json:"data_type"`
+	Position   int    `json:"ordinal_position"`
+}
+type PGCount struct {
+	Num int `json:"count"`
 }
 type PGRole struct {
 	Name        string `json:"rolname"`
@@ -63,6 +81,9 @@ const ListRolesQuery = "SELECT * from pg_roles"
 const ListDatabasesQuery = "SELECT datname from pg_database where datistemplate=false"
 const ListDBExtensionsQuery = "SELECT extname from pg_extension"
 const ConvertToDateCommand = "SELECT '%s'::timestamptz"
+const ListTablesQuery = "SELECT * from pg_catalog.pg_tables where schemaname not like 'pg_%' and schemaname != 'information_schema'"
+const ListTableColumnsQuery = "SELECT column_name, data_type, ordinal_position FROM information_schema.columns WHERE table_schema = '%s' AND table_name = '%s' order by ordinal_position asc"
+const CountTableRowsQuery = "SELECT COUNT(*) FROM %s"
 const QueryResultAsJson = "SELECT row_to_json(t) from (%s) as t;"
 
 const NoConnectionAvailableErr = "No connections available"
@@ -253,25 +274,80 @@ func (pg PGData) ListDatabases() ([]PGDatabase, error) {
 		result = append(result, out)
 	}
 	for idx, database := range result {
-		conn, err := pg.GetDBConnection(database.Name)
-		if err != nil {
-			conn, err = pg.OpenConnection(database.Name, pg.Data.DefUser, pg.Data.DefPassword)
-		}
-		rows, err = conn.Run(ListDBExtensionsQuery)
+		result[idx].DBExts, err = pg.ListDatabaseExtensions(database.Name)
 		if err != nil {
 			return nil, err
 		}
-		result[idx].DBExts = []PGDatabaseExtensions{}
-		for _, row := range rows {
-			out := PGDatabaseExtensions{}
-			err = json.Unmarshal([]byte(row), &out)
-			if err != nil {
-				return nil, err
-			}
-			result[idx].DBExts = append(result[idx].DBExts, out)
+		result[idx].Tables, err = pg.ListDatabaseTables(database.Name)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return result, nil
+}
+func (pg PGData) ListDatabaseExtensions(dbName string) ([]PGDatabaseExtensions, error) {
+	conn, err := pg.GetDBConnection(dbName)
+	if err != nil {
+		conn, err = pg.OpenConnection(dbName, pg.Data.DefUser, pg.Data.DefPassword)
+	}
+	rows, err := conn.Run(ListDBExtensionsQuery)
+	if err != nil {
+		return nil, err
+	}
+	extensionsList := []PGDatabaseExtensions{}
+	for _, row := range rows {
+		out := PGDatabaseExtensions{}
+		err = json.Unmarshal([]byte(row), &out)
+		if err != nil {
+			return nil, err
+		}
+		extensionsList = append(extensionsList, out)
+	}
+	return extensionsList, nil
+}
+func (pg PGData) ListDatabaseTables(dbName string) ([]PGTable, error) {
+	conn, err := pg.GetDBConnection(dbName)
+	if err != nil {
+		conn, err = pg.OpenConnection(dbName, pg.Data.DefUser, pg.Data.DefPassword)
+	}
+	rows, err := conn.Run(ListTablesQuery)
+	if err != nil {
+		return nil, err
+	}
+	tableList := []PGTable{}
+	for _, row := range rows {
+		tableData := PGTable{}
+		err = json.Unmarshal([]byte(row), &tableData)
+		if err != nil {
+			return nil, err
+		}
+		tableData.TableColumns = []PGTableColumn{}
+		colRows, err := conn.Run(fmt.Sprintf(ListTableColumnsQuery, tableData.SchemaName, tableData.TableName))
+		if err != nil {
+			return nil, err
+		}
+		for _, colRow := range colRows {
+			colData := PGTableColumn{}
+			err = json.Unmarshal([]byte(colRow), &colData)
+			if err != nil {
+				return nil, err
+			}
+			tableData.TableColumns = append(tableData.TableColumns, colData)
+		}
+		countRows, err := conn.Run(fmt.Sprintf(CountTableRowsQuery, tableData.TableName))
+		if err != nil {
+			return nil, err
+		}
+		count := PGCount{}
+		err = json.Unmarshal([]byte(countRows[0]), &count)
+		if err != nil {
+			return nil, err
+		}
+		tableData.TableRowsCount = count
+
+		tableList = append(tableList, tableData)
+	}
+	return tableList, nil
 }
 func (pg PGData) ListRoles() ([]PGRole, error) {
 	var result []PGRole
@@ -324,4 +400,20 @@ func (pg PGData) GetData() (PGOutputData, error) {
 		return PGOutputData{}, err
 	}
 	return result, nil
+}
+
+func (o PGOutputData) CopyData() (PGOutputData, error) {
+	var to PGOutputData
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	dec := gob.NewDecoder(&buffer)
+	err := enc.Encode(o)
+	if err != nil {
+		return PGOutputData{}, err
+	}
+	err = dec.Decode(&to)
+	if err != nil {
+		return PGOutputData{}, err
+	}
+	return to, nil
 }

@@ -42,8 +42,13 @@ func TargetDirector(directorURL string, username string, password string, caCert
 }
 
 func InitializeDeploymentFromManifestFile(pgatsConfig PgatsConfig, manifestFilePath string, director boshdir.Director) (DeploymentData, error) {
+	return InitializeFromManifestAndSetRelease(pgatsConfig, manifestFilePath, director, "")
+}
+
+func InitializeFromManifestAndSetRelease(pgatsConfig PgatsConfig, manifestFilePath string, director boshdir.Director, postgresVersion string) (DeploymentData, error) {
 	var dd DeploymentData
 	var err error
+	dd.Director = director
 	dd.ManifestBytes, err = ioutil.ReadFile(manifestFilePath)
 	if err != nil {
 		return DeploymentData{}, err
@@ -56,7 +61,11 @@ func InitializeDeploymentFromManifestFile(pgatsConfig PgatsConfig, manifestFileP
 	if dd.ManifestData["releases"] != nil {
 		for _, elem := range dd.ManifestData["releases"].([]interface{}) {
 			if elem.(map[interface{}]interface{})["name"] == "postgres" {
-				elem.(map[interface{}]interface{})["version"] = pgatsConfig.PGReleaseVersion
+				if postgresVersion != "" {
+					elem.(map[interface{}]interface{})["version"] = postgresVersion
+				} else {
+					elem.(map[interface{}]interface{})["version"] = pgatsConfig.PGReleaseVersion
+				}
 				break
 			}
 		}
@@ -121,6 +130,16 @@ func (dd DeploymentData) GetVmAddress(vmname string) (string, error) {
 		return "", errors.New(fmt.Sprintf(VMNotPresentMsg, vmname))
 	}
 	return result, nil
+}
+func (dd DeploymentData) UploadReleaseFromURL(version string) error {
+	var url string
+	if version == "master" {
+		// Upload latest version on bosh.io
+		url = "https://bosh.io/d/github.com/cloudfoundry/postgres-release"
+	} else {
+		url = fmt.Sprintf("https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=%s", version)
+	}
+	return dd.Director.UploadReleaseURL(url, "", false, false)
 }
 func (dd DeploymentData) GetPostgresURL() (string, error) {
 	var result string

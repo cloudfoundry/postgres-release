@@ -142,6 +142,32 @@ properties:
 		})
 	})
 
+	Describe("Update director", func() {
+		Context("Uploading a release", func() {
+			BeforeEach(func() {
+				director = &fakedir.FakeDirector{}
+				deploymentData = helpers.DeploymentData{
+					Director: director,
+				}
+			})
+
+			It("Upload latest release", func() {
+				director.UploadReleaseURLReturns(nil)
+				err := deploymentData.UploadReleaseFromURL("master")
+				Expect(err).NotTo(HaveOccurred())
+			})
+			It("Upload specific release", func() {
+				director.UploadReleaseURLReturns(nil)
+				err := deploymentData.UploadReleaseFromURL("1")
+				Expect(err).NotTo(HaveOccurred())
+			})
+			It("Fail to upload release", func() {
+				director.UploadReleaseURLReturns(errors.New("fake-error"))
+				err := deploymentData.UploadReleaseFromURL("1")
+				Expect(err).To(Equal(errors.New("fake-error")))
+			})
+		})
+	})
 	Describe("Access deployed environment", func() {
 
 		var manifestFilePath string
