@@ -111,14 +111,6 @@ databases:
 				Expect(props).To(Equal(expected))
 
 			})
-			It("Correctly calculate postgres url with custom ip", func() {
-				postgresURL := props.GetPostgresURL("1.1.1.1")
-				Expect(postgresURL).To(Equal("postgres://pgadmin:admin@1.1.1.1:5524/postgres?sslmode=disable"))
-			})
-			It("Correctly calculate postgres url with default ip", func() {
-				postgresURL := props.GetPostgresURL("")
-				Expect(postgresURL).To(Equal("postgres://pgadmin:admin@x.x.x.x:5524/postgres?sslmode=disable"))
-			})
 		})
 		Context("With a invalid input", func() {
 			var props helpers.Properties

@@ -13,6 +13,7 @@ function main() {
   install_ginkgo "${root_dir}"
   pushd "${root_dir}" > /dev/null
     ginkgo \
+	  -v \
       -r \
       -race \
       -failFast \

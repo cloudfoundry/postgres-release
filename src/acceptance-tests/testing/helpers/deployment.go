@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -20,6 +21,17 @@ type DeploymentData struct {
 
 const MissingDeploymentNameMsg = "Invalid manifest: deployment name not present"
 const VMNotPresentMsg = "No VM exists with name %s"
+
+func GenerateEnvName(prefix string) string {
+	guid := "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+	b := make([]byte, 16)
+	_, err := rand.Read(b[:])
+	if err == nil {
+		guid = fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	}
+	return fmt.Sprintf("pgats-%s-%s", prefix, guid)
+}
 
 func TargetDirector(directorURL string, username string, password string, caCert string) (boshdir.Director, error) {
 
@@ -42,12 +54,13 @@ func TargetDirector(directorURL string, username string, password string, caCert
 }
 
 func InitializeDeploymentFromManifestFile(pgatsConfig PgatsConfig, manifestFilePath string, director boshdir.Director) (DeploymentData, error) {
-	return InitializeFromManifestAndSetRelease(pgatsConfig, manifestFilePath, director, "")
+	return InitializeFromManifestAndSetRelease(pgatsConfig, manifestFilePath, director, "", GenerateEnvName("simple"))
 }
 
-func InitializeFromManifestAndSetRelease(pgatsConfig PgatsConfig, manifestFilePath string, director boshdir.Director, postgresVersion string) (DeploymentData, error) {
+func InitializeFromManifestAndSetRelease(pgatsConfig PgatsConfig, manifestFilePath string, director boshdir.Director, postgresVersion string, deploymentName string) (DeploymentData, error) {
 	var dd DeploymentData
 	var err error
+
 	dd.Director = director
 	dd.ManifestBytes, err = ioutil.ReadFile(manifestFilePath)
 	if err != nil {
@@ -57,6 +70,8 @@ func InitializeFromManifestAndSetRelease(pgatsConfig PgatsConfig, manifestFilePa
 	if err := yaml.Unmarshal(dd.ManifestBytes, &dd.ManifestData); err != nil {
 		return DeploymentData{}, err
 	}
+
+	dd.ManifestData["name"] = deploymentName
 
 	if dd.ManifestData["releases"] != nil {
 		for _, elem := range dd.ManifestData["releases"].([]interface{}) {
@@ -140,19 +155,6 @@ func (dd DeploymentData) UploadReleaseFromURL(version string) error {
 		url = fmt.Sprintf("https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=%s", version)
 	}
 	return dd.Director.UploadReleaseURL(url, "", false, false)
-}
-func (dd DeploymentData) GetPostgresURL() (string, error) {
-	var result string
-	vmAddress, err := dd.GetVmAddress("postgres")
-	if err != nil {
-		return "", err
-	}
-	props, err := dd.GetPostgresProps()
-	if err != nil {
-		return "", err
-	}
-	result = props.GetPostgresURL(vmAddress)
-	return result, nil
 }
 func (dd DeploymentData) GetPostgresProps() (Properties, error) {
 	var result Properties

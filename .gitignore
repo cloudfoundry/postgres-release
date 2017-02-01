@@ -21,6 +21,5 @@
 /releases/**/*.tgz
 /releases/*.tgz
 /src/acceptance-tests/bin
-/src/acceptance-tests/deploy
 /src/acceptance-tests/pkg
 /tags

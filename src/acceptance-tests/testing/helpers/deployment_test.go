@@ -65,7 +65,7 @@ var _ = Describe("Deployment", func() {
 				Expect(err).To(MatchError(ContainSubstring("yaml: could not find expected directive name")))
 			})
 
-			It("Should return an error if manifest has no deployment name", func() {
+			It("Should set a default deployment name when missing", func() {
 				var err error
 				data := `
 director_uuid: <%= %x[bosh status --uuid] %>
@@ -77,7 +77,9 @@ stemcells:
 				manifestFilePath, err = writeConfigFile(data)
 				Expect(err).NotTo(HaveOccurred())
 				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
-				Expect(err).To(MatchError(errors.New(helpers.MissingDeploymentNameMsg)))
+				Expect(err).NotTo(HaveOccurred())
+				name := deploymentData.ManifestData["name"]
+				Expect(name).To(MatchRegexp("pgats-([\\w-]+)-(.{36})"))
 			})
 		})
 
@@ -199,9 +201,6 @@ name: test
 				Expect(err).NotTo(HaveOccurred())
 				_, err = deploymentData.GetVmAddress("postgres")
 				Expect(err).To(Equal(errors.New(fmt.Sprintf(helpers.VMNotPresentMsg, "postgres"))))
-
-				_, err = deploymentData.GetPostgresURL()
-				Expect(err).To(Equal(errors.New(fmt.Sprintf(helpers.VMNotPresentMsg, "postgres"))))
 			})
 			It("Should return an error if VMInfo fails", func() {
 				var err error
@@ -212,10 +211,6 @@ name: test
 				Expect(err).NotTo(HaveOccurred())
 				_, err = deploymentData.GetVmAddress("postgres")
 				Expect(err).To(Equal(errors.New("fake-error")))
-
-				_, err = deploymentData.GetPostgresURL()
-				Expect(err).To(Equal(errors.New("fake-error")))
-
 			})
 			It("Gets the proper vm address", func() {
 				var err error
@@ -261,9 +256,6 @@ properties:
 			It("Should return an error if incorrect postgres properties", func() {
 				var err error
 
-				_, err = deploymentData.GetPostgresURL()
-				Expect(err).To(MatchError(errors.New(helpers.MissingMandatoryProp)))
-
 				_, err = deploymentData.GetPostgresProps()
 				Expect(err).To(MatchError(errors.New(helpers.MissingMandatoryProp)))
 
@@ -297,13 +289,6 @@ properties:
 				director.FindDeploymentReturns(deploymentFake, nil)
 				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
 				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("Gets the proper postgres url", func() {
-				var err error
-				url, err := deploymentData.GetPostgresURL()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(url).To(Equal("postgres://pguser:pgpsw@1.1.1.1:1111/postgres?sslmode=disable"))
 			})
 
 			It("Gets the proper postgres props", func() {

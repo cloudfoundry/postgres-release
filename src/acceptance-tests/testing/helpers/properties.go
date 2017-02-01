@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"errors"
-	"fmt"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -59,16 +58,4 @@ func LoadProperties(yamlData []byte) (Properties, error) {
 		return Properties{}, errors.New(MissingMandatoryProp)
 	}
 	return props, nil
-}
-
-func (pp Properties) GetPostgresURL(address string) string {
-	var result string
-	pgp := pp.Databases
-	if address == "" {
-		address = pgp.Address
-	}
-
-	//DATABASE_URL="postgres://${PG_USER}:${PG_PSW}@${PG_HOST}:${PG_PORT}/${PG_DB}"
-	result = fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", pgp.Roles[0].Name, pgp.Roles[0].Password, address, pgp.Port, "postgres")
-	return result
 }

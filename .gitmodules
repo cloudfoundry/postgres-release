@@ -7,9 +7,6 @@
 [submodule "src/acceptance-tests/vendor/github.com/onsi/gomega"]
 	path = src/acceptance-tests/vendor/github.com/onsi/gomega
 	url = https://github.com/onsi/gomega
-[submodule "src/acceptance-tests/vendor/github.com/cloudfoundry/bosh-cli"]
-	path = src/acceptance-tests/vendor/github.com/cloudfoundry/bosh-cli
-	url = https://github.com/cloudfoundry/bosh-cli
 [submodule "src/acceptance-tests/vendor/github.com/cloudfoundry/bosh-utils"]
 	path = src/acceptance-tests/vendor/github.com/cloudfoundry/bosh-utils
 	url = https://github.com/cloudfoundry/bosh-utils
