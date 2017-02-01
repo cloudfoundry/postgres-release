@@ -58,6 +58,9 @@ type PGTableColumn struct {
 type PGCount struct {
 	Num int `json:"count"`
 }
+type PGVersion struct {
+	Version string `json:"version"`
+}
 type PGRole struct {
 	Name        string `json:"rolname"`
 	Super       bool   `json:"rolsuper"`
@@ -74,6 +77,7 @@ type PGOutputData struct {
 	Roles     []PGRole
 	Databases []PGDatabase
 	Settings  map[string]string
+	Version   PGVersion
 }
 
 const GetSettingsQuery = "SELECT * FROM pg_settings"
@@ -84,6 +88,7 @@ const ConvertToDateCommand = "SELECT '%s'::timestamptz"
 const ListTablesQuery = "SELECT * from pg_catalog.pg_tables where schemaname not like 'pg_%' and schemaname != 'information_schema'"
 const ListTableColumnsQuery = "SELECT column_name, data_type, ordinal_position FROM information_schema.columns WHERE table_schema = '%s' AND table_name = '%s' order by ordinal_position asc"
 const CountTableRowsQuery = "SELECT COUNT(*) FROM %s"
+const GetPostgreSQLVersionQuery = "SELECT version()"
 const QueryResultAsJson = "SELECT row_to_json(t) from (%s) as t;"
 
 const NoConnectionAvailableErr = "No connections available"
@@ -259,6 +264,19 @@ func (pg PGData) ReadAllSettings() (map[string]string, error) {
 	}
 	return result, nil
 }
+func (pg PGData) GetPostgreSQLVersion() (PGVersion, error) {
+	var result PGVersion
+
+	rows, err := pg.GetDefaultConnection().Run(GetPostgreSQLVersionQuery)
+	if err != nil {
+		return PGVersion{}, err
+	}
+	err = json.Unmarshal([]byte(rows[0]), &result)
+	if err != nil {
+		return PGVersion{}, nil
+	}
+	return result, nil
+}
 func (pg PGData) ListDatabases() ([]PGDatabase, error) {
 	var result []PGDatabase
 	rows, err := pg.GetDefaultConnection().Run(ListDatabasesQuery)
@@ -396,6 +414,10 @@ func (pg PGData) GetData() (PGOutputData, error) {
 		return PGOutputData{}, err
 	}
 	result.Roles, err = pg.ListRoles()
+	if err != nil {
+		return PGOutputData{}, err
+	}
+	result.Version, err = pg.GetPostgreSQLVersion()
 	if err != nil {
 		return PGOutputData{}, err
 	}

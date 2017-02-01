@@ -9,11 +9,13 @@ import (
 )
 
 type Validator struct {
-	ManifestProps PgProperties
-	PostgresData  PGOutputData
-	PG            PGData
+	ManifestProps     PgProperties
+	PostgresData      PGOutputData
+	PG                PGData
+	PostgreSQLVersion string
 }
 
+const WrongPostreSQLVersionError = "Actual PostgreSQL version %s should be %s"
 const MissingDatabaseValidationError = "Database %s has not been created"
 const ExtraDatabaseValidationError = "Extra database %s has been created"
 const MissingExtensionValidationError = "Extension %s for database %s has not been created"
@@ -66,12 +68,20 @@ func (a PGColumnSorter) Len() int           { return len(a) }
 func (a PGColumnSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a PGColumnSorter) Less(i, j int) bool { return a[i].Position < a[j].Position }
 
-func NewValidator(props PgProperties, pgData PGOutputData, pg PGData) Validator {
+func NewValidator(props PgProperties, pgData PGOutputData, pg PGData, postgresqlVersion string) Validator {
 	return Validator{
-		ManifestProps: props,
-		PostgresData:  pgData,
-		PG:            pg,
+		PostgreSQLVersion: postgresqlVersion,
+		ManifestProps:     props,
+		PostgresData:      pgData,
+		PG:                pg,
 	}
+}
+
+func (v Validator) ValidatePostgreSQLVersion() error {
+	if v.PostgresData.Version.Version != v.PostgreSQLVersion {
+		return errors.New(fmt.Sprintf(WrongPostreSQLVersionError, v.PostgresData.Version.Version, v.PostgreSQLVersion))
+	}
+	return nil
 }
 
 func (v Validator) ValidateDatabases() error {
@@ -236,6 +246,13 @@ func (v Validator) ValidateAll() error {
 		return err
 	}
 	err = v.ValidateSettings()
+	if err != nil {
+		return err
+	}
+	err = v.ValidatePostgreSQLVersion()
+	if err != nil {
+		return err
+	}
 	return err
 }
 func (v Validator) CompareTablesTo(data PGOutputData) bool {

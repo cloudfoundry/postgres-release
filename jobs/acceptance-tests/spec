@@ -42,5 +42,9 @@ properties:
    default: "m3.medium"
 
   postgres.acceptance_tests.postgres_release_version:
-   description: "The default postgres-release version number to deploy"
+   description: "The postgres-release version to test. If not specified, the latest uploaded to the director is used."
    default: latest
+
+  postgres.acceptance_tests.postgresql_version:
+   description: "The PostgreSQL version that is expected to be deployed. If not specified, we expect that the one in the latest published postgres-release is deployed."
+   default: current

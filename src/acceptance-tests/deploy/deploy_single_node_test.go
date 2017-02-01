@@ -85,12 +85,14 @@ var _ = Describe("Deploy single instance", func() {
 		It("Successfully deploys a fresh env", func() {
 			pgData, err := DB.GetData()
 			Expect(err).NotTo(HaveOccurred())
-			validator := helpers.NewValidator(pgprops, pgData, DB)
+			validator := helpers.NewValidator(pgprops, pgData, DB, "PostgreSQL 9.4.9")
 			err = validator.ValidateAll()
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 	Describe("Upgrading an existent env", func() {
+
+		var oldPostgresVersion string
 
 		AssertUpgradeSuccessful := func() func() {
 			return func() {
@@ -98,7 +100,7 @@ var _ = Describe("Deploy single instance", func() {
 				By("Validating the database has been deployed as requested")
 				pgData, err := DB.GetData()
 				Expect(err).NotTo(HaveOccurred())
-				validator := helpers.NewValidator(pgprops, pgData, DB)
+				validator := helpers.NewValidator(pgprops, pgData, DB, oldPostgresVersion)
 				err = validator.ValidateAll()
 				Expect(err).NotTo(HaveOccurred())
 
@@ -114,7 +116,7 @@ var _ = Describe("Deploy single instance", func() {
 				Expect(tablesEqual).To(BeTrue())
 
 				By("Validating the database has been upgraded as requested")
-				validator = helpers.NewValidator(pgprops, pgDataAfter, DB)
+				validator = helpers.NewValidator(pgprops, pgDataAfter, DB, "PostgreSQL 9.4.9")
 				err = validator.ValidateAll()
 				Expect(err).NotTo(HaveOccurred())
 			}
@@ -125,6 +127,7 @@ var _ = Describe("Deploy single instance", func() {
 				manifestPath = "../testing/templates/postgres_simple.yml"
 				version = "1"
 				deploymentPrefix = "upg-older"
+				oldPostgresVersion = "PostgreSQL 9.4.6"
 			})
 			It("Successfully upgrades from older", AssertUpgradeSuccessful())
 		})
@@ -133,6 +136,7 @@ var _ = Describe("Deploy single instance", func() {
 				manifestPath = "../testing/templates/postgres_simple.yml"
 				version = "6"
 				deploymentPrefix = "upg-old"
+				oldPostgresVersion = "PostgreSQL 9.4.9"
 			})
 			It("Successfully upgrades from old", AssertUpgradeSuccessful())
 		})

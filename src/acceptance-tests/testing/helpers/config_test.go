@@ -40,6 +40,7 @@ var _ = Describe("Configuration", func() {
 				var err error
 				var data = `
 postgres_release_version: "some-version"
+postgresql_version: "some-version"
 bosh:
   target: some-target
   username: some-username
@@ -62,7 +63,8 @@ cloud_configs:
 				config, err := helpers.LoadConfig(configFilePath)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(config).To(Equal(helpers.PgatsConfig{
-					PGReleaseVersion: "some-version",
+					PGReleaseVersion:  "some-version",
+					PostgreSQLVersion: "some-version",
 					Bosh: helpers.PgatsBoshConfig{
 						Target:         "some-target",
 						Username:       "some-username",

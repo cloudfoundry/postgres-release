@@ -101,6 +101,7 @@ var _ = Describe("Validate deployment", func() {
 				"other":           "other",
 				"max_connections": "30",
 			},
+			Version: helpers.PGVersion{Version: "PostgreSQL 9.4.9"},
 		}
 
 		mocks = make(map[string]sqlmock.Sqlmock)
@@ -118,9 +119,10 @@ var _ = Describe("Validate deployment", func() {
 		}
 
 		validator = helpers.Validator{
-			ManifestProps: manifestProps,
-			PostgresData:  postgresData,
-			PG:            pg,
+			ManifestProps:     manifestProps,
+			PostgresData:      postgresData,
+			PG:                pg,
+			PostgreSQLVersion: "PostgreSQL 9.4.9",
 		}
 	})
 
@@ -140,6 +142,10 @@ var _ = Describe("Validate deployment", func() {
 			})
 			It("Properly validates settings", func() {
 				err := validator.ValidateSettings()
+				Expect(err).NotTo(HaveOccurred())
+			})
+			It("Properly validates PostgreSQL version", func() {
+				err := validator.ValidatePostgreSQLVersion()
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("Properly validates all", func() {
@@ -182,6 +188,13 @@ var _ = Describe("Validate deployment", func() {
 				validator.ManifestProps.Databases[0].CITExt = false
 				err := validator.ValidateDatabases()
 				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.ExtraExtensionValidationError, "citext", "db1"))))
+			})
+		})
+		Context("Validate PostgreSQL version", func() {
+			It("Fails if wrong PostgreSQL version", func() {
+				validator.PostgreSQLVersion = "wrong value"
+				err := validator.ValidatePostgreSQLVersion()
+				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.WrongPostreSQLVersionError, "PostgreSQL 9.4.9", "wrong value"))))
 			})
 		})
 		Context("Validate roles", func() {

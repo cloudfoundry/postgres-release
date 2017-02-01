@@ -14,9 +14,10 @@ const MissingCertificateMsg = "missing `director_ca_cert` - specify BOSH directo
 const IncorrectEnvMsg = "$PGATS_CONFIG %q does not specify an absolute path to test config file"
 
 type PgatsConfig struct {
-	Bosh             PgatsBoshConfig  `yaml:"bosh"`
-	BoshCC           PgatsCloudConfig `yaml:"cloud_configs"`
-	PGReleaseVersion string           `yaml:"postgres_release_version"`
+	Bosh              PgatsBoshConfig  `yaml:"bosh"`
+	BoshCC            PgatsCloudConfig `yaml:"cloud_configs"`
+	PGReleaseVersion  string           `yaml:"postgres_release_version"`
+	PostgreSQLVersion string           `yaml:"postgresql_version"`
 }
 type PgatsBoshConfig struct {
 	Target         string `yaml:"target"`
@@ -52,7 +53,8 @@ var DefaultPgatsConfig = PgatsConfig{
 		PersistentDiskType: "10GB",
 		VmType:             "m3.medium",
 	},
-	PGReleaseVersion: "latest",
+	PGReleaseVersion:  "latest",
+	PostgreSQLVersion: "current",
 }
 
 func LoadConfig(configFilePath string) (PgatsConfig, error) {

@@ -107,6 +107,17 @@ func mockDate(current string, expected string, mocks map[string]sqlmock.Sqlmock)
 	}
 	return nil
 }
+func mockPostgreSQLVersion(expected helpers.PGVersion, mocks map[string]sqlmock.Sqlmock) error {
+	sqlCommand := convertQuery(helpers.GetPostgreSQLVersionQuery)
+	if expected.Version == "" {
+		mocks["postgres"].ExpectQuery(sqlCommand).WillReturnError(genericError)
+	} else {
+		row := fmt.Sprintf("{\"version\": \"%s\"}", expected.Version)
+		rows := sqlmock.NewRows(expectedcolumns).AddRow(row)
+		mocks["postgres"].ExpectQuery(sqlCommand).WillReturnRows(rows)
+	}
+	return nil
+}
 
 var _ = Describe("Postgres", func() {
 	Describe("Copy output data", func() {
@@ -300,6 +311,14 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 		Context("Fail to retrieve env info", func() {
+			It("Fails to read postgresql version", func() {
+				mockPostgreSQLVersion(helpers.PGVersion{Version: ""}, mocks)
+				_, err := pg.GetPostgreSQLVersion()
+				Expect(err).To(MatchError(genericError))
+				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+			})
 			It("Fails to read pg_settings", func() {
 				mockSettings(nil, mocks)
 				_, err := pg.ReadAllSettings()
@@ -336,6 +355,16 @@ var _ = Describe("Postgres", func() {
 			})
 		})
 		Context("Correctly retrieve env info", func() {
+			It("Correctly get postgresql version", func() {
+				version := "PostgreSQL 9.4.9"
+				mockPostgreSQLVersion(helpers.PGVersion{Version: version}, mocks)
+				result, err := pg.GetPostgreSQLVersion()
+				Expect(err).NotTo(HaveOccurred())
+				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+				Expect(result.Version).To(Equal(version))
+			})
 			It("Correctly read pg_settings", func() {
 				expected := map[string]string{
 					"a1": "a2",
@@ -488,7 +517,7 @@ var _ = Describe("Postgres", func() {
 				}
 				Expect(result).To(Equal(expected))
 			})
-			It("Correctly retrieve environment data", func() {
+			It("Correctly retrieve all postgres data", func() {
 				expected := helpers.PGOutputData{
 					Roles: []helpers.PGRole{
 						helpers.PGRole{
@@ -507,11 +536,15 @@ var _ = Describe("Postgres", func() {
 					Settings: map[string]string{
 						"max_connections": "30",
 					},
+					Version: helpers.PGVersion{
+						Version: "PostgreSQL 9.4.9",
+					},
 				}
 				mockSettings(expected.Settings, mocks)
 				mockDatabases(expected.Databases, mocks)
 				err := mockRoles(expected.Roles, mocks)
 				Expect(err).NotTo(HaveOccurred())
+				mockPostgreSQLVersion(expected.Version, mocks)
 				result, err := pg.GetData()
 				Expect(err).NotTo(HaveOccurred())
 				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
