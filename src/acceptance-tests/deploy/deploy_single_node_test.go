@@ -61,6 +61,9 @@ var _ = Describe("Deploy single instance", func() {
 	var pgprops helpers.PgProperties
 	var manifestPath, version, deploymentPrefix string
 
+	const olderVersion = "1"
+	const oldVersion = "5"
+
 	JustBeforeEach(func() {
 		var err error
 		By("Deploying a single postgres instance")
@@ -125,7 +128,7 @@ var _ = Describe("Deploy single instance", func() {
 		Context("Upgrading from an older version", func() {
 			BeforeEach(func() {
 				manifestPath = "../testing/templates/postgres_simple.yml"
-				version = "1"
+				version = olderVersion
 				deploymentPrefix = "upg-older"
 				oldPostgresVersion = "PostgreSQL 9.4.6"
 			})
@@ -134,7 +137,7 @@ var _ = Describe("Deploy single instance", func() {
 		Context("Upgrading from an old version", func() {
 			BeforeEach(func() {
 				manifestPath = "../testing/templates/postgres_simple.yml"
-				version = "6"
+				version = oldVersion
 				deploymentPrefix = "upg-old"
 				oldPostgresVersion = "PostgreSQL 9.4.9"
 			})

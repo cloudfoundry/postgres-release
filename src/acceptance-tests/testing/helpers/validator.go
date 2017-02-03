@@ -78,7 +78,7 @@ func NewValidator(props PgProperties, pgData PGOutputData, pg PGData, postgresql
 }
 
 func (v Validator) ValidatePostgreSQLVersion() error {
-	if v.PostgresData.Version.Version != v.PostgreSQLVersion {
+	if !strings.HasPrefix(v.PostgresData.Version.Version, v.PostgreSQLVersion) {
 		return errors.New(fmt.Sprintf(WrongPostreSQLVersionError, v.PostgresData.Version.Version, v.PostgreSQLVersion))
 	}
 	return nil
