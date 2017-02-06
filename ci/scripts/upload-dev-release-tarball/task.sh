@@ -16,10 +16,12 @@ function main(){
   bosh login ${BOSH_USER} ${BOSH_PASSWORD}
   set -x
 
-  pushd ${root}/dev-release
-  #git submodule update --init --recursive
-  bosh -t ${BOSH_DIRECTOR} create release --force --version "${REL_VERSION}" --name "${REL_NAME}"
-  bosh -t ${BOSH_DIRECTOR} upload release --version "${REL_VERSION}" --name "${REL_NAME}"
+  pushd ${root}/dev-release-tarball
+  for file in *.tgz
+  do
+    echo loading release "$file"
+    bosh -t ${BOSH_DIRECTOR} upload release "$file"
+  done
   popd
 }
 

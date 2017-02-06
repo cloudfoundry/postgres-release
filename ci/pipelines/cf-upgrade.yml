@@ -68,20 +68,6 @@ jobs:
       BOSH_USER: {{fresh_bosh_user}}
       BOSH_PASSWORD: {{fresh_bosh_password}}
       BOSH_PUBLIC_IP: {{fresh_bosh_public_ip}}
-  - task: upload-postgres-dev-release-fresh
-    file: postgres-release/ci/scripts/upload-dev-release/task.yml
-    input_mapping: {dev-release: postgres-release}
-    params:
-      <<: *bosh_params_fresh
-      REL_NAME: postgres
-      REL_VERSION: v999+dev.1
-  - task: upload-cf-dev-release-fresh
-    file: postgres-release/ci/scripts/upload-dev-release/task.yml
-    input_mapping: {dev-release: cf-release}
-    params:
-      <<: *bosh_params_fresh
-      REL_NAME: cf
-      REL_VERSION: v999+dev.1
   - task: upload-stemcell-old
     file: postgres-release/ci/scripts/upload-stemcell/task.yml
     params: &bosh_params_old
@@ -89,20 +75,6 @@ jobs:
       BOSH_USER: {{old_bosh_user}}
       BOSH_PASSWORD: {{old_bosh_password}}
       BOSH_PUBLIC_IP: {{old_bosh_public_ip}}
-  - task: upload-postgres-dev-release-old
-    file: postgres-release/ci/scripts/upload-dev-release/task.yml
-    input_mapping: {dev-release: postgres-release}
-    params:
-      <<: *bosh_params_old
-      REL_NAME: postgres
-      REL_VERSION: v999+dev.1
-  - task: upload-cf-dev-release-old
-    file: postgres-release/ci/scripts/upload-dev-release/task.yml
-    input_mapping: {dev-release: cf-release}
-    params:
-      <<: *bosh_params_old
-      REL_NAME: cf
-      REL_VERSION: v999+dev.1
   - task: upload-stemcell-older
     file: postgres-release/ci/scripts/upload-stemcell/task.yml
     params: &bosh_params_older
@@ -110,20 +82,52 @@ jobs:
       BOSH_USER: {{older_bosh_user}}
       BOSH_PASSWORD: {{older_bosh_password}}
       BOSH_PUBLIC_IP: {{older_bosh_public_ip}}
-  - task: upload-postgres-dev-release-older
-    file: postgres-release/ci/scripts/upload-dev-release/task.yml
+  - task: create-postgres-dev-release-tarball
+    file: postgres-release/ci/scripts/create-dev-release-tarball/task.yml
     input_mapping: {dev-release: postgres-release}
+    output_mapping: {dev-release-tarball: postgres-tarball}
     params:
-      <<: *bosh_params_older
+      <<: *bosh_params_fresh
       REL_NAME: postgres
       REL_VERSION: v999+dev.1
-  - task: upload-cf-dev-release-older
-    file: postgres-release/ci/scripts/upload-dev-release/task.yml
+  - task: create-cf-dev-release-tarball
+    file: postgres-release/ci/scripts/create-dev-release-tarball/task.yml
     input_mapping: {dev-release: cf-release}
+    output_mapping: {dev-release-tarball: cf-tarball}
     params:
-      <<: *bosh_params_older
+      <<: *bosh_params_fresh
       REL_NAME: cf
       REL_VERSION: v999+dev.1
+  - task: upload-postgres-dev-release-fresh
+    file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
+    input_mapping: {dev-release-tarball: postgres-tarball}
+    params:
+      <<: *bosh_params_fresh
+  - task: upload-cf-dev-release-fresh
+    file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
+    input_mapping: {dev-release-tarball: cf-tarball}
+    params:
+      <<: *bosh_params_fresh
+  - task: upload-postgres-dev-release-old
+    file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
+    input_mapping: {dev-release-tarball: postgres-tarball}
+    params:
+      <<: *bosh_params_old
+  - task: upload-cf-dev-release-old
+    file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
+    input_mapping: {dev-release-tarball: cf-tarball}
+    params:
+      <<: *bosh_params_old
+  - task: upload-postgres-dev-release-older
+    file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
+    input_mapping: {dev-release-tarball: postgres-tarball}
+    params:
+      <<: *bosh_params_older
+  - task: upload-cf-dev-release-older
+    file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
+    input_mapping: {dev-release-tarball: cf-tarball}
+    params:
+      <<: *bosh_params_older
 
 - name: test-fresh-deployment
   serial_groups: [cf-fresh]
