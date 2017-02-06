@@ -41,6 +41,7 @@ var _ = Describe("Configuration", func() {
 				var data = `
 postgres_release_version: "some-version"
 postgresql_version: "some-version"
+versions_file: "some-path"
 bosh:
   target: some-target
   username: some-username
@@ -65,6 +66,7 @@ cloud_configs:
 				Expect(config).To(Equal(helpers.PgatsConfig{
 					PGReleaseVersion:  "some-version",
 					PostgreSQLVersion: "some-version",
+					VersionsFile: "some-path",
 					Bosh: helpers.BOSHConfig{
 						Target:         "some-target",
 						Username:       "some-username",

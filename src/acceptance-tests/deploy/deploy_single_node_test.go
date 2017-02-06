@@ -63,12 +63,14 @@ var _ = Describe("Deploy single instance", func() {
 	var DB helpers.PGData
 	var pgprops helpers.PgProperties
 	var manifestPath, version, deploymentPrefix string
-
-	const olderVersion = "1"
-	const oldVersion = "5"
+	var latestPostgreSQLVersion string
 
 	JustBeforeEach(func() {
 		var err error
+		latestPostgreSQLVersion = configParams.PostgreSQLVersion
+		if latestPostgreSQLVersion == "current" {
+			latestPostgreSQLVersion = versions.GetPostgreSQLVersion(versions.GetLatestVersion())
+		}
 		By("Deploying a single postgres instance")
 		err = createDeployment(version, manifestPath, deploymentPrefix)
 		Expect(err).NotTo(HaveOccurred())
@@ -91,14 +93,12 @@ var _ = Describe("Deploy single instance", func() {
 		It("Successfully deploys a fresh env", func() {
 			pgData, err := DB.GetData()
 			Expect(err).NotTo(HaveOccurred())
-			validator := helpers.NewValidator(pgprops, pgData, DB, "PostgreSQL 9.4.9")
+			validator := helpers.NewValidator(pgprops, pgData, DB, latestPostgreSQLVersion)
 			err = validator.ValidateAll()
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 	Describe("Upgrading an existent env", func() {
-
-		var oldPostgresVersion string
 
 		AssertUpgradeSuccessful := func() func() {
 			return func() {
@@ -106,7 +106,7 @@ var _ = Describe("Deploy single instance", func() {
 				By("Validating the database has been deployed as requested")
 				pgData, err := DB.GetData()
 				Expect(err).NotTo(HaveOccurred())
-				validator := helpers.NewValidator(pgprops, pgData, DB, oldPostgresVersion)
+				validator := helpers.NewValidator(pgprops, pgData, DB, versions.GetPostgreSQLVersion(version))
 				err = validator.ValidateAll()
 				Expect(err).NotTo(HaveOccurred())
 
@@ -122,7 +122,7 @@ var _ = Describe("Deploy single instance", func() {
 				Expect(tablesEqual).To(BeTrue())
 
 				By("Validating the database has been upgraded as requested")
-				validator = helpers.NewValidator(pgprops, pgDataAfter, DB, "PostgreSQL 9.4.9")
+				validator = helpers.NewValidator(pgprops, pgDataAfter, DB, latestPostgreSQLVersion)
 				err = validator.ValidateAll()
 				Expect(err).NotTo(HaveOccurred())
 			}
@@ -131,20 +131,26 @@ var _ = Describe("Deploy single instance", func() {
 		Context("Upgrading from an older version", func() {
 			BeforeEach(func() {
 				manifestPath = "../testing/templates/postgres_simple.yml"
-				version = olderVersion
+				version = versions.GetOlderVersion()
 				deploymentPrefix = "upg-older"
-				oldPostgresVersion = "PostgreSQL 9.4.6"
 			})
 			It("Successfully upgrades from older", AssertUpgradeSuccessful())
 		})
 		Context("Upgrading from an old version", func() {
 			BeforeEach(func() {
 				manifestPath = "../testing/templates/postgres_simple.yml"
-				version = oldVersion
+				version = versions.GetOldVersion()
 				deploymentPrefix = "upg-old"
-				oldPostgresVersion = "PostgreSQL 9.4.9"
 			})
 			It("Successfully upgrades from old", AssertUpgradeSuccessful())
+		})
+		Context("Upgrading from master version", func() {
+			BeforeEach(func() {
+				manifestPath = "../testing/templates/postgres_simple.yml"
+				version = versions.GetLatestVersion()
+				deploymentPrefix = "upg-master"
+			})
+			It("Successfully upgrades from master", AssertUpgradeSuccessful())
 		})
 	})
 

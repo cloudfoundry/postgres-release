@@ -18,6 +18,7 @@ type PgatsConfig struct {
 	BoshCC            BOSHCloudConfig `yaml:"cloud_configs"`
 	PGReleaseVersion  string          `yaml:"postgres_release_version"`
 	PostgreSQLVersion string          `yaml:"postgresql_version"`
+	VersionsFile      string          `yaml:"versions_file"`
 }
 
 var DefaultPgatsConfig = PgatsConfig{
@@ -25,6 +26,7 @@ var DefaultPgatsConfig = PgatsConfig{
 	BoshCC:            DefaultCloudConfig,
 	PGReleaseVersion:  "latest",
 	PostgreSQLVersion: "current",
+	VersionsFile:      "",
 }
 
 func LoadConfig(configFilePath string) (PgatsConfig, error) {

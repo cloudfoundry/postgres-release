@@ -12,6 +12,7 @@ import (
 var (
 	director     helpers.BOSHDirector
 	configParams helpers.PgatsConfig
+	versions     helpers.PostgresReleaseVersions
 )
 
 func TestDeploy(t *testing.T) {
@@ -30,5 +31,8 @@ var _ = BeforeSuite(func() {
 	releases["postgres"] = configParams.PGReleaseVersion
 
 	director, err = helpers.NewBOSHDirector(configParams.Bosh, configParams.BoshCC, releases)
+	Expect(err).NotTo(HaveOccurred())
+
+	versions, err = helpers.NewPostgresReleaseVersions(configParams.VersionsFile)
 	Expect(err).NotTo(HaveOccurred())
 })
