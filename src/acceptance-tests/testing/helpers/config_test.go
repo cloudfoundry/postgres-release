@@ -65,19 +65,19 @@ cloud_configs:
 				Expect(config).To(Equal(helpers.PgatsConfig{
 					PGReleaseVersion:  "some-version",
 					PostgreSQLVersion: "some-version",
-					Bosh: helpers.PgatsBoshConfig{
+					Bosh: helpers.BOSHConfig{
 						Target:         "some-target",
 						Username:       "some-username",
 						Password:       "some-password",
 						DirectorCACert: "some-ca-cert",
 					},
-					BoshCC: helpers.PgatsCloudConfig{
+					BoshCC: helpers.BOSHCloudConfig{
 						AZs: []string{"some-az1", "some-az2"},
-						Networks: []helpers.PgatsJobNetwork{
-							helpers.PgatsJobNetwork{
+						Networks: []helpers.BOSHJobNetwork{
+							helpers.BOSHJobNetwork{
 								Name: "some-net1",
 							},
-							helpers.PgatsJobNetwork{
+							helpers.BOSHJobNetwork{
 								Name:      "some-net2",
 								StaticIPs: []string{"some-ip1", "some-ip2"},
 								Default:   []string{"some-default1", "some-default2"},

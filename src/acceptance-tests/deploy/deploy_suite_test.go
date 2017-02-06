@@ -1,19 +1,16 @@
 package deploy_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
 )
 
 var (
-	director     boshdir.Director
+	director     helpers.BOSHDirector
 	configParams helpers.PgatsConfig
 )
 
@@ -29,9 +26,9 @@ var _ = BeforeSuite(func() {
 	configParams, err = helpers.LoadConfig(configPath)
 	Expect(err).NotTo(HaveOccurred())
 
-	directorURL := fmt.Sprintf("https://%s:25555", configParams.Bosh.Target)
+	releases := make(map[string]string)
+	releases["postgres"] = configParams.PGReleaseVersion
 
-	director, err = helpers.TargetDirector(directorURL, configParams.Bosh.Username, configParams.Bosh.Password, configParams.Bosh.DirectorCACert)
+	director, err = helpers.NewBOSHDirector(configParams.Bosh, configParams.BoshCC, releases)
 	Expect(err).NotTo(HaveOccurred())
-	//deps, err := director.Deployments()
 })

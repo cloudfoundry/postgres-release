@@ -7,37 +7,41 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func deployEnv(postgresVersion string, manifestPath string, prefix string) (helpers.DeploymentData, error) {
+func createDeployment(postgresVersion string, manifestPath string, prefix string) error {
 	name := helpers.GenerateEnvName(prefix)
-	return updateEnv(postgresVersion, manifestPath, name)
+	return updateDeployment(postgresVersion, manifestPath, name)
 }
-func updateEnv(postgresVersion string, manifestPath string, name string) (helpers.DeploymentData, error) {
+func updateDeployment(postgresVersion string, manifestPath string, name string) error {
 	var err error
-	deployment, err := helpers.InitializeFromManifestAndSetRelease(configParams, manifestPath, director, postgresVersion, name)
+	releases := make(map[string]string)
+	if postgresVersion != "" {
+		releases["postgres"] = postgresVersion
+	}
+	err = director.SetDeploymentFromManifest(manifestPath, releases, name)
 	if err != nil {
-		return helpers.DeploymentData{}, err
+		return err
 	}
 	if postgresVersion != "" {
-		err = deployment.UploadReleaseFromURL(postgresVersion)
+		err = director.UploadPostgresReleaseFromURL(postgresVersion)
 		if err != nil {
-			return helpers.DeploymentData{}, err
+			return err
 		}
 	}
 
-	err = deployment.CreateOrUpdateDeployment()
+	err = director.DeploymentInfo.CreateOrUpdateDeployment()
 	if err != nil {
-		return helpers.DeploymentData{}, err
+		return err
 	}
-	return deployment, nil
+	return nil
 }
-func connectToPostgres(deployment helpers.DeploymentData) (helpers.PgProperties, helpers.PGData, error) {
+func connectToPostgres() (helpers.PgProperties, helpers.PGData, error) {
 	var err error
-	props, err := deployment.GetPostgresProps()
+	props, err := director.DeploymentInfo.GetPostgresProps()
 	if err != nil {
 		return helpers.PgProperties{}, helpers.PGData{}, err
 	}
 	pgprops := props.Databases
-	vmaddr, err := deployment.GetVmAddress("postgres")
+	vmaddr, err := director.DeploymentInfo.GetVmAddress("postgres")
 	if err != nil {
 		return helpers.PgProperties{}, helpers.PGData{}, err
 	}
@@ -56,7 +60,6 @@ func connectToPostgres(deployment helpers.DeploymentData) (helpers.PgProperties,
 
 var _ = Describe("Deploy single instance", func() {
 
-	var deployment helpers.DeploymentData
 	var DB helpers.PGData
 	var pgprops helpers.PgProperties
 	var manifestPath, version, deploymentPrefix string
@@ -67,10 +70,10 @@ var _ = Describe("Deploy single instance", func() {
 	JustBeforeEach(func() {
 		var err error
 		By("Deploying a single postgres instance")
-		deployment, err = deployEnv(version, manifestPath, deploymentPrefix)
+		err = createDeployment(version, manifestPath, deploymentPrefix)
 		Expect(err).NotTo(HaveOccurred())
 		By("Initializing a postgres client connection")
-		pgprops, DB, err = connectToPostgres(deployment)
+		pgprops, DB, err = connectToPostgres()
 		Expect(err).NotTo(HaveOccurred())
 		By("Populating the database")
 		err = DB.CreateAndPopulateTables(pgprops.Databases[0].Name, helpers.SmallLoad)
@@ -108,7 +111,7 @@ var _ = Describe("Deploy single instance", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Upgrading to the new release")
-				deployment, err = updateEnv("", manifestPath, deployment.Deployment.Name())
+				err = updateDeployment("", manifestPath, director.DeploymentInfo.Deployment.Name())
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Validating the database content is still valid after upgrade")
@@ -147,7 +150,7 @@ var _ = Describe("Deploy single instance", func() {
 
 	AfterEach(func() {
 		var err error
-		err = deployment.DeleteDeployment()
+		err = director.DeploymentInfo.DeleteDeployment()
 		Expect(err).NotTo(HaveOccurred())
 	})
 

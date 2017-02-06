@@ -31,19 +31,27 @@ func writeManifestFile(data string) (string, error) {
 
 var _ = Describe("Deployment", func() {
 	var (
-		director       *fakedir.FakeDirector
-		deploymentData helpers.DeploymentData
+		director     helpers.BOSHDirector
+		fakeDirector *fakedir.FakeDirector
 	)
-	Describe("Initialize deployment from manifest", func() {
-		BeforeEach(func() {
-			director = &fakedir.FakeDirector{}
-		})
+	BeforeEach(func() {
+		fakeDirector = &fakedir.FakeDirector{}
+		releases := make(map[string]string)
+		releases["postgres"] = "latest"
+		director = helpers.BOSHDirector{
+			Director:               fakeDirector,
+			DirectorConfig:         helpers.DefaultBOSHConfig,
+			CloudConfig:            helpers.DefaultCloudConfig,
+			DefaultReleasesVersion: releases,
+		}
+	})
 
+	Describe("Initialize deployment from manifest", func() {
 		Context("With non existent manifest", func() {
 
 			It("Should return an error if not existent manifest", func() {
 				var err error
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, "/Not/existent/path", director)
+				err = director.SetDeploymentFromManifest("/Not/existent/path", nil, "dummy")
 				Expect(err).To(MatchError(ContainSubstring("no such file or directory")))
 			})
 		})
@@ -61,11 +69,11 @@ var _ = Describe("Deployment", func() {
 				var err error
 				manifestFilePath, err = writeConfigFile("%%%")
 				Expect(err).NotTo(HaveOccurred())
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
 				Expect(err).To(MatchError(ContainSubstring("yaml: could not find expected directive name")))
 			})
 
-			It("Should set a default deployment name when missing", func() {
+			It("Should return an error if deployment name not provided in input", func() {
 				var err error
 				data := `
 director_uuid: <%= %x[bosh status --uuid] %>
@@ -76,9 +84,23 @@ stemcells:
 `
 				manifestFilePath, err = writeConfigFile(data)
 				Expect(err).NotTo(HaveOccurred())
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "")
+				Expect(err).To(MatchError(errors.New(helpers.MissingDeploymentNameMsg)))
+			})
+			It("Properly set the provided deployment name", func() {
+				var err error
+				data := `
+director_uuid: <%= %x[bosh status --uuid] %>
+stemcells:
+- alias: linux
+  name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+  version: latest
+`
+				manifestFilePath, err = writeConfigFile(data)
 				Expect(err).NotTo(HaveOccurred())
-				name := deploymentData.ManifestData["name"]
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, helpers.GenerateEnvName("dummy"))
+				Expect(err).NotTo(HaveOccurred())
+				name := director.DeploymentInfo.ManifestData["name"]
 				Expect(name).To(MatchRegexp("pgats-([\\w-]+)-(.{36})"))
 			})
 		})
@@ -94,7 +116,7 @@ stemcells:
 					IPs:     []string{"1.1.1.1"},
 				}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{vmInfoFake}, nil)
-				director.FindDeploymentReturns(deploymentFake, nil)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
 				data := `
 director_uuid: xxx
 name: test
@@ -124,7 +146,7 @@ properties:
 `
 				manifestFilePath, err = writeConfigFile(data)
 				Expect(err).NotTo(HaveOccurred())
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
 				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {
@@ -135,9 +157,9 @@ properties:
 
 			It("Successfully create and delete a deployment", func() {
 				var err error
-				err = deploymentData.CreateOrUpdateDeployment()
+				err = director.DeploymentInfo.CreateOrUpdateDeployment()
 				Expect(err).NotTo(HaveOccurred())
-				err = deploymentData.DeleteDeployment()
+				err = director.DeploymentInfo.DeleteDeployment()
 				Expect(err).NotTo(HaveOccurred())
 				// TODO check substition of data from cloud config options
 			})
@@ -146,26 +168,26 @@ properties:
 
 	Describe("Update director", func() {
 		Context("Uploading a release", func() {
-			BeforeEach(func() {
-				director = &fakedir.FakeDirector{}
-				deploymentData = helpers.DeploymentData{
-					Director: director,
-				}
-			})
-
-			It("Upload latest release", func() {
-				director.UploadReleaseURLReturns(nil)
-				err := deploymentData.UploadReleaseFromURL("master")
-				Expect(err).NotTo(HaveOccurred())
-			})
-			It("Upload specific release", func() {
-				director.UploadReleaseURLReturns(nil)
-				err := deploymentData.UploadReleaseFromURL("1")
+			It("correctly upload release", func() {
+				fakeDirector.UploadReleaseURLReturns(nil)
+				err := director.UploadReleaseFromURL("some-org","some-repo","1")
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("Fail to upload release", func() {
-				director.UploadReleaseURLReturns(errors.New("fake-error"))
-				err := deploymentData.UploadReleaseFromURL("1")
+				fakeDirector.UploadReleaseURLReturns(errors.New("fake-error"))
+				err := director.UploadReleaseFromURL("some-org","some-repo","1")
+				Expect(err).To(Equal(errors.New("fake-error")))
+			})
+		})
+		Context("Uploading postgres release", func() {
+			It("Correctly upload release", func() {
+				fakeDirector.UploadReleaseURLReturns(nil)
+				err := director.UploadPostgresReleaseFromURL("1")
+				Expect(err).NotTo(HaveOccurred())
+			})
+			It("Fail to upload release", func() {
+				fakeDirector.UploadReleaseURLReturns(errors.New("fake-error"))
+				err := director.UploadPostgresReleaseFromURL("1")
 				Expect(err).To(Equal(errors.New("fake-error")))
 			})
 		})
@@ -182,7 +204,6 @@ properties:
 		Context("Getting VM information", func() {
 
 			BeforeEach(func() {
-				director = &fakedir.FakeDirector{}
 				var err error
 				data := `
 director_uuid: <%= %x[bosh status --uuid] %>
@@ -196,20 +217,20 @@ name: test
 				var err error
 				deploymentFake := &fakedir.FakeDeployment{}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{}, nil)
-				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
 				Expect(err).NotTo(HaveOccurred())
-				_, err = deploymentData.GetVmAddress("postgres")
+				_, err = director.DeploymentInfo.GetVmAddress("postgres")
 				Expect(err).To(Equal(errors.New(fmt.Sprintf(helpers.VMNotPresentMsg, "postgres"))))
 			})
 			It("Should return an error if VMInfo fails", func() {
 				var err error
 				deploymentFake := &fakedir.FakeDeployment{}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{}, errors.New("fake-error"))
-				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
 				Expect(err).NotTo(HaveOccurred())
-				_, err = deploymentData.GetVmAddress("postgres")
+				_, err = director.DeploymentInfo.GetVmAddress("postgres")
 				Expect(err).To(Equal(errors.New("fake-error")))
 			})
 			It("Gets the proper vm address", func() {
@@ -220,10 +241,10 @@ name: test
 					IPs:     []string{"1.1.1.1"},
 				}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{vmInfoFake}, nil)
-				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
 				Expect(err).NotTo(HaveOccurred())
-				address, err := deploymentData.GetVmAddress("postgres")
+				address, err := director.DeploymentInfo.GetVmAddress("postgres")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(address).To(Equal("1.1.1.1"))
 			})
@@ -232,7 +253,6 @@ name: test
 		Context("Getting Postgres information with an invalid manifest", func() {
 
 			BeforeEach(func() {
-				director = &fakedir.FakeDirector{}
 				var err error
 				data := `
 director_uuid: <%= %x[bosh status --uuid] %>
@@ -248,15 +268,15 @@ properties:
 					IPs:     []string{"1.1.1.1"},
 				}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{vmInfoFake}, nil)
-				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("Should return an error if incorrect postgres properties", func() {
 				var err error
 
-				_, err = deploymentData.GetPostgresProps()
+				_, err = director.DeploymentInfo.GetPostgresProps()
 				Expect(err).To(MatchError(errors.New(helpers.MissingMandatoryProp)))
 
 			})
@@ -264,7 +284,6 @@ properties:
 		Context("Getting Postgres information with a valid manifest", func() {
 
 			BeforeEach(func() {
-				director = &fakedir.FakeDirector{}
 				var err error
 				data := `
 director_uuid: <%= %x[bosh status --uuid] %>
@@ -286,14 +305,14 @@ properties:
 					IPs:     []string{"1.1.1.1"},
 				}
 				deploymentFake.VMInfosReturns([]boshdir.VMInfo{vmInfoFake}, nil)
-				director.FindDeploymentReturns(deploymentFake, nil)
-				deploymentData, err = helpers.InitializeDeploymentFromManifestFile(helpers.DefaultPgatsConfig, manifestFilePath, director)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("Gets the proper postgres props", func() {
 				var err error
-				props, err := deploymentData.GetPostgresProps()
+				props, err := director.DeploymentInfo.GetPostgresProps()
 				Expect(err).NotTo(HaveOccurred())
 				expectedProps := helpers.Properties{
 					Databases: helpers.PgProperties{

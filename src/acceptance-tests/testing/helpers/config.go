@@ -14,45 +14,15 @@ const MissingCertificateMsg = "missing `director_ca_cert` - specify BOSH directo
 const IncorrectEnvMsg = "$PGATS_CONFIG %q does not specify an absolute path to test config file"
 
 type PgatsConfig struct {
-	Bosh              PgatsBoshConfig  `yaml:"bosh"`
-	BoshCC            PgatsCloudConfig `yaml:"cloud_configs"`
-	PGReleaseVersion  string           `yaml:"postgres_release_version"`
-	PostgreSQLVersion string           `yaml:"postgresql_version"`
-}
-type PgatsBoshConfig struct {
-	Target         string `yaml:"target"`
-	Username       string `yaml:"username"`
-	Password       string `yaml:"password"`
-	DirectorCACert string `yaml:"director_ca_cert"`
-}
-type PgatsCloudConfig struct {
-	AZs                []string          `yaml:"default_azs"`
-	Networks           []PgatsJobNetwork `yaml:"default_networks"`
-	PersistentDiskType string            `yaml:"default_persistent_disk_type"`
-	VmType             string            `yaml:"default_vm_type"`
-}
-type PgatsJobNetwork struct {
-	Name      string   `yaml:"name"`
-	StaticIPs []string `yaml:"static_ips,omitempty"`
-	Default   []string `yaml:"default,omitempty"`
+	Bosh              BOSHConfig      `yaml:"bosh"`
+	BoshCC            BOSHCloudConfig `yaml:"cloud_configs"`
+	PGReleaseVersion  string          `yaml:"postgres_release_version"`
+	PostgreSQLVersion string          `yaml:"postgresql_version"`
 }
 
 var DefaultPgatsConfig = PgatsConfig{
-	Bosh: PgatsBoshConfig{
-		Target:   "192.168.50.4",
-		Username: "admin",
-		Password: "admin",
-	},
-	BoshCC: PgatsCloudConfig{
-		AZs: []string{"z1"},
-		Networks: []PgatsJobNetwork{
-			PgatsJobNetwork{
-				Name: "private",
-			},
-		},
-		PersistentDiskType: "10GB",
-		VmType:             "m3.medium",
-	},
+	Bosh:              DefaultBOSHConfig,
+	BoshCC:            DefaultCloudConfig,
 	PGReleaseVersion:  "latest",
 	PostgreSQLVersion: "current",
 }
