@@ -3,7 +3,6 @@ package helpers
 import (
 	"io/ioutil"
 	"sort"
-	"strconv"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -11,19 +10,10 @@ import (
 var defaultVersionsFile string = "../versions.yml"
 
 type PostgresReleaseVersions struct {
-	sortedKeys []string
-	Versions   map[string]string `yaml:"versions"`
-	Old        string            `yaml:"old"`
-	Older      string            `yaml:"older"`
-}
-type VersionsSorter []string
-
-func (a VersionsSorter) Len() int      { return len(a) }
-func (a VersionsSorter) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a VersionsSorter) Less(i, j int) bool {
-	ai, _ := strconv.Atoi(a[i])
-	aj, _ := strconv.Atoi(a[j])
-	return ai < aj
+	sortedKeys []int
+	Versions   map[int]string `yaml:"versions"`
+	Old        int            `yaml:"old"`
+	Older      int            `yaml:"older"`
 }
 
 func NewPostgresReleaseVersions(versionFile string) (PostgresReleaseVersions, error) {
@@ -43,21 +33,21 @@ func NewPostgresReleaseVersions(versionFile string) (PostgresReleaseVersions, er
 	for key := range versions.Versions {
 		versions.sortedKeys = append(versions.sortedKeys, key)
 	}
-	sort.Sort(VersionsSorter(versions.sortedKeys))
+	sort.Ints(versions.sortedKeys)
 
 	return versions, nil
 }
 
-func (v PostgresReleaseVersions) GetOldVersion() string {
+func (v PostgresReleaseVersions) GetOldVersion() int {
 	return v.Old
 }
 
-func (v PostgresReleaseVersions) GetOlderVersion() string {
+func (v PostgresReleaseVersions) GetOlderVersion() int {
 	return v.Older
 }
-func (v PostgresReleaseVersions) GetLatestVersion() string {
+func (v PostgresReleaseVersions) GetLatestVersion() int {
 	return v.sortedKeys[len(v.sortedKeys)-1]
 }
-func (v PostgresReleaseVersions) GetPostgreSQLVersion(key string) string {
+func (v PostgresReleaseVersions) GetPostgreSQLVersion(key int) string {
 	return v.Versions[key]
 }

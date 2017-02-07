@@ -1,33 +1,32 @@
 package deploy_test
 
 import (
+	"strconv"
+
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func createDeployment(postgresVersion string, manifestPath string, prefix string) error {
+func createDeployment(postgresReleaseVersion int, manifestPath string, prefix string) error {
 	name := helpers.GenerateEnvName(prefix)
-	return updateDeployment(postgresVersion, manifestPath, name)
+	return updateDeployment(postgresReleaseVersion, manifestPath, name)
 }
-func updateDeployment(postgresVersion string, manifestPath string, name string) error {
+func updateDeployment(postgresReleaseVersion int, manifestPath string, name string) error {
 	var err error
 	releases := make(map[string]string)
-	if postgresVersion != "" {
-		releases["postgres"] = postgresVersion
+	if postgresReleaseVersion != -1 {
+		releases["postgres"] = strconv.Itoa(postgresReleaseVersion)
+		err = director.UploadPostgresReleaseFromURL(postgresReleaseVersion)
+		if err != nil {
+			return err
+		}
 	}
 	err = director.SetDeploymentFromManifest(manifestPath, releases, name)
 	if err != nil {
 		return err
 	}
-	if postgresVersion != "" {
-		err = director.UploadPostgresReleaseFromURL(postgresVersion)
-		if err != nil {
-			return err
-		}
-	}
-
 	err = director.DeploymentInfo.CreateOrUpdateDeployment()
 	if err != nil {
 		return err
@@ -62,7 +61,8 @@ var _ = Describe("Deploy single instance", func() {
 
 	var DB helpers.PGData
 	var pgprops helpers.PgProperties
-	var manifestPath, version, deploymentPrefix string
+	var manifestPath, deploymentPrefix string
+	var version int
 	var latestPostgreSQLVersion string
 
 	JustBeforeEach(func() {
@@ -86,7 +86,7 @@ var _ = Describe("Deploy single instance", func() {
 
 		BeforeEach(func() {
 			manifestPath = "../testing/templates/postgres_simple.yml"
-			version = ""
+			version = -1
 			deploymentPrefix = "fresh"
 		})
 
@@ -111,7 +111,7 @@ var _ = Describe("Deploy single instance", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Upgrading to the new release")
-				err = updateDeployment("", manifestPath, director.DeploymentInfo.Deployment.Name())
+				err = updateDeployment(-1, manifestPath, director.DeploymentInfo.Deployment.Name())
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Validating the database content is still valid after upgrade")

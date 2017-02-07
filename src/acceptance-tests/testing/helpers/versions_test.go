@@ -35,8 +35,8 @@ versions:
   1: "PostgreSQL 9.4.6"
   3: "PostgreSQL 9.4.9"
   2: "PostgreSQL 9.4.6"
-old: "3"
-older: "1"
+old: 3
+older: 1
 `
 			versionsFilePath, err = writeVersionsFile(data)
 			Expect(err).NotTo(HaveOccurred())
@@ -50,22 +50,22 @@ older: "1"
 
 		It("Get the latest postgres-release version", func() {
 			latestVersion := pgVersions.GetLatestVersion()
-			Expect(latestVersion).To(Equal("3"))
+			Expect(latestVersion).To(Equal(3))
 		})
 		It("Get the proper postgres-release old version", func() {
 			oldVersion := pgVersions.GetOldVersion()
-			Expect(oldVersion).To(Equal("3"))
+			Expect(oldVersion).To(Equal(3))
 		})
 		It("Get the proper postgres-release old version", func() {
 			olderVersion := pgVersions.GetOlderVersion()
-			Expect(olderVersion).To(Equal("1"))
+			Expect(olderVersion).To(Equal(1))
 		})
 		It("Get the proper PostgreSQL version", func() {
-			pgVersion := pgVersions.GetPostgreSQLVersion("1")
+			pgVersion := pgVersions.GetPostgreSQLVersion(1)
 			Expect(pgVersion).To(Equal("PostgreSQL 9.4.6"))
-			pgVersion = pgVersions.GetPostgreSQLVersion("2")
+			pgVersion = pgVersions.GetPostgreSQLVersion(2)
 			Expect(pgVersion).To(Equal("PostgreSQL 9.4.6"))
-			pgVersion = pgVersions.GetPostgreSQLVersion("3")
+			pgVersion = pgVersions.GetPostgreSQLVersion(3)
 			Expect(pgVersion).To(Equal("PostgreSQL 9.4.9"))
 		})
 	})

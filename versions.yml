@@ -12,5 +12,5 @@ versions:
   11: "PostgreSQL 9.4.9"
   12: "PostgreSQL 9.4.9"
   13: "PostgreSQL 9.4.9"
-older: "1"
-old: "5"
+older: 1
+old: 5

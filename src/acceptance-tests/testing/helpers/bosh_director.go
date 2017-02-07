@@ -161,11 +161,11 @@ func (bd *BOSHDirector) SetDeploymentFromManifest(manifestFilePath string, relea
 	bd.DeploymentInfo = &dd
 	return nil
 }
-func (bd BOSHDirector) UploadPostgresReleaseFromURL(version string) error {
+func (bd BOSHDirector) UploadPostgresReleaseFromURL(version int) error {
 	return bd.UploadReleaseFromURL("cloudfoundry", "postgres-release", version)
 }
-func (bd BOSHDirector) UploadReleaseFromURL(organization string, repo string, version string) error {
-	url := fmt.Sprintf("https://bosh.io/d/github.com/%s/%s?v=%s", organization, repo, version)
+func (bd BOSHDirector) UploadReleaseFromURL(organization string, repo string, version int) error {
+	url := fmt.Sprintf("https://bosh.io/d/github.com/%s/%s?v=%d", organization, repo, version)
 	return bd.Director.UploadReleaseURL(url, "", false, false)
 }
 

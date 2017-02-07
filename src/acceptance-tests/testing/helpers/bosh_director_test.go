@@ -170,24 +170,24 @@ properties:
 		Context("Uploading a release", func() {
 			It("correctly upload release", func() {
 				fakeDirector.UploadReleaseURLReturns(nil)
-				err := director.UploadReleaseFromURL("some-org","some-repo","1")
+				err := director.UploadReleaseFromURL("some-org", "some-repo", 1)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("Fail to upload release", func() {
 				fakeDirector.UploadReleaseURLReturns(errors.New("fake-error"))
-				err := director.UploadReleaseFromURL("some-org","some-repo","1")
+				err := director.UploadReleaseFromURL("some-org", "some-repo", 1)
 				Expect(err).To(Equal(errors.New("fake-error")))
 			})
 		})
 		Context("Uploading postgres release", func() {
 			It("Correctly upload release", func() {
 				fakeDirector.UploadReleaseURLReturns(nil)
-				err := director.UploadPostgresReleaseFromURL("1")
+				err := director.UploadPostgresReleaseFromURL(1)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("Fail to upload release", func() {
 				fakeDirector.UploadReleaseURLReturns(errors.New("fake-error"))
-				err := director.UploadPostgresReleaseFromURL("1")
+				err := director.UploadPostgresReleaseFromURL(1)
 				Expect(err).To(Equal(errors.New("fake-error")))
 			})
 		})
