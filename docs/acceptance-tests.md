@@ -1,7 +1,7 @@
 # Postgres-release Acceptance Tests (PGATS)
 
-The acceptance tests run several deployment of the postgres-release in order to exercise a variety of scenario:
-- Verify that customazible configurations are properly reflected in the PostgreSQL server
+The acceptance tests run several deployments of the postgres-release in order to exercise a variety of scenario:
+- Verify that customizable configurations are properly reflected in the PostgreSQL server
  - Roles
  - Databases
  - Database extensions
@@ -131,13 +131,13 @@ bosh create release --force
 bosh upload release
 ```
 
-* Tests make use of BOSH v2 manifests.
+* Tests make use of BOSH v2 manifests. 
 Make sure that the BOSH director is configured with the [cloud_config.yml](https://bosh.io/docs/cloud-config.html#update).
 
-* PGATS use bosh-cli director package for programmatic access to the Director API.
+* PGATS use bosh-cli director package for programmatic access to the Director API. 
 It requires the Director to be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html).
 
-* Install spiff on your dev machine
+* Install spiff on your dev machine. 
 Please refer to [Spiff documentation](https://github.com/cloudfoundry-incubator/spiff#installation)
 
 
@@ -161,9 +161,9 @@ properties:
     acceptance_tests:
       bosh:
         # Override BOSH DIRECTOR PROPERTIES
-        target: 192.168.50.4  # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
-        username: admin # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
-        password: admin # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
+        target: 192.168.50.4     # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
+        username: admin          # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
+        password: admin          # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
         director_ca_cert: |+
           -----BEGIN CERTIFICATE-----
 		  REPLACE WITH THE BOSH DIRECTOR CA CERT
