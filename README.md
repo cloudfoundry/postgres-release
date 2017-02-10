@@ -19,7 +19,7 @@ In order to deploy the postgres-release you must follow the standard steps for d
    Bosh-lite specific instructions can be found [here](https://github.com/cloudfoundry/bosh-lite).
 
 1. Install spiff on your dev machine
-   Please refer to https://github.com/cloudfoundry-incubator/spiff/releases/
+   Please refer to [Spiff documentation](https://github.com/cloudfoundry-incubator/spiff#installation)
 
 1. Upload the desired stemcell directly to bosh. [bosh.io](http://bosh.io/stemcells) provides a resource to find and download stemcells.
    For bosh-lite:
@@ -114,10 +114,8 @@ databases.monit_timeout | Monit timout in seconds for the postgres job start. By
 
 ### Contributor License Agreement
 
-Contributors must sign the Contributor License Agreement before their
-contributions can be merged. Follow the directions
-[here](https://www.cloudfoundry.org/community/contribute/) to complete
-that process.
+Contributors must sign the Contributor License Agreement before their contributions can be merged.
+Follow the directions [here](https://www.cloudfoundry.org/community/contribute/) to complete that process.
 
 ### Developer Workflow
 
@@ -129,8 +127,10 @@ that process.
    git checkout develop
    git checkout -b feature-branch
    ```
-
-Make sure that you are working against the `develop` branch. PRs submitted against other branches will need to be resubmitted with the correct branch targeted.
+1. Make changes on your branch
+1. Test your changes by running [acceptance tests](https://github.com/cloudfoundry/postgres-release/blob/master/docs/acceptance-tests.md)
+1. Push to your fork (`git push origin feature-branch`) and [submit a pull request](https://help.github.com/articles/creating-a-pull-request) selecting `develop` as the target branch.
+   PRs submitted against other branches will need to be resubmitted with the correct branch targeted.
 
 ## Known Limitations
 
