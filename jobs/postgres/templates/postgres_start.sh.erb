@@ -9,18 +9,9 @@ function main() {
     exit 1
   fi
 
-  if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
-    rm -rf ${DATA_DIR_PREVIOUS}
-
-    mkdir -p "${DATA_DIR}"
-    chown -R vcap:vcap "${DATA_DIR}"
-    chmod 700 "${DATA_DIR}"
-
-    pushd "${DATA_DIR_OLD}" > /dev/null
-      cp -r * "${DATA_DIR}"
-    popd > /dev/null
-
-    mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
+  if [ -d $DATA_DIR -a -f $PG_STORE_DIR/FLAG_POSTGRES_UPGRADE ]; then
+    echo "FAIL: DB upgrade stopped in the middle, manual intervention required, quitting..."
+    exit 1
   fi
 
   if [ ! -f "${DATA_DIR}/postgresql.conf" ]; then
@@ -28,6 +19,25 @@ function main() {
     "${PACKAGE_DIR}/bin/initdb" -E utf8 --locale en_US.UTF-8 -D "${DATA_DIR}"
 
     mkdir -p "${DATA_DIR}/pg_log"
+  fi
+
+  if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
+    rm -rf "${DATA_DIR_PREVIOUS}"
+    touch "${PG_STORE_DIR}/FLAG_POSTGRES_UPGRADE"
+
+    # Move to a directory writeable by vcap user
+    mkdir -p "${PG_STORE_DIR}/pg_upgrade_tmp"
+    pushd "${PG_STORE_DIR}/pg_upgrade_tmp"
+      "${PACKAGE_DIR}/bin/pg_upgrade" \
+        --old-datadir "${DATA_DIR_OLD}" \
+        --new-datadir "${DATA_DIR}" \
+        --old-bindir "${PACKAGE_DIR_OLD}/bin" \
+        --new-bindir "${PACKAGE_DIR}/bin"
+    popd
+
+    rm -f "${PG_STORE_DIR}/FLAG_POSTGRES_UPGRADE"
+
+    mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
   fi
 
   cp "${JOB_DIR}/config/postgresql.conf" "${JOB_DIR}/config/pg_hba.conf" "${DATA_DIR}"
