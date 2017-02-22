@@ -64,6 +64,10 @@ function create_and_commit() {
 
     local new_release_version
     new_release_version="$(find releases -regex ".*${release_name}-[0-9]*.yml" | egrep -o "${release_name}-[0-9]+" | egrep -o "[0-9]+" | sort -n | tail -n 1)"
+	
+    source jobs/postgres/templates/pgconfig.sh.erb
+    sed -i "/^versions:/a\ \ ${new_release_version}: \"PostgreSQL ${current_version}\"" versions.yml
+    git add versions.yml
 
     git add .final_builds releases
     git commit -m "Final release ${new_release_version}"

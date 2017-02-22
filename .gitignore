@@ -20,4 +20,6 @@
 /pkg/
 /releases/**/*.tgz
 /releases/*.tgz
+/src/acceptance-tests/bin
+/src/acceptance-tests/pkg
 /tags

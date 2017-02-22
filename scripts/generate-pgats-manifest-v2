@@ -1,0 +1,51 @@
+#!/bin/bash
+
+set -e
+
+manifest_dir=$(dirname $0)/../templates/v2
+
+usage() {
+  >&2 cat <<EOF
+SYNOPSIS:
+    Generate a bosh v2 manifest for a postgres-release acceptance test errand job deployment.
+
+USAGE:
+    $0 -p <property-path>
+
+MANDATORY ARGUMENTS:
+    -p <property-path>         Path to property-overrides stub file.
+	                           You can use it to override deployment name or
+							   cloud-config reference.
+
+
+EOF
+  exit 1
+}
+
+while getopts "p:" opt; do
+  case $opt in
+    p)
+      property_overrides=$OPTARG
+      ;;
+    *)
+      echo "Unknown arguments"
+      usage
+      ;;
+  esac
+done
+
+if [ -z ${property_overrides} ]; then
+  >&2 echo "ERROR: Property-overrides stub file is missing"
+  argument_error=true
+
+else
+  if [ ! -f "${property_overrides}" ]; then
+    >&2 echo "ERROR: Property-overrides stub '${property_overrides}' is not a regular file"
+    argument_error=true
+  fi
+fi
+
+spiff merge \
+  ${manifest_dir}/generic-manifest-mask.yml \
+  ${manifest_dir}/pgats-errand.yml \
+  ${property_overrides}

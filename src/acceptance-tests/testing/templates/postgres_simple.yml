@@ -1,0 +1,58 @@
+director_uuid: <%= %x[bosh status --uuid] %>
+
+name: pgats-simple
+
+releases:
+- name: postgres
+  version: YOUR_RELEASE_VERSION
+
+stemcells:
+- alias: linux
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: postgres
+  instances: 1
+  azs: [YOUR_AZ_LIST]
+  networks:
+  - name: YOUR_NETWORK
+  jobs:
+  - name: postgres
+    release: postgres
+  persistent_disk_type: YOUR_DISK_TYPE
+  vm_type: YOUR_VM_TYPE
+  stemcell: linux
+
+properties:
+  databases:
+   # address:
+    databases:
+    - citext: true
+      name: sandbox
+      tag: test
+    - citext: false
+      name: sandbox2
+      tag: test
+    db_scheme: postgres
+    port: 5524
+    max_connections: 111
+    additional_config:
+      shared_buffers: 32768
+    roles:
+    - name: pgadmin
+      password: admin
+      tag: admin
+    - name: pgadmin2
+      password: admin
+      tag: admin
+      permissions:
+      - "CONNECTION LIMIT 33"
+      - "VALID UNTIL 'May 5 12:00:00 2017 +1'"
+
+update:
+  canaries: 1
+  canary_watch_time: 30000-600000
+  max_in_flight: 1
+  serial: true
+  update_watch_time: 5000-600000

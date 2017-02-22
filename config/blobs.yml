@@ -3,3 +3,7 @@ postgres/postgresql-9.4.9.tar.gz:
   object_id: ce1610e4-8865-4210-95b8-2ae747e35e19
   sha: c9d641eb69885672e5aacee413cd778d88b8420d
   size: 23300245
+golang/go1.7.4.linux-amd64.tar.gz:
+  object_id: acd96275-d23c-4346-917b-8b90686d4adb
+  sha: 2e5baf03d1590e048c84d1d5b4b6f2540efaaea1
+  size: 84021919
