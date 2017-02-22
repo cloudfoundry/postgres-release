@@ -40,20 +40,6 @@ func (a PgDBPropsSorter) Len() int           { return len(a) }
 func (a PgDBPropsSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a PgDBPropsSorter) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
-type PGRoleSorter []PGRole
-
-func (a PGRoleSorter) Len() int      { return len(a) }
-func (a PGRoleSorter) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a PGRoleSorter) Less(i, j int) bool {
-	return a[j].Name == "vcap" || (a[i].Name != "vcap" && a[i].Name < a[j].Name)
-}
-
-type PgRolePropsSorter []PgRoleProperties
-
-func (a PgRolePropsSorter) Len() int           { return len(a) }
-func (a PgRolePropsSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a PgRolePropsSorter) Less(i, j int) bool { return a[i].Name < a[j].Name }
-
 type PGTableSorter []PGTable
 
 func (a PGTableSorter) Len() int      { return len(a) }
@@ -133,22 +119,11 @@ func (v Validator) ValidateRoles() error {
 	var err error
 	actual := v.PostgresData.Roles
 	expected := v.ManifestProps.Roles
-	sort.Sort(PGRoleSorter(actual))
-	sort.Sort(PgRolePropsSorter(expected))
-	if len(actual) < len(expected)+1 {
-		return errors.New(fmt.Sprintf(MissingRoleValidationError, expected[len(actual)-1].Name))
-	}
-	for idx, actualRole := range actual {
-		if actualRole.Name == "vcap" && idx > len(expected)-1 {
-			break
-		}
-		if idx > len(expected)-1 || actualRole.Name < expected[idx].Name {
-			if actualRole.Name != "vcap" {
-				return errors.New(fmt.Sprintf(ExtraRoleValidationError, actualRole.Name))
-			}
-		}
-		if actualRole.Name == "vcap" || actualRole.Name > expected[idx].Name {
-			return errors.New(fmt.Sprintf(MissingRoleValidationError, expected[idx].Name))
+
+	for _, expectedRole := range expected {
+		actualRole, ok := actual[expectedRole.Name]
+		if !ok {
+			return errors.New(fmt.Sprintf(MissingRoleValidationError, expectedRole.Name))
 		}
 
 		defaultRole := PGRole{
@@ -162,7 +137,7 @@ func (v Validator) ValidateRoles() error {
 			ConnLimit:   -1,
 			ValidUntil:  "",
 		}
-		for _, elem := range expected[idx].Permissions {
+		for _, elem := range expectedRole.Permissions {
 			switch {
 			case elem == "SUPERUSER":
 				defaultRole.Super = true

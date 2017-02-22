@@ -49,11 +49,14 @@ var _ = Describe("Validate deployment", func() {
 			},
 		}
 		postgresData := helpers.PGOutputData{
-			Roles: []helpers.PGRole{
-				helpers.PGRole{
+			Roles: map[string]helpers.PGRole{
+				"vcap": helpers.PGRole{
 					Name: "vcap",
 				},
-				helpers.PGRole{
+				"pg_signal_backend": helpers.PGRole{
+					Name: "pg_signal_backend",
+				},
+				"pgadmin": helpers.PGRole{
 					Name:        "pgadmin",
 					Super:       false,
 					Inherit:     false,
@@ -201,21 +204,12 @@ var _ = Describe("Validate deployment", func() {
 			It("Fails if role missing", func() {
 				validator.ManifestProps.Roles = []helpers.PgRoleProperties{
 					helpers.PgRoleProperties{
-						Name:     "pgadmin",
-						Password: "admin",
-					},
-					helpers.PgRoleProperties{
 						Name:     "pgadmin2",
 						Password: "admin2",
 					},
 				}
 				err := validator.ValidateRoles()
 				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.MissingRoleValidationError, "pgadmin2"))))
-			})
-			It("Fails if extra role present", func() {
-				validator.ManifestProps.Roles = []helpers.PgRoleProperties{}
-				err := validator.ValidateRoles()
-				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.ExtraRoleValidationError, "pgadmin"))))
 			})
 			It("Fails if incorrect role permission", func() {
 				validator.ManifestProps.Roles = []helpers.PgRoleProperties{
@@ -275,7 +269,7 @@ var _ = Describe("Validate deployment", func() {
 
 			BeforeEach(func() {
 				dataBefore = helpers.PGOutputData{
-					Roles: []helpers.PGRole{},
+					Roles: map[string]helpers.PGRole{},
 					Databases: []helpers.PGDatabase{
 						helpers.PGDatabase{
 							Name:   "postgres",

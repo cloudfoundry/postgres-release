@@ -16,16 +16,18 @@ cloud_configs:
   default_vm_type: "pgats"
   default_persistent_disk_type: "dp_10G"
 postgres_release_version: $REL_VERSION
+postgresql_version: "PostgreSQL ${current_version}"
 EOF
 }
 
 function main() {
+  source ${root}/postgres-release/jobs/postgres/templates/pgconfig.sh.erb
   config_file="${root}/pgats_config.yml"
   create_config_file > $config_file
   to_dir=${GOPATH}/src/github.com/cloudfoundry/postgres-release
   mkdir -p $to_dir
   cp -R ${root}/postgres-release/* $to_dir
-  PGATS_CONFIG=$config_file $to_dir/src/acceptance-tests/scripts/test
+  PGATS_CONFIG="$config_file" "$to_dir/src/acceptance-tests/scripts/test-minimal"
 }
 
 main

@@ -80,7 +80,7 @@ func mockDatabases(expected []helpers.PGDatabase, mocks map[string]sqlmock.Sqlmo
 		mocks["postgres"].ExpectQuery(convertQuery(helpers.ListDatabasesQuery)).WillReturnRows(rows)
 	}
 }
-func mockRoles(expected []helpers.PGRole, mocks map[string]sqlmock.Sqlmock) error {
+func mockRoles(expected map[string]helpers.PGRole, mocks map[string]sqlmock.Sqlmock) error {
 	if expected == nil {
 		mocks["postgres"].ExpectQuery(convertQuery(helpers.ListRolesQuery)).WillReturnError(genericError)
 	} else {
@@ -127,8 +127,8 @@ var _ = Describe("Postgres", func() {
 			BeforeEach(func() {
 
 				from = helpers.PGOutputData{
-					Roles: []helpers.PGRole{
-						helpers.PGRole{
+					Roles: map[string]helpers.PGRole{
+						"role1": helpers.PGRole{
 							Name: "role1",
 						},
 					},
@@ -166,7 +166,9 @@ var _ = Describe("Postgres", func() {
 				to, err := from.CopyData()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(to).To(Equal(from))
-				to.Roles[0].Name = "role2"
+				r := to.Roles["role1"]
+				r.Name = "role2"
+				to.Roles["role1"] = r
 				Expect(to).NotTo(Equal(from))
 			})
 			It("Correctly copies settings", func() {
@@ -484,8 +486,8 @@ var _ = Describe("Postgres", func() {
 				Expect(result).To(Equal(expected))
 			})
 			It("Correctly lists roles with properties", func() {
-				expected := []helpers.PGRole{
-					helpers.PGRole{
+				expected := map[string]helpers.PGRole{
+					"role1": helpers.PGRole{
 						Name:        "role1",
 						Super:       true,
 						Inherit:     false,
@@ -496,7 +498,7 @@ var _ = Describe("Postgres", func() {
 						ConnLimit:   10,
 						ValidUntil:  "",
 					},
-					helpers.PGRole{
+					"role2": helpers.PGRole{
 						Name:        "role2",
 						Super:       false,
 						Inherit:     true,
@@ -519,8 +521,8 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Correctly retrieve all postgres data", func() {
 				expected := helpers.PGOutputData{
-					Roles: []helpers.PGRole{
-						helpers.PGRole{
+					Roles: map[string]helpers.PGRole{
+						"pgadmin": helpers.PGRole{
 							Name:      "pgadmin",
 							CanLogin:  true,
 							ConnLimit: 20,

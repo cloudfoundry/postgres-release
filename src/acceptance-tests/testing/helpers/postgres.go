@@ -74,7 +74,7 @@ type PGRole struct {
 }
 
 type PGOutputData struct {
-	Roles     []PGRole
+	Roles     map[string]PGRole
 	Databases []PGDatabase
 	Settings  map[string]string
 	Version   PGVersion
@@ -367,8 +367,8 @@ func (pg PGData) ListDatabaseTables(dbName string) ([]PGTable, error) {
 	}
 	return tableList, nil
 }
-func (pg PGData) ListRoles() ([]PGRole, error) {
-	var result []PGRole
+func (pg PGData) ListRoles() (map[string]PGRole, error) {
+	result := make(map[string]PGRole)
 	rows, err := pg.GetDefaultConnection().Run(ListRolesQuery)
 	if err != nil {
 		return nil, err
@@ -379,7 +379,7 @@ func (pg PGData) ListRoles() ([]PGRole, error) {
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, out)
+		result[out.Name] = out
 	}
 	return result, nil
 }

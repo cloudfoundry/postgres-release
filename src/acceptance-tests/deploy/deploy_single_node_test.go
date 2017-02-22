@@ -128,7 +128,7 @@ var _ = Describe("Deploy single instance", func() {
 			}
 		}
 
-		Context("Upgrading from an older version", func() {
+		Context("Upgrading from older version", func() {
 			BeforeEach(func() {
 				manifestPath = "../testing/templates/postgres_simple.yml"
 				version = versions.GetOlderVersion()
@@ -136,7 +136,7 @@ var _ = Describe("Deploy single instance", func() {
 			})
 			It("Successfully upgrades from older", AssertUpgradeSuccessful())
 		})
-		Context("Upgrading from an old version", func() {
+		Context("Upgrading from old version", func() {
 			BeforeEach(func() {
 				manifestPath = "../testing/templates/postgres_simple.yml"
 				version = versions.GetOldVersion()
