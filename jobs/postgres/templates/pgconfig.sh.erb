@@ -14,6 +14,7 @@ DATA_DIR="${PG_STORE_DIR}/${pgversion_current}"
 DATA_DIR_PREVIOUS="${PG_STORE_DIR}/postgres-previous"
 DATA_DIR_OLD="${PG_STORE_DIR}/postgres-unknown"
 PACKAGE_DIR_OLD=/var/vcap/packages/postgres-unknown
+POSTGRES_UPGRADE_LOCK="$PG_STORE_DIR/POSTGRES_UPGRADE_LOCK"
 
 if [ -d "${PG_STORE_DIR}/${pgversion_old}" -a -f "${PG_STORE_DIR}/${pgversion_old}/postgresql.conf" ]; then
   DATA_DIR_OLD="${PG_STORE_DIR}/${pgversion_old}"

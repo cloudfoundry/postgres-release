@@ -14,6 +14,11 @@ function main() {
 
   case "${action}" in
     "start")
+      if [ -d $DATA_DIR -a -f $POSTGRES_UPGRADE_LOCK ]; then
+        echo "FAIL: DB upgrade stopped in the middle, manual intervention required, quitting..."
+        exit 1
+      fi
+
       if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
         set +e
         "${PACKAGE_DIR}/bin/pg_ctl" stop -m fast -w -D ${DATA_DIR}
