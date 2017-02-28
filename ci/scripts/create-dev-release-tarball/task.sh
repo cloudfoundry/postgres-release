@@ -14,7 +14,7 @@ function main(){
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
 
   pushd ${root}/dev-release
-  bosh create-release --force --tarball=${root}/dev-release-tarball --version "${REL_VERSION}" --name "${REL_NAME}"
+  bosh create-release --force --tarball="${root}/dev-release-tarball/${REL_NAME}_${REL_VERSION}.tgz" --version "${REL_VERSION}" --name "${REL_NAME}"
   popd
 }
 
