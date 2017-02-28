@@ -9,7 +9,7 @@ preflight_check() {
 }
 
 function upload_stemcell() {
-  wget --quiet 'https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent' --output-document=stemcell.tgz
+  wget --quiet 'https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent?v=3312.18' --output-document=stemcell.tgz
   bosh upload-stemcell stemcell.tgz
 }
 
