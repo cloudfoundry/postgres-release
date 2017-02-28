@@ -1,7 +1,8 @@
 #!/bin/bash -exu
 
 function main() {
-  bosh -t $BOSH_DIRECTOR cleanup --all
+  export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
+  bosh clean-up --all
 }
 
 main

@@ -31,7 +31,7 @@ EOF
 }
 
 function deploy_diego() {
-  bosh -t $BOSH_DIRECTOR download manifest ${CF_DEPLOYMENT} ${root}/pgci_cf.yml
+  bosh -d ${CF_DEPLOYMENT} manifest > ${root}/pgci_cf.yml
 
   generate_env_stub > env.yml
 
@@ -63,19 +63,17 @@ function deploy_diego() {
 
   popd > /dev/null
 
-  bosh -n \
-    -d pgci_diego.yml \
-    -t ${BOSH_DIRECTOR} \
-    deploy
+  bosh -n deploy -d "${CF_DEPLOYMENT}-diego" "$root/pgci_diego.yml"
 }
 
 function upload_release() {
   local release
   release=${1}
-  bosh -t ${BOSH_DIRECTOR} upload release https://bosh.io/d/github.com/${release}
+  bosh upload-release https://bosh.io/d/github.com/${release}
 }
 
 function main() {
+  export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
   upload_release "cloudfoundry/cflinuxfs2-rootfs-release"
   upload_release "cloudfoundry/diego-release"
   upload_release "cloudfoundry/garden-runc-release"

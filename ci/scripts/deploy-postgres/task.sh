@@ -3,23 +3,15 @@
 preflight_check() {
   set +x
   test -n "${BOSH_DIRECTOR}"
-  test -n "${BOSH_USER}"
-  test -n "${BOSH_PASSWORD}"
+  test -n "${BOSH_CLIENT}"
+  test -n "${BOSH_CLIENT_SECRET}"
   set -x
-}
-
-deploy() {
-  bosh \
-    -n \
-    -t "${1}" \
-    -d "${2}" \
-    deploy
 }
 
 upload_remote_release() {
   local release_url=$1
   wget --quiet "${release_url}" -O remote_release.tgz
-  bosh upload release remote_release.tgz
+  bosh upload-release remote_release.tgz
 }
 
 generate_dev_release_stub() {
@@ -50,7 +42,7 @@ EOF
 upload_stemcell() {
   pushd /tmp > /dev/null
     curl -Ls -o /dev/null -w %{url_effective} https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent | xargs -n 1 curl -O
-    bosh upload stemcell light-bosh-stemcell-*-softlayer-xen-ubuntu-trusty-go_agent.tgz --skip-if-exists
+    bosh upload-stemcell light-bosh-stemcell-*-softlayer-xen-ubuntu-trusty-go_agent.tgz
   popd > /dev/null
 }
 
@@ -80,10 +72,8 @@ EOF
 function main(){
   local root="${1}"
 
-  set +x
-  bosh target https://${BOSH_DIRECTOR}:25555
-  bosh login ${BOSH_USER} ${BOSH_PASSWORD}
-  set -x
+  export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
+
   mkdir stubs
 
   upload_stemcell
@@ -114,10 +104,7 @@ function main(){
       -v "${root}/stubs/releases.yml" > "${root}/pgci-postgres.yml"
   popd
 
-  deploy \
-    "${BOSH_DIRECTOR}" \
-    "${root}/pgci-postgres.yml"
-
+  bosh -n deploy -d "${PG_DEPLOYMENT}" "${root}/pgci-postgres.yml"
 }
 
 

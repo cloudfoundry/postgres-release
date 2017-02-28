@@ -3,28 +3,20 @@
 preflight_check() {
   set +x
   test -n "${BOSH_DIRECTOR}"
-  test -n "${BOSH_USER}"
-  test -n "${BOSH_PASSWORD}"
+  test -n "${BOSH_CLIENT}"
+  test -n "${BOSH_CLIENT_SECRET}"
   set -x
-}
-
-deploy() {
-  bosh \
-    -n \
-    -t "${1}" \
-    -d "${2}" \
-    deploy
 }
 
 function upload_stemcell() {
   wget --quiet 'https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent' --output-document=stemcell.tgz
-  bosh upload stemcell stemcell.tgz --skip-if-exists
+  bosh upload-stemcell stemcell.tgz
 }
 
 function upload_remote_release() {
   local release_url=$1
   wget --quiet "${release_url}" -O remote_release.tgz
-  bosh upload release remote_release.tgz
+  bosh upload-release remote_release.tgz
 }
 
 generate_stub() {
@@ -55,10 +47,7 @@ EOF
 
 function main(){
   local root="${1}"
-	set +x
-  bosh target https://${BOSH_DIRECTOR}:25555
-  bosh login ${BOSH_USER} ${BOSH_PASSWORD}
-	set -x
+  export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
 
   mkdir ${root}/stubs
 
@@ -74,10 +63,7 @@ function main(){
   upload_stemcell
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/cf-release?v=${OLD_CF_RELEASE}"
 
-  deploy \
-    "${BOSH_DIRECTOR}" \
-    "${root}/${CF_DEPLOYMENT}.yml"
-
+  bosh -n deploy -d "${CF_DEPLOYMENT}" "${root}/${CF_DEPLOYMENT}.yml"
 }
 
 

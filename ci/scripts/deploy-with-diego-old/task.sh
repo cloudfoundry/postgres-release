@@ -3,31 +3,23 @@
 preflight_check() {
   set +x
   test -n "${BOSH_DIRECTOR}"
-  test -n "${BOSH_USER}"
-  test -n "${BOSH_PASSWORD}"
+  test -n "${BOSH_CLIENT}"
+  test -n "${BOSH_CLIENT_SECRET}"
   set -x
-}
-
-deploy() {
-  bosh \
-    -n \
-    -t "${1}" \
-    -d "${2}" \
-    deploy
 }
 
 function upload_stemcell() {
   local old_stemcell_url="https://s3.amazonaws.com/bosh-softlayer-cpi-stemcells/light-bosh-stemcell-${OLD_STEMCELL}-softlayer-esxi-ubuntu-trusty-go_agent.tgz"
   wget --quiet 'https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent' --output-document=stemcell.tgz
-  bosh upload stemcell stemcell.tgz --skip-if-exists
+  bosh upload-stemcell stemcell.tgz
   wget --quiet "${old_stemcell_url}" --output-document=stemcell.tgz
-  bosh upload stemcell stemcell.tgz --skip-if-exists
+  bosh upload-stemcell stemcell.tgz
 }
 
 function upload_remote_release() {
   local release_url=$1
   wget --quiet "${release_url}" -O remote_release.tgz
-  bosh upload release remote_release.tgz
+  bosh upload-release remote_release.tgz
 }
 
 generate_meta_stub() {
@@ -62,10 +54,7 @@ EOF
 
 function main(){
   local root="${1}"
-	set +x
-  bosh target https://${BOSH_DIRECTOR}:25555
-  bosh login ${BOSH_USER} ${BOSH_PASSWORD}
-	set -x
+  export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
 
   mkdir ${root}/stubs
 
@@ -83,10 +72,7 @@ function main(){
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-linux-release?v=${OLD_GARDEN_RELEASE}"
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry-incubator/etcd-release?v=${OLD_ETCD_RELEASE}"
 
-  deploy \
-    "${BOSH_DIRECTOR}" \
-    "${root}/${DIEGO_DEPLOYMENT}.yml"
-
+  bosh -n deploy -d "${DIEGO_DEPLOYMENT}" "${root}/${DIEGO_DEPLOYMENT}.yml"
 }
 
 

@@ -1,9 +1,8 @@
 #!/bin/bash -exu
 
 function main() {
-  bosh -t $BOSH_DIRECTOR download manifest $DEPLOYMENT_NAME manifest.yml
-
-  bosh -n --color -t $BOSH_DIRECTOR -d manifest.yml run errand acceptance_tests
+  export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
+  bosh -n -d $DEPLOYMENT_NAME run errand acceptance_tests
 }
 
 main
