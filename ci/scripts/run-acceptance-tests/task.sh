@@ -8,8 +8,8 @@ function create_config_file() {
 ---
 bosh:
   target: $BOSH_DIRECTOR
-  username: $BOSH_USER
-  password: $BOSH_PASSWORD
+  username: $BOSH_CLIENT
+  password: $BOSH_CLIENT_SECRET
   director_ca_cert: |+
 $indented_cert
 cloud_configs:
