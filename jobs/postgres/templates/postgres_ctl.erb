@@ -43,7 +43,7 @@ function main() {
       for dir in ${pgversion_older} ${pgversion_old} ${pgversion_current}; do
         if [ -d "${STORE_DIR}/${dir}" -a -f "${STORE_DIR}/${dir}/postgresql.conf" ]; then
           set +e
-           su - vcap -c "${PACKAGE_DIR_OLD}/bin/pg_ctl stop -m fast -w -D ${STORE_DIR}/${dir}"
+          su - vcap -c "${PACKAGE_DIR}/${dir}/bin/pg_ctl stop -m fast -w -D ${STORE_DIR}/${dir}"
           set -e
         fi
       done
@@ -54,7 +54,9 @@ function main() {
         set -e
       fi
 
+      set +e
       su - vcap -c "${PACKAGE_DIR}/bin/pg_ctl stop -m fast -w -D ${DATA_DIR}"
+      set -e
 
       set +u
       wait_pidfile "${PIDFILE}"
