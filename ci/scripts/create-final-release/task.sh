@@ -49,7 +49,7 @@ function create_and_commit() {
 
     local exit_status
     for i in {1..5}; do
-      bosh -n create release --with-tarball --final
+      /opt/rubies/ruby-2.2.4/bin/bosh -n create release --with-tarball --final
       exit_status="${PIPESTATUS[0]}"
 
       if [[ "${exit_status}" == "0" ]]; then
