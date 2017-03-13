@@ -69,8 +69,12 @@ function main(){
 
   upload_stemcell
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/diego-release?v=${OLD_DIEGO_RELEASE}"
-  upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-linux-release?v=${OLD_GARDEN_RELEASE}"
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry-incubator/etcd-release?v=${OLD_ETCD_RELEASE}"
+  if [ "${OLD_CF_RELEASE}" -gt "250" ]; then
+    upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=${OLD_GARDEN_RELEASE}"
+  else
+    upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-linux-release?v=${OLD_GARDEN_RELEASE}"
+  fi
 
   bosh -n deploy -d "${DIEGO_DEPLOYMENT}" "${root}/${DIEGO_DEPLOYMENT}.yml"
 }

@@ -46,6 +46,7 @@ jobs:
       BOSH_DIRECTOR: {{fresh_bosh_director}}
       BOSH_CLIENT: {{fresh_bosh_user}}
       BOSH_CLIENT_SECRET: {{fresh_bosh_password}}
+      BOSH_CA_CERT: {{fresh_ca_cert}}
       BOSH_PUBLIC_IP: {{fresh_bosh_public_ip}}
   - task: upload-stemcell-old
     file: postgres-release/ci/scripts/upload-stemcell/task.yml
@@ -53,6 +54,7 @@ jobs:
       BOSH_DIRECTOR: {{old_bosh_director}}
       BOSH_CLIENT: {{old_bosh_user}}
       BOSH_CLIENT_SECRET: {{old_bosh_password}}
+      BOSH_CA_CERT: {{old_ca_cert}}
       BOSH_PUBLIC_IP: {{old_bosh_public_ip}}
   - task: upload-stemcell-older
     file: postgres-release/ci/scripts/upload-stemcell/task.yml
@@ -60,6 +62,7 @@ jobs:
       BOSH_DIRECTOR: {{older_bosh_director}}
       BOSH_CLIENT: {{older_bosh_user}}
       BOSH_CLIENT_SECRET: {{older_bosh_password}}
+      BOSH_CA_CERT: {{older_ca_cert}}
       BOSH_PUBLIC_IP: {{older_bosh_public_ip}}
   - task: create-postgres-dev-release-tarball
     file: postgres-release/ci/scripts/create-dev-release-tarball/task.yml
