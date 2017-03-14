@@ -12,8 +12,8 @@ function main(){
   local root="${1}"
 
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
-  /opt/rubies/ruby-2.2.4/bin/bosh target ${BOSH_ENVIRONMENT}
-  /opt/rubies/ruby-2.2.4/bin/bosh login ${BOSH_CLIENT} ${BOSH_CLIENT_SECRET}
+  echo "${BOSH_CA_CERT}" > ${root}/ca_cert
+  /opt/rubies/ruby-2.2.4/bin/bosh --ca_cert=${root}/ca_cert -u ${BOSH_CLIENT} -p ${BOSH_CLIENT_SECRET} target ${BOSH_ENVIRONMENT}
 
   pushd ${root}/dev-release
   /opt/rubies/ruby-2.2.4/bin/bosh -t ${BOSH_DIRECTOR} create release --force --with-tarball --version "${REL_VERSION}" --name "${REL_NAME}"
