@@ -9,6 +9,7 @@ This is a [BOSH](https://www.bosh.io) release for [PostgreSQL](https://www.postg
 * [Customizing](#customizing)
 * [Contributing](#contributing)
 * [Known Limitation](#known-limitation)
+* [Upgrading](#upgrading)
 
 ## Deploying
 
@@ -136,3 +137,34 @@ Follow the directions [here](https://www.cloudfoundry.org/community/contribute/)
 
 The postgres-release does not directly support high availability.
 Even if you deploy more instances, no replication is configured.
+
+## Upgrading
+
+Refer to [versions.yml](blob/master/versions.yml) in order to assess if you are upgrading to a new PostgreSQL version.
+
+### Considerations before deploying
+
+1. A copy of the database is made for the upgrade, you may need to adjust the persistent disk capacity of the postgres job.
+1. The upgrade happens as part of the monit start and its duration may vary basing on your env. The postgres monit start timeout can be adjusted using property `databases.monit_timeout`. You may need to specify a higher value if you have a large database
+ - In case of a PostgreSQL minor upgrade a simple copy of the old data directory is made.
+ - In case of a PostgreSQL major upgrade the `pg_upgrade` utility is used.
+1. Postgres will be unavailable during this upgrade.
+
+### Considerations after a successfull deployment
+
+Post upgrade, both old and new databases are kept. The old database moved to `/var/vcap/store/postgres/postgres-previous`. The postgres-previous directory will be kept until the next postgres upgrade is performed in the future. You are free to remove this if you have verified the new database works and you want to reclaim the space.
+
+### Recovering a failure during deployment
+
+In case the timeout was not sufficient, the deployment would fail; anyway monit would not stop the actual upgrade process. In this case you can just wait for the upgrade to complete and only when postgres is up and running rerun the bosh deploy.
+
+If the upgrade fails:
+
+- The old data directory is still available at `/var/vcap/store/postgres/postgres-x.x.x` where x.x.x is the old PostgreSQL version
+- The new data directory is at `/var/vcap/store/postgres/postgres-y.y.y` where y.y.y is the new PostgreSQL version
+- If the upgrade is a PostgreSQL major upgrade:
+ - A marker file is kept at `/var/vcap/store/postgres/POSTGRES_UPGRADE_LOCK` to prevent the upgrade from happening again.
+ - `pg_upgrade` logs that may have details of why the migration failed can be found in `/var/vcap/sys/log/postgres/postgres_ctl.log`
+
+If you want to attempt the upgrade again or to rollback to the previous release, you should remove the new data directory and, if present, the marker file.
+

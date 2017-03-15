@@ -35,7 +35,7 @@ function main() {
         --new-bindir "${PACKAGE_DIR}/bin"
     popd
 
-    rm -f "${PG_STORE_DIR}/FLAG_POSTGRES_UPGRADE"
+    rm -f "${POSTGRES_UPGRADE_LOCK}"
 
     mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
   fi

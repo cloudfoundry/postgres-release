@@ -39,3 +39,4 @@ properties:
     description: "A map of additional key/value pairs to include as extra configuration properties"
   databases.monit_timeout:
     description: "Monit timout in seconds for the postgres job start. If not specified, no timeout statement will be added so that the global monit timeout applies."
+    default: 90

@@ -2,7 +2,7 @@
 
 function main() {
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
-  bosh clean-up --all
+  bosh -n clean-up --all
 }
 
 main
