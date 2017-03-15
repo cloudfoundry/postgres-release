@@ -58,7 +58,7 @@ function deploy_diego() {
       -n $root/postgres-ci-env/deployments/diego/instance-count-overrides.yml \
       -v $root/postgres-ci-env/deployments/diego/release-versions.yml \
       -s $root/sql_overrides.yml \
-      -g \
+      -x \
       > $root/pgci_diego.yml
 
   popd > /dev/null
