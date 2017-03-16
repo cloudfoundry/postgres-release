@@ -12,7 +12,6 @@ jobs:
   - aggregate:
     - get: postgres-release
       resource: postgres-release
-      trigger: true
   - task: delete-diego-fresh-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params: &base_params_fresh
