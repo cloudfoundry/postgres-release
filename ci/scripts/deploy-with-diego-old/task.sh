@@ -49,6 +49,7 @@ common_data:
   garden_version: ${OLD_GARDEN_RELEASE}
   etcd_version: ${OLD_ETCD_RELEASE}
   cf_version: ${OLD_CF_RELEASE}
+  rootfs_version: ${OLD_ROOTFS_RELEASE}
 EOF
 }
 
@@ -72,6 +73,7 @@ function main(){
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry-incubator/etcd-release?v=${OLD_ETCD_RELEASE}"
   if [ "${OLD_CF_RELEASE}" -gt "250" ]; then
     upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=${OLD_GARDEN_RELEASE}"
+    upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/cflinuxfs2-rootfs-release?v=${OLD_ROOTFS_RELEASE}"
   else
     upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-linux-release?v=${OLD_GARDEN_RELEASE}"
   fi

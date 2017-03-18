@@ -189,6 +189,7 @@ jobs:
       OLD_DIEGO_RELEASE: {{old_diego_version}}
       OLD_GARDEN_RELEASE: {{old_garden_version}}
       OLD_ETCD_RELEASE: {{old_etcd_version}}
+      OLD_ROOTFS_RELEASE: {{old_rootfs_version}}
       OLD_STEMCELL: 3262.4
       DIEGO_DEPLOYMENT: {{old_diego_deployment}}
   - task: populate-db
@@ -252,6 +253,7 @@ jobs:
       OLD_DIEGO_RELEASE: {{older_diego_version}}
       OLD_GARDEN_RELEASE: {{older_garden_version}}
       OLD_ETCD_RELEASE: {{older_etcd_version}}
+      OLD_ROOTFS_RELEASE: {{older_rootfs_version}}
       OLD_STEMCELL: 3262.4
       DIEGO_DEPLOYMENT: {{older_diego_deployment}}
   - task: populate-db
