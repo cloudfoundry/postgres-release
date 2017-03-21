@@ -30,7 +30,7 @@ EOF
 
 generate_stemcell_stub() {
   pushd /tmp > /dev/null
-    curl -Ls -o /dev/null -w %{url_effective} https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent | xargs -n 1 curl -O
+    curl -Ls -o /dev/null -w %{url_effective} https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent?v=3312.18 | xargs -n 1 curl -O
   popd > /dev/null
 
   local stemcell_filename
