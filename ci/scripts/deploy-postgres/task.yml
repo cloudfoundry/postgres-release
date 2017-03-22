@@ -26,3 +26,4 @@ params:
   PG_PSW:
   PG_PORT:
   PG_DB:
+  STEMCELL_VERSION:

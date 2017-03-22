@@ -9,11 +9,11 @@ preflight_check() {
 }
 
 function upload_stemcell() {
-  local old_stemcell_url="https://s3.amazonaws.com/bosh-softlayer-cpi-stemcells/light-bosh-stemcell-${OLD_STEMCELL}-softlayer-esxi-ubuntu-trusty-go_agent.tgz"
-  wget --quiet 'https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent' --output-document=stemcell.tgz
-  bosh upload-stemcell stemcell.tgz
-  wget --quiet "${old_stemcell_url}" --output-document=stemcell.tgz
-  bosh upload-stemcell stemcell.tgz
+  if [ "${OLD_STEMCELL}" != "latest" }; then
+    local old_stemcell_url="https://s3.amazonaws.com/bosh-softlayer-cpi-stemcells/light-bosh-stemcell-${OLD_STEMCELL}-softlayer-esxi-ubuntu-trusty-go_agent.tgz"
+    wget --quiet "${old_stemcell_url}" --output-document=stemcell.tgz
+    bosh upload-stemcell stemcell.tgz
+  fi
 }
 
 function upload_remote_release() {
@@ -39,6 +39,7 @@ common_data:
   apps_domain: ${apps_domain}
   Bosh_ip: ${BOSH_DIRECTOR}
   Bosh_public_ip: ${BOSH_PUBLIC_IP}
+  stemcell_version: ${STEMCELL_VERSION}
   cell_stemcell:
     name: bosh-softlayer-esxi-ubuntu-trusty-go_agent
     version: ${OLD_STEMCELL}

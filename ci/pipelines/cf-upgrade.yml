@@ -48,6 +48,7 @@ jobs:
       BOSH_CLIENT_SECRET: {{fresh_bosh_password}}
       BOSH_CA_CERT: {{fresh_ca_cert}}
       BOSH_PUBLIC_IP: {{fresh_bosh_public_ip}}
+      STEMCELL_VERSION: {{stemcell_version}}
   - task: upload-stemcell-old
     file: postgres-release/ci/scripts/upload-stemcell/task.yml
     params: &bosh_params_old
@@ -56,6 +57,7 @@ jobs:
       BOSH_CLIENT_SECRET: {{old_bosh_password}}
       BOSH_CA_CERT: {{old_ca_cert}}
       BOSH_PUBLIC_IP: {{old_bosh_public_ip}}
+      STEMCELL_VERSION: {{stemcell_version}}
   - task: upload-stemcell-older
     file: postgres-release/ci/scripts/upload-stemcell/task.yml
     params: &bosh_params_older
@@ -64,6 +66,7 @@ jobs:
       BOSH_CLIENT_SECRET: {{older_bosh_password}}
       BOSH_CA_CERT: {{older_ca_cert}}
       BOSH_PUBLIC_IP: {{older_bosh_public_ip}}
+      STEMCELL_VERSION: {{stemcell_version}}
   - task: create-postgres-dev-release-tarball
     file: postgres-release/ci/scripts/create-dev-release-tarball/task.yml
     input_mapping: {dev-release: postgres-release}
@@ -190,7 +193,7 @@ jobs:
       OLD_GARDEN_RELEASE: {{old_garden_version}}
       OLD_ETCD_RELEASE: {{old_etcd_version}}
       OLD_ROOTFS_RELEASE: {{old_rootfs_version}}
-      OLD_STEMCELL: 3262.4
+      OLD_STEMCELL: {{old_cell_stemcell}}
       DIEGO_DEPLOYMENT: {{old_diego_deployment}}
   - task: populate-db
     file: postgres-release/ci/scripts/populate-db/task.yml
@@ -254,7 +257,7 @@ jobs:
       OLD_GARDEN_RELEASE: {{older_garden_version}}
       OLD_ETCD_RELEASE: {{older_etcd_version}}
       OLD_ROOTFS_RELEASE: {{older_rootfs_version}}
-      OLD_STEMCELL: 3262.4
+      OLD_STEMCELL: {{older_cell_stemcell}}
       DIEGO_DEPLOYMENT: {{older_diego_deployment}}
   - task: populate-db
     file: postgres-release/ci/scripts/populate-db/task.yml

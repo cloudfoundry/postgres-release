@@ -8,11 +8,6 @@ preflight_check() {
   set -x
 }
 
-function upload_stemcell() {
-  wget --quiet 'https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent' --output-document=stemcell.tgz
-  bosh upload-stemcell stemcell.tgz
-}
-
 function upload_remote_release() {
   local release_url=$1
   wget --quiet "${release_url}" -O remote_release.tgz
@@ -38,6 +33,7 @@ common_data:
   api_password: ${API_PASSWORD}
   Bosh_ip: ${BOSH_DIRECTOR}
   Bosh_public_ip: ${BOSH_PUBLIC_IP}
+  stemcell_version: ${STEMCELL_VERSION}
   default_env:
     bosh:
       password: ~
@@ -60,7 +56,6 @@ function main(){
     "${root}/stubs/data.yml" \
     "${root}/postgres-ci-env/deployments/common/common.yml" > "${root}/${CF_DEPLOYMENT}.yml"
 
-  upload_stemcell
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/cf-release?v=${OLD_CF_RELEASE}"
 
   bosh -n deploy -d "${CF_DEPLOYMENT}" "${root}/${CF_DEPLOYMENT}.yml"

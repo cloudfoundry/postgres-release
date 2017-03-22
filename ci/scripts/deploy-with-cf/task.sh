@@ -28,27 +28,6 @@ releases:
 EOF
 }
 
-generate_stemcell_stub() {
-  pushd /tmp > /dev/null
-    curl -Ls -o /dev/null -w %{url_effective} https://bosh.io/d/stemcells/bosh-softlayer-xen-ubuntu-trusty-go_agent?v=3312.18 | xargs -n 1 curl -O
-  popd > /dev/null
-
-  local stemcell_filename
-  stemcell_filename=$(echo /tmp/light-bosh-stemcell-*-softlayer-xen-ubuntu-trusty-go_agent.tgz)
-
-  local stemcell_version
-  stemcell_version=$(echo ${stemcell_filename} | cut -d "-" -f4)
-
-  cat <<EOF
----
-meta:
-  stemcell:
-    name: bosh-softlayer-xen-ubuntu-trusty-go_agent
-    version: ${stemcell_version}
-    url: file://${stemcell_filename}
-EOF
-}
-
 generate_job_templates_stub() {
   cat <<EOF
 meta:
@@ -81,6 +60,7 @@ common_data:
   haproxy_instances: ${haproxy_instances}
   Bosh_ip: ${BOSH_DIRECTOR}
   Bosh_public_ip: ${BOSH_PUBLIC_IP}
+  stemcell_version: ${STEMCELL_VERSION}
   default_env:
     bosh:
       password: ~
@@ -93,10 +73,8 @@ function main(){
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
   mkdir stubs
 
-  #upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/cf-release"
   pushd stubs
     generate_releases_stub ${root} > releases.yml
-    generate_stemcell_stub > stemcells.yml
     generate_job_templates_stub > job_templates.yml
     generate_env_stub > env.yml
   popd
@@ -113,7 +91,6 @@ function main(){
       "templates/cf.yml" \
       "${root}/postgres-ci-env/deployments/cf/cf-infrastructure-softlayer.yml" \
       "${root}/stubs/releases.yml" \
-      "${root}/stubs/stemcells.yml" \
       "${root}/stubs/job_templates.yml" \
       "${root}/partial-pgci-cf.yml" > "${root}/pgci_cf.yml"
   popd
