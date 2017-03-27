@@ -24,9 +24,11 @@ common_data:
   api_password: ${API_PASSWORD}
   Bosh_ip: ${BOSH_DIRECTOR}
   Bosh_public_ip: ${BOSH_PUBLIC_IP}
+  stemcell_version: ${STEMCELL_VERSION}
   default_env:
     bosh:
       password: ~
+      keep_root_password: true
 EOF
 }
 

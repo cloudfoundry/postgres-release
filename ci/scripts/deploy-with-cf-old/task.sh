@@ -37,6 +37,7 @@ common_data:
   default_env:
     bosh:
       password: ~
+      keep_root_password: true
   cf_version: ${OLD_CF_RELEASE}
 EOF
 }

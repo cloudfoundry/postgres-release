@@ -8,12 +8,6 @@ preflight_check() {
   set -x
 }
 
-function upload_remote_release() {
-  local release_url=$1
-  wget --quiet "${release_url}" -O remote_release.tgz
-  bosh upload-release remote_release.tgz
-}
-
 generate_releases_stub() {
   local build_dir
   build_dir="${1}"
@@ -64,6 +58,7 @@ common_data:
   default_env:
     bosh:
       password: ~
+      keep_root_password: true
 EOF
 }
 

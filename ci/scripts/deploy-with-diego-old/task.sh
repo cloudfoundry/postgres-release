@@ -9,10 +9,13 @@ preflight_check() {
 }
 
 function upload_stemcell() {
-  if [ "${OLD_STEMCELL}" != "latest" }; then
+  if [ "${OLD_STEMCELL}" != "latest" ]; then
     local old_stemcell_url="https://s3.amazonaws.com/bosh-softlayer-cpi-stemcells/light-bosh-stemcell-${OLD_STEMCELL}-softlayer-esxi-ubuntu-trusty-go_agent.tgz"
     wget --quiet "${old_stemcell_url}" --output-document=stemcell.tgz
     bosh upload-stemcell stemcell.tgz
+    OLD_STEMCELL_NAME=bosh-softlayer-esxi-ubuntu-trusty-go_agent
+  else
+    OLD_STEMCELL_NAME=bosh-softlayer-xen-ubuntu-trusty-go_agent
   fi
 }
 
@@ -41,11 +44,12 @@ common_data:
   Bosh_public_ip: ${BOSH_PUBLIC_IP}
   stemcell_version: ${STEMCELL_VERSION}
   cell_stemcell:
-    name: bosh-softlayer-esxi-ubuntu-trusty-go_agent
+    name: ${OLD_STEMCELL_NAME}
     version: ${OLD_STEMCELL}
   default_env:
     bosh:
       password: ~
+      keep_root_password: true
   diego_version: ${OLD_DIEGO_RELEASE}
   garden_version: ${OLD_GARDEN_RELEASE}
   etcd_version: ${OLD_ETCD_RELEASE}
