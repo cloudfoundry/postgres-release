@@ -61,6 +61,8 @@ EOF
 function main(){
   local root="${1}"
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
+  OLD_STEMCELL_NAME=bosh-softlayer-xen-ubuntu-trusty-go_agent
+  upload_stemcell
 
   mkdir ${root}/stubs
 
@@ -73,7 +75,6 @@ function main(){
     "${root}/stubs/meta.yml" \
     "${root}/postgres-ci-env/deployments/common/common.yml" > "${root}/${DIEGO_DEPLOYMENT}.yml"
 
-  upload_stemcell
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/diego-release?v=${OLD_DIEGO_RELEASE}"
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry-incubator/etcd-release?v=${OLD_ETCD_RELEASE}"
   if [ "${OLD_CF_RELEASE}" -gt "250" ]; then
