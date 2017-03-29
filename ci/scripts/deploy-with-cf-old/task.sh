@@ -54,6 +54,7 @@ function main(){
 
   spiff merge \
     "${root}/postgres-ci-env/deployments/cf/pgci-cf${OLD_CF_RELEASE}.yml" \
+    "${root}/postgres-ci-env/deployments/common/properties.yml" \
     "${root}/stubs/data.yml" \
     "${root}/postgres-ci-env/deployments/common/common.yml" > "${root}/${CF_DEPLOYMENT}.yml"
 

@@ -72,6 +72,7 @@ function main(){
 
   spiff merge \
     "${root}/postgres-ci-env/deployments/diego/pgci-diego${OLD_CF_RELEASE}.yml" \
+    "${root}/postgres-ci-env/deployments/common/properties.yml" \
     "${root}/stubs/meta.yml" \
     "${root}/postgres-ci-env/deployments/common/common.yml" > "${root}/${DIEGO_DEPLOYMENT}.yml"
 

@@ -36,11 +36,9 @@ generate_env_stub() {
   local vm_prefix
   local cf1_domain
   local apps_domain
-  local haproxy_instances
   vm_prefix="${CF_DEPLOYMENT}-"
   apps_domain="apps.${CF_DEPLOYMENT}.microbosh"
   cf1_domain="cf1.${CF_DEPLOYMENT}.microbosh"
-  haproxy_instances=1
   cat <<EOF
 ---
 common_data:
@@ -51,7 +49,6 @@ common_data:
   apps_domain: ${apps_domain}
   api_user: ${API_USER}
   api_password: ${API_PASSWORD}
-  haproxy_instances: ${haproxy_instances}
   Bosh_ip: ${BOSH_DIRECTOR}
   Bosh_public_ip: ${BOSH_PUBLIC_IP}
   stemcell_version: ${STEMCELL_VERSION}
