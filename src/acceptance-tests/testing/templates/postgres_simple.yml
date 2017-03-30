@@ -29,7 +29,6 @@ instance_groups:
 
 properties:
   databases:
-   # address:
     databases:
     - citext: true
       name: sandbox
@@ -37,7 +36,6 @@ properties:
     - citext: false
       name: sandbox2
       tag: test
-    db_scheme: postgres
     port: 5524
     max_connections: 111
     additional_config:

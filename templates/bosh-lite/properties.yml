@@ -1,12 +1,10 @@
 jobs:
 properties:
   databases:
-    address: (( jobs.postgres.networks.default.static_ips.[0] ))
     databases:
     - citext: true
       name: sandbox
       tag: test
-    db_scheme: postgres
     port: 5524
     roles:
     - name: pgadmin

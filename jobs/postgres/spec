@@ -17,12 +17,8 @@ packages:
   - postgres-9.6.2
 
 properties:
-  databases.db_scheme:
-    description: "The database scheme"
   databases.port:
     description: "The database port"
-  databases.address:
-    description: "The database address"
   databases.databases:
     description: "A list of databases and associated properties to create"
   databases.roles:
