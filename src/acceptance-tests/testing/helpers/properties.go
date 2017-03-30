@@ -10,7 +10,6 @@ type Properties struct {
 	Databases PgProperties `yaml:"databases"`
 }
 type PgProperties struct {
-	Address               string                `yaml:"address,omitempty"`
 	Databases             []PgDBProperties      `yaml:"databases,omitempty"`
 	Roles                 []PgRoleProperties    `yaml:"roles,omitempty"`
 	Port                  int                   `yaml:"port"`
