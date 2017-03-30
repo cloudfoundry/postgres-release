@@ -16,6 +16,10 @@ packages:
   - postgres-9.4.9
   - postgres-9.6.2
 
+provides:
+- name: postgres
+  type: database
+
 properties:
   databases.db_scheme:
     description: "The database scheme"
