@@ -3,7 +3,7 @@
 
 This is a [BOSH](https://www.bosh.io) release for [PostgreSQL](https://www.postgresql.org/).
 
-###Contents
+## Contents
 
 * [Deploying](#deploying)
 * [Customizing](#customizing)
@@ -25,65 +25,65 @@ In order to deploy the postgres-release you must follow the standard steps for d
 1. Upload the desired stemcell directly to bosh. [bosh.io](http://bosh.io/stemcells) provides a resource to find and download stemcells.
    For bosh-lite:
 
-  ```
-  bosh upload stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent
-  ```
+   ```
+   bosh upload stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent
+   ```
 
 1. Upload the latest release from [bosh.io](http://bosh.io/releases/github.com/cloudfoundry/postgres-release?all=1):
 
-  ```
-  bosh upload release https://bosh.io/d/github.com/cloudfoundry/postgres-release
-  ```
+   ```
+   bosh upload release https://bosh.io/d/github.com/cloudfoundry/postgres-release
+   ```
 
-  or create and upload a development release:
+   or create and upload a development release:
 
-  ```
-  cd ~/workspace/postgres-release
-  bosh -n create release --force && bosh -n upload release
-  ```
+   ```
+   cd ~/workspace/postgres-release
+   bosh -n create release --force && bosh -n upload release
+   ```
 
 1. Generate the manifest.
 
    For bosh-lite run:
 
-  ```
-  ~/workspace/postgres-release/scripts/generate-bosh-lite-manifest > OUTPUT_MANIFEST_PATH
-  ```
+   ```
+   ~/workspace/postgres-release/scripts/generate-bosh-lite-manifest > OUTPUT_MANIFEST_PATH
+   ```
 
-  In general, in the postgres-release you are provided with a sample that you can customize by creating your own stubs:
+   In general, in the postgres-release you are provided with a sample that you can customize by creating your own stubs:
 
-  ```
-  ~/workspace/postgres-release/scripts/generate-deployment-manifest \
-  -i IAAS-SETTINGS-STUB-PATH \
-  -p PROPERTIES-STUB-PATH > OUTPUT_MANIFEST_PATH
-  ```
+   ```
+   ~/workspace/postgres-release/scripts/generate-deployment-manifest \
+   -i IAAS-SETTINGS-STUB-PATH \
+   -p PROPERTIES-STUB-PATH > OUTPUT_MANIFEST_PATH
+   ```
 
-  In the IAAS-SETTINGS-STUB specify:
+   In the IAAS-SETTINGS-STUB specify:
 
-  ```
-  meta:
-    stemcell: (( merge || .meta.default_stemcell ))
-    default_stemcell:
-      name: <STEMCELL_NAME>
-      version: <STEMCELL_VERSION>
-  compilation:
-    cloud_properties: <COMPILATION_CLOUD_PROPS>
-  networks:
-  - name: default
-   <NETWORK_PROPS>
-  resource_pools:
-  - name: medium
-    cloud_properties: <RESPOOL_CLOUD_PROPS>
-  ```
+   ```
+   meta:
+     stemcell: (( merge || .meta.default_stemcell ))
+     default_stemcell:
+       name: <STEMCELL_NAME>
+       version: <STEMCELL_VERSION>
+   compilation:
+     cloud_properties: <COMPILATION_CLOUD_PROPS>
+   networks:
+   - name: default
+     <NETWORK_PROPS>
+   resource_pools:
+   - name: medium
+     cloud_properties: <RESPOOL_CLOUD_PROPS>
+   ```
 
-  In the PROPERTIES-STUB specify the properties for the postgres job.
-  You can refer to the [bosh-lite sample stub](https://github.com/cloudfoundry/postgres-release/blob/master/templates/bosh-lite/properties.yml) for a basic configuration example.
+   In the PROPERTIES-STUB specify the properties for the postgres job.
+   You can refer to the [bosh-lite sample stub](https://github.com/cloudfoundry/postgres-release/blob/master/templates/bosh-lite/properties.yml) for a basic configuration example.
 
 1. Deploy:
 
-  ```
-  bosh -d OUTPUT_MANIFEST_PATH deploy
-  ```
+   ```
+   bosh -d OUTPUT_MANIFEST_PATH deploy
+   ```
 
 ## Customizing
 
@@ -146,8 +146,8 @@ Refer to [versions.yml](blob/master/versions.yml) in order to assess if you are 
 
 1. A copy of the database is made for the upgrade, you may need to adjust the persistent disk capacity of the postgres job.
 1. The upgrade happens as part of the monit start and its duration may vary basing on your env. The postgres monit start timeout can be adjusted using property `databases.monit_timeout`. You may need to specify a higher value if you have a large database
- - In case of a PostgreSQL minor upgrade a simple copy of the old data directory is made.
- - In case of a PostgreSQL major upgrade the `pg_upgrade` utility is used.
+    - In case of a PostgreSQL minor upgrade a simple copy of the old data directory is made.
+    - In case of a PostgreSQL major upgrade the `pg_upgrade` utility is used.
 1. Postgres will be unavailable during this upgrade.
 
 ### Considerations after a successfull deployment
@@ -163,8 +163,8 @@ If the upgrade fails:
 - The old data directory is still available at `/var/vcap/store/postgres/postgres-x.x.x` where x.x.x is the old PostgreSQL version
 - The new data directory is at `/var/vcap/store/postgres/postgres-y.y.y` where y.y.y is the new PostgreSQL version
 - If the upgrade is a PostgreSQL major upgrade:
- - A marker file is kept at `/var/vcap/store/postgres/POSTGRES_UPGRADE_LOCK` to prevent the upgrade from happening again.
- - `pg_upgrade` logs that may have details of why the migration failed can be found in `/var/vcap/sys/log/postgres/postgres_ctl.log`
+  - A marker file is kept at `/var/vcap/store/postgres/POSTGRES_UPGRADE_LOCK` to prevent the upgrade from happening again.
+  - `pg_upgrade` logs that may have details of why the migration failed can be found in `/var/vcap/sys/log/postgres/postgres_ctl.log`
 
 If you want to attempt the upgrade again or to rollback to the previous release, you should remove the new data directory and, if present, the marker file.
 
