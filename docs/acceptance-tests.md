@@ -2,13 +2,14 @@
 
 The acceptance tests run several deployments of the postgres-release in order to exercise a variety of scenario:
 - Verify that customizable configurations are properly reflected in the PostgreSQL server
- - Roles
- - Databases
- - Database extensions
- - Properties (e.g. max_connections)
+  - Roles
+  - Databases
+  - Database extensions
+  - Properties (e.g. max_connections)
 - Test supported upgrade paths from previous versions
 
 You can run PGATS in two ways:
+
 * [locally](#running-pgats-locally)
 * [as BOSH errand](#running-pgats-as-bosh-errand)
 
@@ -85,18 +86,21 @@ export PGATS_CONFIG=$PWD/pgats_config.yml
 The full set of config parameters is explained below.
 
 `bosh`parameters are used to connect to the BOSH director that would host the test environment:
+
 * `bosh.target` (required) Public BOSH director ip address
 * `bosh.username` (required) Username for the BOSH director login
 * `bosh.password` (required) Password for the BOSH director login
 * `bosh.director_ca_cert` (required) BOSH director CA Cert
 
 `cloud_config` parameters are used to generate a BOSH v2 manifest that matches your IaaS configuration:
+
 * `cloud_config.default_azs` List of vailability zones. It defaults to `[z1]`.
 * `cloud_config.default_networks` List of networks. It defaults to `[{name: private}]`.
 * `cloud_config.default_persistent_disk_type` Persistent disk type. It defaults to `10GB`.
 * `cloud_config.default_vm_type` VM type. It defaults to `m3.medium`.
 
 Other paramaters:
+
 * `postgres_release_version` The postgres-release version to test. If not specified, the latest uploaded to the director is used.
 * `postgresql_version` The PostgreSQL version that is expected to be deployed. You only need to specify it if your changes include a PostgreSQL version upgrade.
 If not specified, we expect that the one in the latest published postgres-release is deployed.
