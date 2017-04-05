@@ -83,7 +83,6 @@ databases:
 				m["max_wal_senders"] = 5
 				expected := helpers.Properties{
 					Databases: helpers.PgProperties{
-						Address: "x.x.x.x",
 						Databases: []helpers.PgDBProperties{
 							{CITExt: true,
 								Name: "sandbox",
