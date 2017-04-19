@@ -8,6 +8,7 @@ templates:
   postgres_ctl.erb: bin/postgres_ctl
   postgres_start.sh.erb: bin/postgres_start.sh
   pgconfig.sh.erb: bin/pgconfig.sh
+  utils.sh.erb: bin/utils.sh
   postgresql.conf.erb: config/postgresql.conf
   pg_hba.conf.erb: config/pg_hba.conf
 

@@ -2,6 +2,7 @@
 
 function main() {
   source /var/vcap/jobs/postgres/bin/pgconfig.sh
+  source /var/vcap/jobs/postgres/bin/utils.sh
 
   if [ ! -d "${STORE_DIR}" ]; then
     echo "ERROR: storage directory doesn't exist"
@@ -22,21 +23,29 @@ function main() {
   fi
 
   if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
-    rm -rf "${DATA_DIR_PREVIOUS}"
-    touch "$POSTGRES_UPGRADE_LOCK"
+    rm -rf ${DATA_DIR_PREVIOUS}
+    if is_major; then
+      echo "Running a PostgreSQL major upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
+      touch "$POSTGRES_UPGRADE_LOCK"
+      # Move to a directory writeable by vcap user
+      mkdir -p "${PG_STORE_DIR}/pg_upgrade_tmp"
+      pushd "${PG_STORE_DIR}/pg_upgrade_tmp"
+        "${PACKAGE_DIR}/bin/pg_upgrade" \
+          --old-datadir "${DATA_DIR_OLD}" \
+          --new-datadir "${DATA_DIR}" \
+          --old-bindir "${PACKAGE_DIR_OLD}/bin" \
+          --new-bindir "${PACKAGE_DIR}/bin"
+      popd
+    else
+      echo "Running a PostgreSQL minor upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
+      mkdir -p "${DATA_DIR}"
+      chown -R vcap:vcap "${DATA_DIR}"
+      chmod 700 "${DATA_DIR}"
 
-    # Move to a directory writeable by vcap user
-    mkdir -p "${PG_STORE_DIR}/pg_upgrade_tmp"
-    pushd "${PG_STORE_DIR}/pg_upgrade_tmp"
-      "${PACKAGE_DIR}/bin/pg_upgrade" \
-        --old-datadir "${DATA_DIR_OLD}" \
-        --new-datadir "${DATA_DIR}" \
-        --old-bindir "${PACKAGE_DIR_OLD}/bin" \
-        --new-bindir "${PACKAGE_DIR}/bin"
-    popd
-
-    rm -f "${POSTGRES_UPGRADE_LOCK}"
-
+      pushd "${DATA_DIR_OLD}" > /dev/null
+        cp -r * "${DATA_DIR}"
+      popd > /dev/null
+    fi
     mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
   fi
 
@@ -52,72 +61,5 @@ function main() {
   create_databases
 }
 
-function pgexec() {
-  local database
-  database="${1}"
-
-  local command
-  command="${2}"
-
-  "${PACKAGE_DIR}/bin/psql" \
-    -U "vcap" \
-    -p "${PORT}" \
-    -d "${database}" \
-    -c "${command}"
-}
-
-function create_roles() {
-  echo "Creating roles..."
-  <% p("databases.roles", []).each do |role| %>
-    echo "Trying to create role <%= role["name"] %>..."
-    set +e
-    # TODO remove unused roles automatically
-    # Default permissions are: nosuperuser nologin inherit nocreatedb.
-    # Will fail if role already exists, which is OK
-    pgexec postgres "CREATE ROLE \"<%= role["name"] %>\""
-    set -e
-
-    echo "Setting password for role <%= role["name"] %>..."
-    pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH LOGIN PASSWORD '<%= role["password"] %>'"
-
-    <% if role["permissions"] %>
-      echo "Adding permissions <%= role["permissions"].join(' ') %> for role <%= role["name"] %>..."
-      pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH <%= role["permissions"].join(' ') %>"
-    <% end %>
-  <% end %>
-}
-
-function create_databases() {
-  echo "Creating databases..."
-  <% p("databases.databases", []).each do |database| %>
-    echo "Trying to create database <%= database["name"] %>..."
-    set +e
-    "${PACKAGE_DIR}/bin/createdb" "<%= database["name"] %>" -p ${PORT}
-    set -e
-
-    <% if database["citext"] %>
-      echo "Trying to install citext..."
-      set +e
-      pgexec "<%= database["name"] %>" "CREATE EXTENSION citext"
-      pgexec "<%= database["name"] %>" "CREATE EXTENSION citext FROM UNPACKAGED"
-      set -e
-    <% end %>
-
-    echo "Enabling pgcrypto extension..."
-    pgexec "<%= database["name"] %>" "CREATE EXTENSION IF NOT EXISTS pgcrypto"
-
-
-    <% if p("databases.collect_statement_statistics") %>
-      echo "Enabling pg_stat_statements extension..."
-      pgexec "<%= database["name"] %>" "CREATE EXTENSION IF NOT EXISTS pg_stat_statements"
-    <% end %>
-
-    <% if database["run_on_every_startup"] %>
-      <% database["run_on_every_startup"].each do |query| %>
-        pgexec "<%= database["name"] %>" "<%= query %>"
-      <% end %>
-    <% end %>
-  <% end %>
-}
 
 main

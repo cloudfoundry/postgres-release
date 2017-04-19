@@ -32,7 +32,7 @@ var Test1Load = LoadType{NumTables: 1, NumColumns: 1, NumRows: 1}
 var Test2Load = LoadType{NumTables: 2, NumColumns: 4, NumRows: 5}
 var SmallLoad = LoadType{NumTables: 2, NumColumns: 10, NumRows: 50}
 var MediumLoad = LoadType{NumTables: 10, NumColumns: 10, NumRows: 100}
-var LargeLoad = LoadType{NumTables: 10, NumColumns: 10, NumRows: 1000}
+var LargeLoad = LoadType{NumTables: 100, NumColumns: 10, NumRows: 20000}
 
 func GetSampleLoad(loadType LoadType) []PGLoadTable {
 	if loadType.NumTables <= 0 {
