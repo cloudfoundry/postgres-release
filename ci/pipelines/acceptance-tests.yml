@@ -37,7 +37,8 @@ jobs:
     file: postgres-release/ci/scripts/run-acceptance-tests/task.yml
     params:
       <<: *bosh1_params
-  - task: delete-postgres-dev-release
-    file: postgres-release/ci/scripts/run-bosh-delete-release/task.yml
-    params:
-      <<: *bosh1_params
+    ensure:
+      task: delete-postgres-dev-release
+      file: postgres-release/ci/scripts/run-bosh-delete-release/task.yml
+      params:
+        <<: *bosh1_params
