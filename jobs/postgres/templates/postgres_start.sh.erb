@@ -36,6 +36,7 @@ function main() {
           --old-bindir "${PACKAGE_DIR_OLD}/bin" \
           --new-bindir "${PACKAGE_DIR}/bin"
       popd
+      rm -f "${POSTGRES_UPGRADE_LOCK}"
     else
       echo "Running a PostgreSQL minor upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
       mkdir -p "${DATA_DIR}"
