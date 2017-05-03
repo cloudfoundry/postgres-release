@@ -3,8 +3,19 @@
 preflight_check() {
   set +x
   test -n "${BOSH_DIRECTOR}"
+  test -n "${BOSH_PUBLIC_IP}"
   test -n "${BOSH_CLIENT}"
   test -n "${BOSH_CLIENT_SECRET}"
+  test -n "${BOSH_CA_CERT}"
+  test -n "${OLD_CF_RELEASE}"
+  test -n "${OLD_DIEGO_RELEASE}"
+  test -n "${OLD_GARDEN_RELEASE}"
+  test -n "${OLD_ETCD_RELEASE}"
+  test -n "${OLD_ROOTFS_RELEASE}"
+  test -n "${CF_DEPLOYMENT}"
+  test -n "${DIEGO_DEPLOYMENT}"
+  test -n "${OLD_STEMCELL}"
+  test -n "${STEMCELL_VERSION}"
   set -x
 }
 
@@ -60,6 +71,7 @@ EOF
 
 function main(){
   local root="${1}"
+  preflight_check
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
   OLD_STEMCELL_NAME=bosh-softlayer-xen-ubuntu-trusty-go_agent
   upload_stemcell

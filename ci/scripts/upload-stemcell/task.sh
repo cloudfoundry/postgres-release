@@ -5,6 +5,8 @@ preflight_check() {
   test -n "${BOSH_DIRECTOR}"
   test -n "${BOSH_CLIENT}"
   test -n "${BOSH_CLIENT_SECRET}"
+  test -n "${BOSH_CA_CERT}"
+  test -n "${STEMCELL_VERSION}"
   set -x
 }
 
@@ -19,9 +21,8 @@ function upload_stemcell() {
 
 function main(){
   local root="${1}"
-
+  preflight_check
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
-
   upload_stemcell
 }
 
