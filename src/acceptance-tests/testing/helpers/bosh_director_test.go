@@ -213,6 +213,28 @@ name: test
 				Expect(err).NotTo(HaveOccurred())
 			})
 
+			It("Fails to restart the VM", func() {
+				var err error
+				deploymentFake := &fakedir.FakeDeployment{}
+				deploymentFake.RestartReturns(errors.New("fake-error"))
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
+				Expect(err).NotTo(HaveOccurred())
+				err = director.DeploymentInfo.Restart("postgres")
+				Expect(err).To(Equal(errors.New("fake-error")))
+			})
+
+			It("Can restart the VM", func() {
+				var err error
+				deploymentFake := &fakedir.FakeDeployment{}
+				deploymentFake.RestartReturns(nil)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.SetDeploymentFromManifest(manifestFilePath, nil, "dummy")
+				Expect(err).NotTo(HaveOccurred())
+				err = director.DeploymentInfo.Restart("postgres")
+				Expect(err).NotTo(HaveOccurred())
+			})
+
 			It("Should return an error if getting address of a non-existent vm", func() {
 				var err error
 				deploymentFake := &fakedir.FakeDeployment{}

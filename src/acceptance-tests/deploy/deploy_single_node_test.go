@@ -125,6 +125,10 @@ var _ = Describe("Deploy single instance", func() {
 				validator = helpers.NewValidator(pgprops, pgDataAfter, DB, latestPostgreSQLVersion)
 				err = validator.ValidateAll()
 				Expect(err).NotTo(HaveOccurred())
+
+				By("Validating the VM can still be restarted")
+				err = director.DeploymentInfo.Restart("postgres")
+				Expect(err).NotTo(HaveOccurred())
 			}
 		}
 

@@ -178,6 +178,12 @@ func (dd DeploymentData) DeleteDeployment() error {
 	return dd.Deployment.Delete(true)
 }
 
+func (dd DeploymentData) Restart(instanceGroupName string) error {
+	slug := boshdir.NewAllOrInstanceGroupOrInstanceSlug(instanceGroupName, "")
+	restartOptions := boshdir.RestartOpts{}
+	return dd.Deployment.Restart(slug, restartOptions)
+}
+
 func (dd DeploymentData) GetVmAddress(vmname string) (string, error) {
 	var result string
 	vms, err := dd.Deployment.VMInfos()
