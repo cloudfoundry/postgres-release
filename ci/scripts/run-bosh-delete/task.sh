@@ -13,7 +13,7 @@ preflight_check() {
 function main() {
   preflight_check
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
-  bosh -n -d $DEPLOYMENT_NAME delete-deployment
+  bosh -n -d $DEPLOYMENT_NAME delete-deployment --force
 }
 
 main
