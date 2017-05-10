@@ -90,7 +90,10 @@ function main(){
 
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/diego-release?v=${OLD_DIEGO_RELEASE}"
   upload_remote_release "https://bosh.io/d/github.com/cloudfoundry-incubator/etcd-release?v=${OLD_ETCD_RELEASE}"
-  if [ "${OLD_CF_RELEASE}" -gt "250" ]; then
+  if [ "${OLD_CF_RELEASE}" -gt "257" ]; then
+    upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=${OLD_GARDEN_RELEASE}"
+    upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/cflinuxfs2-release?v=${OLD_ROOTFS_RELEASE}"
+  elif [ "${OLD_CF_RELEASE}" -gt "250" ]; then
     upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/garden-runc-release?v=${OLD_GARDEN_RELEASE}"
     upload_remote_release "https://bosh.io/d/github.com/cloudfoundry/cflinuxfs2-rootfs-release?v=${OLD_ROOTFS_RELEASE}"
   else
