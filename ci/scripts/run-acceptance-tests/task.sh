@@ -20,7 +20,18 @@ postgresql_version: "PostgreSQL ${current_version}"
 EOF
 }
 
+preflight_check() {
+  set +x
+  test -n "${BOSH_DIRECTOR}"
+  test -n "${BOSH_CLIENT}"
+  test -n "${BOSH_CLIENT_SECRET}"
+  test -n "${BOSH_CA_CERT}"
+  test -n "${REL_VERSION}"
+  set -x
+}
+
 function main() {
+  preflight_check
   source ${root}/postgres-release/jobs/postgres/templates/pgconfig.sh.erb
   config_file="${root}/pgats_config.yml"
   create_config_file > $config_file

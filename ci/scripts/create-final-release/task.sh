@@ -6,9 +6,17 @@ set +u
 source ~/.bashrc
 set -u
 
+preflight_check() {
+  set +x
+  test -n "${RELEASE_NAME}"
+  test -n "${MASTER_BRANCH}"
+  set -x
+}
+
 function main() {
   local root_dir
   root_dir="${PWD}"
+  preflight_check
 
   local release_name
   release_name="${1}"

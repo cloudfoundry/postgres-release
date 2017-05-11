@@ -61,6 +61,7 @@ function deploy_diego() {
       -v $root/postgres-ci-env/deployments/diego/release-versions.yml \
       -s $root/sql_overrides.yml \
       -x \
+      -r \
       > $root/pgci_diego.yml
 
   popd > /dev/null
@@ -74,12 +75,26 @@ function upload_release() {
   bosh upload-release https://bosh.io/d/github.com/${release}
 }
 
+preflight_check() {
+  set +x
+  test -n "${BOSH_DIRECTOR}"
+  test -n "${BOSH_PUBLIC_IP}"
+  test -n "${BOSH_CLIENT}"
+  test -n "${BOSH_CLIENT_SECRET}"
+  test -n "${BOSH_CA_CERT}"
+  test -n "${CF_DEPLOYMENT}"
+  test -n "${API_USER}"
+  test -n "${API_PASSWORD}"
+  test -n "${STEMCELL_VERSION}"
+  set -x
+}
+
 function main() {
+  preflight_check
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
-  upload_release "cloudfoundry/cflinuxfs2-rootfs-release"
+  upload_release "cloudfoundry/cflinuxfs2-release"
   upload_release "cloudfoundry/diego-release"
   upload_release "cloudfoundry/garden-runc-release"
-  upload_release "cloudfoundry-incubator/etcd-release"
 
   deploy_diego
 }

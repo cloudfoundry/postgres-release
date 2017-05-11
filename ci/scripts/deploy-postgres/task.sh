@@ -3,8 +3,17 @@
 preflight_check() {
   set +x
   test -n "${BOSH_DIRECTOR}"
+  test -n "${BOSH_PUBLIC_IP}"
   test -n "${BOSH_CLIENT}"
   test -n "${BOSH_CLIENT_SECRET}"
+  test -n "${BOSH_CA_CERT}"
+  test -n "${PG_DEPLOYMENT}"
+  test -n "${PG_VERSION}"
+  test -n "${PG_USER}"
+  test -n "${PG_PSW}"
+  test -n "${PG_PORT}"
+  test -n "${PG_DB}"
+  test -n "${STEMCELL_VERSION}"
   set -x
 }
 
@@ -65,7 +74,7 @@ EOF
 
 function main(){
   local root="${1}"
-
+  preflight_check
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
 
   mkdir stubs
