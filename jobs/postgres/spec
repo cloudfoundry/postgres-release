@@ -15,7 +15,7 @@ templates:
 packages:
   - postgres-common
   - postgres-9.4.9
-  - postgres-9.6.2
+  - postgres-9.6.3
 
 provides:
 - name: postgres
