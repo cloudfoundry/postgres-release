@@ -1,7 +1,7 @@
 #!/bin/bash -exu
 
-# Cannot set -u before sourcing .bashrc because of all
-# the unbound variables in things beyond our control.
+# Cannot set -u before sourcing .bashrc because of
+# all the unbound variables in things beyond our control.
 set +u
 source ~/.bashrc
 set -u
