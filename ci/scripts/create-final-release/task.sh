@@ -9,7 +9,6 @@ set -u
 preflight_check() {
   set +x
   test -n "${RELEASE_NAME}"
-  test -n "${MASTER_BRANCH}"
   set -x
 }
 
