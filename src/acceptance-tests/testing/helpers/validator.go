@@ -9,7 +9,7 @@ import (
 )
 
 type Validator struct {
-	ManifestProps     PgProperties
+	ManifestProps     Properties
 	PostgresData      PGOutputData
 	PG                PGData
 	PostgreSQLVersion string
@@ -23,7 +23,7 @@ const ExtraExtensionValidationError = "Extra extension %s for database %s has be
 const MissingRoleValidationError = "Role %s has not been created"
 const ExtraRoleValidationError = "Extra role %s has been created"
 const IncorrectRolePrmissionValidationError = "Incorrect permissions for role %s"
-const IncorrectSettingValidationError = "Incorrect value for setting %s"
+const IncorrectSettingValidationError = "Incorrect value %v instead of %v for setting %s"
 const MissingSettingValidationError = "Missing setting %s"
 
 type PGDBSorter []PGDatabase
@@ -31,7 +31,7 @@ type PGDBSorter []PGDatabase
 func (a PGDBSorter) Len() int      { return len(a) }
 func (a PGDBSorter) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a PGDBSorter) Less(i, j int) bool {
-	return a[j].Name == "postgres" || (a[i].Name != "postgres" && a[i].Name < a[j].Name)
+	return a[j].Name == DefaultDB || (a[i].Name != DefaultDB && a[i].Name < a[j].Name)
 }
 
 type PgDBPropsSorter []PgDBProperties
@@ -54,7 +54,7 @@ func (a PGColumnSorter) Len() int           { return len(a) }
 func (a PGColumnSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a PGColumnSorter) Less(i, j int) bool { return a[i].Position < a[j].Position }
 
-func NewValidator(props PgProperties, pgData PGOutputData, pg PGData, postgresqlVersion string) Validator {
+func NewValidator(props Properties, pgData PGOutputData, pg PGData, postgresqlVersion string) Validator {
 	return Validator{
 		PostgreSQLVersion: postgresqlVersion,
 		ManifestProps:     props,
@@ -72,19 +72,19 @@ func (v Validator) ValidatePostgreSQLVersion() error {
 
 func (v Validator) ValidateDatabases() error {
 	actual := v.PostgresData.Databases
-	expected := v.ManifestProps.Databases
+	expected := v.ManifestProps.Databases.Databases
 	sort.Sort(PGDBSorter(actual))
 	sort.Sort(PgDBPropsSorter(expected))
 	for idx, actualDB := range actual {
-		if actualDB.Name == "postgres" && idx > len(expected)-1 {
+		if actualDB.Name == DefaultDB && idx > len(expected)-1 {
 			break
 		}
 		if idx > len(expected)-1 || actualDB.Name < expected[idx].Name {
-			if actualDB.Name != "postgres" {
+			if actualDB.Name != DefaultDB {
 				return errors.New(fmt.Sprintf(ExtraDatabaseValidationError, actualDB.Name))
 			}
 		}
-		if actualDB.Name == "postgres" || actualDB.Name > expected[idx].Name {
+		if actualDB.Name == DefaultDB || actualDB.Name > expected[idx].Name {
 			return errors.New(fmt.Sprintf(MissingDatabaseValidationError, expected[idx].Name))
 		}
 		extMap := map[string]bool{
@@ -107,9 +107,9 @@ func (v Validator) ValidateDatabases() error {
 		} else if !expected[idx].CITExt && extMap["citext"] {
 			return errors.New(fmt.Sprintf(ExtraExtensionValidationError, "citext", expected[idx].Name))
 		}
-		if v.ManifestProps.CollectStatementStats && !extMap["pg_stat_statements"] {
+		if v.ManifestProps.Databases.CollectStatementStats && !extMap["pg_stat_statements"] {
 			return errors.New(fmt.Sprintf(MissingExtensionValidationError, "pg_stat_statements", expected[idx].Name))
-		} else if !v.ManifestProps.CollectStatementStats && extMap["pg_stat_statements"] {
+		} else if !v.ManifestProps.Databases.CollectStatementStats && extMap["pg_stat_statements"] {
 			return errors.New(fmt.Sprintf(ExtraExtensionValidationError, "pg_stat_statements", expected[idx].Name))
 		}
 	}
@@ -118,7 +118,7 @@ func (v Validator) ValidateDatabases() error {
 func (v Validator) ValidateRoles() error {
 	var err error
 	actual := v.PostgresData.Roles
-	expected := v.ManifestProps.Roles
+	expected := v.ManifestProps.Databases.Roles
 
 	for _, expectedRole := range expected {
 		actualRole, ok := actual[expectedRole.Name]
@@ -183,13 +183,13 @@ func (v Validator) MatchSetting(key string, value interface{}) error {
 	if !ok {
 		return errors.New(fmt.Sprintf(MissingSettingValidationError, key))
 	} else if expected != stringValue {
-		return errors.New(fmt.Sprintf(IncorrectSettingValidationError, key))
+		return errors.New(fmt.Sprintf(IncorrectSettingValidationError, stringValue, expected, key))
 	}
 	return nil
 }
 func (v Validator) ValidateSettings() error {
 	var err error
-	props := v.ManifestProps
+	props := v.ManifestProps.Databases
 	for key, value := range props.AdditionalConfig {
 		err = v.MatchSetting(key, value)
 		if err != nil {

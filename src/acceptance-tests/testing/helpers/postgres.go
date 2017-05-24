@@ -10,22 +10,27 @@ import (
 	"strings"
 )
 
+const DefaultDB = "postgres"
+
 type PGData struct {
 	Data PGCommon
 	DBs  []PGConn
 }
 
 type PGCommon struct {
-	Address     string
-	Port        int
-	SSLMode     string
-	DefUser     string
-	DefPassword string
+	Address       string `json:"address"`
+	Port          int    `json:"port"`
+	SSLMode       string `json:"sslmode"`
+	SSLRootCert   string `json:"sslrootcert"`
+	DefUser       string `json:"user"`
+	DefPassword   string `json:"password"`
+	AdminUser     string `json:"adminuser,omitempty"`
+	AdminPassword string `json:"adminpassword,omitempty"`
 }
 
 type PGConn struct {
 	TargetDB string
-	user     string
+	User     string
 	password string
 	DB       *sql.DB
 }
@@ -96,6 +101,9 @@ const MissingDBAddressErr = "Database address not specified"
 const MissingDBPortErr = "Database port not specified"
 const MissingDefaultUserErr = "Default user not specified"
 const MissingDefaultPasswordErr = "Default password not specified"
+const NoSuperUserProvidedErr = "No super user provided"
+const IncorrectSSLModeErr = "Incorrect SSL mode specified"
+const MissingSSLRootCertErr = "SSL Root Certificate missing"
 
 func GetFormattedQuery(query string) string {
 	return fmt.Sprintf(QueryResultAsJson, query)
@@ -105,6 +113,9 @@ func NewPostgres(props PGCommon) (PGData, error) {
 	var pg PGData
 	if props.SSLMode == "" {
 		props.SSLMode = "disable"
+	}
+	if err := checkSSLMode(props.SSLMode, props.SSLRootCert); err != nil {
+		return PGData{}, err
 	}
 	if props.Address == "" {
 		return PGData{}, errors.New(MissingDBAddressErr)
@@ -119,17 +130,43 @@ func NewPostgres(props PGCommon) (PGData, error) {
 		return PGData{}, errors.New(MissingDefaultPasswordErr)
 	}
 	pg.Data = props
-	newConn, err := pg.OpenConnection("postgres", props.DefUser, props.DefPassword)
-	if err != nil {
-		return PGData{}, err
-	}
-	pg.DBs = append(pg.DBs, newConn)
 	return pg, nil
 }
-func (pg PGData) OpenConnection(dbname string, user string, password string) (PGConn, error) {
+
+func checkSSLMode(sslmode string, sslrootcert string) error {
+	var strong_sslmodes = [...]string{"verify-ca", "verify-full"}
+	var valid_sslmodes = [...]string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"}
+	for _, valid_mode := range valid_sslmodes {
+		if valid_mode == sslmode {
+			for _, strong_mode := range strong_sslmodes {
+				if strong_mode == sslmode && sslrootcert == "" {
+					return errors.New(MissingSSLRootCertErr)
+				}
+			}
+			return nil
+		}
+	}
+	return errors.New(IncorrectSSLModeErr)
+}
+
+func (pg *PGData) ChangeSSLMode(sslmode string, sslrootcert string) error {
+	if err := checkSSLMode(sslmode, sslrootcert); err != nil {
+		return err
+	}
+	pg.Data.SSLMode = sslmode
+	pg.Data.SSLRootCert = sslrootcert
+	pg.CloseConnections()
+	return nil
+}
+
+func (pg *PGData) OpenConnection(dbname string, user string, password string) (PGConn, error) {
 	var newConn PGConn
 	var err error
 	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", user, password, pg.Data.Address, pg.Data.Port, dbname, pg.Data.SSLMode)
+	if pg.Data.SSLRootCert != "" {
+		url = fmt.Sprintf("%s&sslrootcert=%s", url, pg.Data.SSLRootCert)
+	}
+
 	newConn.DB, err = sql.Open("postgres", url)
 	if err != nil {
 		return PGConn{}, err
@@ -138,17 +175,49 @@ func (pg PGData) OpenConnection(dbname string, user string, password string) (PG
 	if err != nil {
 		return PGConn{}, err
 	}
-	newConn.user = user
+	newConn.User = user
 	newConn.password = password
 	newConn.TargetDB = dbname
-
+	newConn.DB.SetMaxIdleConns(10)
+	pg.DBs = append(pg.DBs, newConn)
 	return newConn, nil
 }
-func (pg PGData) GetDefaultConnection() PGConn {
-	return pg.DBs[0]
+func (pg *PGData) CloseConnections() {
+	for _, conn := range pg.DBs {
+		conn.DB.Close()
+	}
+	pg.DBs = nil
 }
-func (pg PGData) GetDBConnection(dbname string) (PGConn, error) {
-	return pg.GetDBConnectionForUser(dbname, "")
+func (pg *PGData) GetDefaultConnection() (PGConn, error) {
+	return pg.GetDBConnection(DefaultDB)
+}
+
+func (pg *PGData) GetDBSuperUserConnection(dbname string) (PGConn, error) {
+	if pg.Data.AdminUser == "" || pg.Data.AdminPassword == "" {
+		return PGConn{}, errors.New(NoSuperUserProvidedErr)
+	}
+	conn, err := pg.GetDBConnectionForUser(dbname, pg.Data.AdminUser)
+	if err != nil {
+		conn, err = pg.OpenConnection(dbname, pg.Data.AdminUser, pg.Data.AdminPassword)
+		if err != nil {
+			return PGConn{}, err
+		}
+	}
+	return conn, nil
+}
+func (pg *PGData) GetSuperUserConnection() (PGConn, error) {
+	return pg.GetDBSuperUserConnection(DefaultDB)
+}
+
+func (pg *PGData) GetDBConnection(dbname string) (PGConn, error) {
+	result, err := pg.GetDBConnectionForUser(dbname, "")
+	if (PGConn{}) == result {
+		result, err = pg.OpenConnection(dbname, pg.Data.DefUser, pg.Data.DefPassword)
+		if err != nil {
+			return PGConn{}, err
+		}
+	}
+	return result, nil
 }
 func (pg PGData) GetDBConnectionForUser(dbname string, user string) (PGConn, error) {
 	if len(pg.DBs) == 0 {
@@ -157,7 +226,7 @@ func (pg PGData) GetDBConnectionForUser(dbname string, user string) (PGConn, err
 	var result PGConn
 	for _, conn := range pg.DBs {
 		if conn.TargetDB == dbname {
-			if user == "" || conn.user == user {
+			if user == "" || conn.User == user {
 				result = conn
 				break
 			}
@@ -200,10 +269,7 @@ func (pg PGData) CreateAndPopulateTables(dbName string, loadType LoadType) error
 
 	conn, err := pg.GetDBConnection(dbName)
 	if err != nil {
-		conn, err = pg.OpenConnection(dbName, pg.Data.DefUser, pg.Data.DefPassword)
-		if err != nil {
-			return err
-		}
+		return err
 	}
 	tables := GetSampleLoad(loadType)
 
@@ -250,7 +316,11 @@ func (pg PGData) CreateAndPopulateTables(dbName string, loadType LoadType) error
 
 func (pg PGData) ReadAllSettings() (map[string]string, error) {
 	result := make(map[string]string)
-	rows, err := pg.GetDefaultConnection().Run(GetSettingsQuery)
+	conn, err := pg.GetDefaultConnection()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := conn.Run(GetSettingsQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -267,19 +337,27 @@ func (pg PGData) ReadAllSettings() (map[string]string, error) {
 func (pg PGData) GetPostgreSQLVersion() (PGVersion, error) {
 	var result PGVersion
 
-	rows, err := pg.GetDefaultConnection().Run(GetPostgreSQLVersionQuery)
+	conn, err := pg.GetDefaultConnection()
+	if err != nil {
+		return PGVersion{}, err
+	}
+	rows, err := conn.Run(GetPostgreSQLVersionQuery)
 	if err != nil {
 		return PGVersion{}, err
 	}
 	err = json.Unmarshal([]byte(rows[0]), &result)
 	if err != nil {
-		return PGVersion{}, nil
+		return PGVersion{}, err
 	}
 	return result, nil
 }
 func (pg PGData) ListDatabases() ([]PGDatabase, error) {
 	var result []PGDatabase
-	rows, err := pg.GetDefaultConnection().Run(ListDatabasesQuery)
+	conn, err := pg.GetSuperUserConnection()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := conn.Run(ListDatabasesQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -304,9 +382,9 @@ func (pg PGData) ListDatabases() ([]PGDatabase, error) {
 	return result, nil
 }
 func (pg PGData) ListDatabaseExtensions(dbName string) ([]PGDatabaseExtensions, error) {
-	conn, err := pg.GetDBConnection(dbName)
+	conn, err := pg.GetDBSuperUserConnection(dbName)
 	if err != nil {
-		conn, err = pg.OpenConnection(dbName, pg.Data.DefUser, pg.Data.DefPassword)
+		return nil, err
 	}
 	rows, err := conn.Run(ListDBExtensionsQuery)
 	if err != nil {
@@ -324,9 +402,9 @@ func (pg PGData) ListDatabaseExtensions(dbName string) ([]PGDatabaseExtensions, 
 	return extensionsList, nil
 }
 func (pg PGData) ListDatabaseTables(dbName string) ([]PGTable, error) {
-	conn, err := pg.GetDBConnection(dbName)
+	conn, err := pg.GetDBSuperUserConnection(dbName)
 	if err != nil {
-		conn, err = pg.OpenConnection(dbName, pg.Data.DefUser, pg.Data.DefPassword)
+		return nil, err
 	}
 	rows, err := conn.Run(ListTablesQuery)
 	if err != nil {
@@ -369,7 +447,11 @@ func (pg PGData) ListDatabaseTables(dbName string) ([]PGTable, error) {
 }
 func (pg PGData) ListRoles() (map[string]PGRole, error) {
 	result := make(map[string]PGRole)
-	rows, err := pg.GetDefaultConnection().Run(ListRolesQuery)
+	conn, err := pg.GetDefaultConnection()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := conn.Run(ListRolesQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +473,11 @@ func (pg PGData) ConvertToPostgresDate(inputDate string) (string, error) {
 	result := ConvertedDate{}
 	inputDate = strings.TrimLeft(inputDate, "'\"")
 	inputDate = strings.TrimRight(inputDate, "'\"")
-	rows, err := pg.GetDefaultConnection().Run(fmt.Sprintf(ConvertToDateCommand, inputDate))
+	conn, err := pg.GetDefaultConnection()
+	if err != nil {
+		return "", err
+	}
+	rows, err := conn.Run(fmt.Sprintf(ConvertToDateCommand, inputDate))
 	if err != nil {
 		return "", err
 	}

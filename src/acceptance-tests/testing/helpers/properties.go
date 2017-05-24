@@ -1,36 +1,37 @@
 package helpers
 
-import (
-	"errors"
-
-	yaml "gopkg.in/yaml.v2"
-)
+import yaml "gopkg.in/yaml.v2"
 
 type Properties struct {
 	Databases PgProperties `yaml:"databases"`
 }
 type PgProperties struct {
+	Port                  int                   `yaml:"port"`
 	Databases             []PgDBProperties      `yaml:"databases,omitempty"`
 	Roles                 []PgRoleProperties    `yaml:"roles,omitempty"`
-	Port                  int                   `yaml:"port"`
 	MaxConnections        int                   `yaml:"max_connections"`
 	LogLinePrefix         string                `yaml:"log_line_prefix"`
 	CollectStatementStats bool                  `yaml:"collect_statement_statistics"`
 	MonitTimeout          int                   `yaml:"monit_timeout,omitempty"`
 	AdditionalConfig      PgAdditionalConfigMap `yaml:"additional_config,omitempty"`
+	TLS                   PgTLS                 `yaml:"tls,omitempty"`
 }
 
 type PgDBProperties struct {
 	CITExt bool   `yaml:"citext"`
 	Name   string `yaml:"name"`
-	Tag    string `yaml:"tag"`
 }
 
 type PgRoleProperties struct {
 	Name        string   `yaml:"name"`
 	Password    string   `yaml:"password"`
-	Tag         string   `yaml:"tag"`
 	Permissions []string `yaml:"permissions,omitempty"`
+}
+
+type PgTLS struct {
+	PrivateKey  string `yaml:"private_key"`
+	Certificate string `yaml:"certificate"`
+	CA          string `yaml:"ca"`
 }
 
 type PgAdditionalConfig interface{}
@@ -42,9 +43,11 @@ var defaultPgProperties = PgProperties{
 	MaxConnections:        500,
 }
 
-const MissingMandatoryProp = "Mandatory property is missing"
+type ManifestProperties struct {
+	ByJob map[string][]Properties
+}
 
-func LoadProperties(yamlData []byte) (Properties, error) {
+func decodeProperties(yamlData []byte) (Properties, error) {
 	var props Properties
 	var err error
 
@@ -53,8 +56,22 @@ func LoadProperties(yamlData []byte) (Properties, error) {
 	if err != nil {
 		return Properties{}, err
 	}
-	if props.Databases.Port == 0 {
-		return Properties{}, errors.New(MissingMandatoryProp)
-	}
 	return props, nil
+}
+
+func (mp *ManifestProperties) LoadJobProperties(jobName string, yamlData []byte) error {
+	props, err := decodeProperties(yamlData)
+	if err != nil {
+		return err
+	}
+	if mp.ByJob == nil {
+		mp.ByJob = make(map[string][]Properties)
+	}
+	mp.ByJob[jobName] = append(mp.ByJob[jobName], props)
+	return nil
+}
+
+func (mp ManifestProperties) GetJobProperties(jobName string) []Properties {
+	result := mp.ByJob[jobName]
+	return result
 }

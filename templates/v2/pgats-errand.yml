@@ -1,60 +1,4 @@
-meta:
-  # override these properties in your stub
-  azs: (( merge || .meta.default_azs ))
-  environment: (( merge || "pgats-errand" ))
-  networks: (( merge || .meta.default_networks ))
-  persistent_disk_type: (( merge || "10GB" ))
-  releases: (( merge || .meta.default_releases ))
-  stemcells: (( merge || .meta.default_stemcells ))
-  vm_type: (( merge || "m3.medium" ))
-  #
-  default_azs: [z1]
-  default_networks:
-  - name: private
-  default_releases: [{name: postgres, version: latest}]
-  default_stemcells:
-  - alias: linux
-    os: ubuntu-trusty
-    version: latest
-
-director_uuid: <%= %x[bosh status --uuid] %>
-
-name: (( meta.environment ))
-
-releases: (( meta.releases ))
-
-stemcells: (( meta.stemcells ))
-
-instance_groups:
-- name: acceptance-tests
-  instances: 1
-  lifecycle: errand
-  stemcell: linux
-  networks: (( meta.networks ))
-  azs: (( meta.azs ))
-  vm_type: (( meta.vm_type ))
-  #
-  jobs:
-  - name: acceptance-tests
-    release: postgres
-
-properties:
-  <<: (( merge ))
-  postgres:
-    acceptance_tests:
-      postgres_release_version: latest
-      bosh:
-        # CUSTOMIZE BOSH DIRECTOR PROPERTIES
-        target: DIRECTOR_TARGET
-        username: DIRECTOR_USER
-        password: DIRECTOR_PASSWORD
-        director_ca_cert: DIRECTOR_CA_CERT
-      # CLOUD-CONFIG PROPERTIES USED BY PGATS WHILE DEPLOYING
-      cloud_configs:
-        default_azs: (( meta.azs ))
-        default_networks: (( meta.networks ))
-        default_persistent_disk_type: (( meta.persistent_disk_type ))
-        default_vm_type: (( meta.vm_type ))
+name: pgats-errand
 
 update:
   canaries: 1
@@ -62,3 +6,43 @@ update:
   max_in_flight: 1
   serial: true
   update_watch_time: 5000-600000
+
+releases:
+- name: postgres
+  version: latest
+
+stemcells:
+- alias: default
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: acceptance-tests
+  instances: 1
+  lifecycle: errand
+  stemcell: default
+  networks:
+  - name: default
+  azs:
+  - z1
+  vm_type: m3.medium
+  persistent_disk_type: 10GB
+  jobs:
+  - name: acceptance-tests
+    release: postgres
+    properties:
+      postgres:
+        acceptance_tests:
+          postgres_release_version: latest
+          bosh:
+            target: ((director_target))
+            username: ((director_username))
+            password: ((director_password))
+            director_ca_cert: ((director_ca_cert))
+          cloud_configs:
+            default_azs:
+            - z1
+            default_networks:
+            - name: default
+            default_persistent_disk_type: 10GB
+            default_vm_type: m3.large

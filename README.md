@@ -15,80 +15,56 @@ This is a [BOSH](https://www.bosh.io) release for [PostgreSQL](https://www.postg
 
 In order to deploy the postgres-release you must follow the standard steps for deploying software with BOSH.
 
-1. Install and target a bosh director.
-   Please refer to [bosh documentation](http://bosh.io/docs) for instructions on how to do that.
+1. Install and target a BOSH director.
+   Please refer to [BOSH documentation](http://bosh.io/docs) for instructions on how to do that.
    Bosh-lite specific instructions can be found [here](https://github.com/cloudfoundry/bosh-lite).
 
-1. Install spiff on your dev machine
-   Please refer to [Spiff documentation](https://github.com/cloudfoundry-incubator/spiff#installation)
+1. Install the BOSH command line Interface (CLI) v2+.
+   Please refer to [BOSH CLI documentation](https://bosh.io/docs/cli-v2.html#install).
 
 1. Upload the desired stemcell directly to bosh. [bosh.io](http://bosh.io/stemcells) provides a resource to find and download stemcells.
    For bosh-lite:
 
    ```
-   bosh upload stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent
+   bosh upload-stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent
    ```
 
 1. Upload the latest release from [bosh.io](http://bosh.io/releases/github.com/cloudfoundry/postgres-release?all=1):
 
    ```
-   bosh upload release https://bosh.io/d/github.com/cloudfoundry/postgres-release
+   bosh upload-release https://bosh.io/d/github.com/cloudfoundry/postgres-release
    ```
 
    or create and upload a development release:
 
    ```
    cd ~/workspace/postgres-release
-   bosh -n create release --force && bosh -n upload release
+   bosh -n create-release --force && bosh -n upload-release
    ```
 
-1. Generate the manifest.
-
-   For bosh-lite run:
+1. Generate the manifest. You can provide in input an [operation file](https://bosh.io/docs/cli-ops-files.html) to customize the manifest:
 
    ```
-   ~/workspace/postgres-release/scripts/generate-bosh-lite-manifest > OUTPUT_MANIFEST_PATH
-   ```
-
-   In general, in the postgres-release you are provided with a sample that you can customize by creating your own stubs:
+   ~/workspace/postgres-release/scripts/generate-deployment-manifest-v2 \
+   -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
 
    ```
-   ~/workspace/postgres-release/scripts/generate-deployment-manifest \
-   -i IAAS-SETTINGS-STUB-PATH \
-   -p PROPERTIES-STUB-PATH > OUTPUT_MANIFEST_PATH
-   ```
 
-   In the IAAS-SETTINGS-STUB specify:
+   You can use the operation file to specify postgres properties ( see by way of [example](blob/master/templates/v2/operations/set_properties.yml)) or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
 
-   ```
-   meta:
-     stemcell: (( merge || .meta.default_stemcell ))
-     default_stemcell:
-       name: <STEMCELL_NAME>
-       version: <STEMCELL_VERSION>
-   compilation:
-     cloud_properties: <COMPILATION_CLOUD_PROPS>
-   networks:
-   - name: default
-     <NETWORK_PROPS>
-   resource_pools:
-   - name: medium
-     cloud_properties: <RESPOOL_CLOUD_PROPS>
-   ```
+   You are also provided with options to enable ssl in the PostgreSQL server or to use static ips.
 
-   In the PROPERTIES-STUB specify the properties for the postgres job.
-   You can refer to the [bosh-lite sample stub](https://github.com/cloudfoundry/postgres-release/blob/master/templates/bosh-lite/properties.yml) for a basic configuration example.
 
 1. Deploy:
 
    ```
-   bosh -d OUTPUT_MANIFEST_PATH deploy
+   bosh -d DEPLOYMENT_NAME deploy OUTPUT_MANIFEST_PATH
    ```
 
 ## Customizing
 
 The table below shows the most significant properties you can use to customize your postgres installation.
-The complete list of available properties can be found in the [spec](https://github.com/cloudfoundry/postgres-release/blob/master/jobs/postgres/spec).
+The complete list of available properties can be found in the [spec](blob/master/jobs/postgres/spec).
 
 Property | Description
 -------- | -------------
@@ -101,15 +77,37 @@ databases.roles | A list of database roles and associated properties to create
 databases.roles[n].name | Role name
 databases.roles[n].password | Login password for the role
 databases.roles[n].permissions| A list of attributes for the role. For the complete list of attributes, refer to [ALTER ROLE command options](https://www.postgresql.org/docs/9.4/static/sql-alterrole.html).
+databases.tls.certificate | PEM-encoded certificate for secure TLS communication
+databases.tls.private_key | PEM-encoded key for secure TLS communication
 databases.max_connections | Maximum number of database connections
-databases.log_line_prefix | The postgres `printf` style string that is output at the beginning of each log line. Default: `%m:`
-databases.collect_statement_statistics | Enable the `pg_stat_statements` extension and collect statement execution statistics. Default: `false`
+databases.log_line\_prefix | The postgres `printf` style string that is output at the beginning of each log line. Default: `%m:`
+databases.collect_statement\_statistics | Enable the `pg_stat_statements` extension and collect statement execution statistics. Default: `false`
 databases.additional_config | A map of additional key/value pairs to include as extra configuration properties
 databases.monit_timeout | Monit timout in seconds for the postgres job start. By default the global monit timeout applies. You may need to specify a higher value if you have a large database and the postgres-release deployment includes a PostgreSQL upgrade.
 
 *Note*
 - Removing a database from `databases.databases` list and deploying again does not trigger a physical deletion of the database in PostgreSQL.
 - Removing a role from `databases.roles` list and deploying again does not trigger a physical deletion of the role in PostgreSQL.
+
+### Enabling SSL on the PostgreSQL server
+PostgreSQL has native support for using SSL connections to encrypt client/server communications for increased security.
+You can enable it by setting the `databases.tls.certificate` and the `databases.tls.private_key` properties.
+
+A script is provided that creates a CA, generates a keypair, and signs it with the CA:
+
+```
+./scripts/generate-postgres-certs -n HOSTNAME_OR_IP_ADDRESS
+```
+ The common name for the server certificate  must be set to the DNS hostname if any or to the ip address of the PostgreSQL server. This because in ssl mode 'verify-full', the hostname is matched against the common-name. Refer to [PostgreSQL documentation](https://www.postgresql.org/docs/9.6/static/libpq-ssl.html) for more details.
+
+ You can also use [BOSH variables](https://bosh.io/docs/cli-int.html) to generate the certificates. See by way of [example](blob/master/templates/v2/operations/use_ssl.yml) the operation file used by the manifest generation script. 
+
+```
+~/workspace/postgres-release/scripts/generate-deployment-manifest-v2 \
+   -s -h HOSTNAME_OR_IP_ADDRESS \
+   -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
+
+```
 
 ## Contributing
 
@@ -129,7 +127,7 @@ Follow the directions [here](https://www.cloudfoundry.org/community/contribute/)
    git checkout -b feature-branch
    ```
 1. Make changes on your branch
-1. Test your changes by running [acceptance tests](https://github.com/cloudfoundry/postgres-release/blob/master/docs/acceptance-tests.md)
+1. Test your changes by running [acceptance tests](blob/master/docs/acceptance-tests.md)
 1. Push to your fork (`git push origin feature-branch`) and [submit a pull request](https://help.github.com/articles/creating-a-pull-request) selecting `develop` as the target branch.
    PRs submitted against other branches will need to be resubmitted with the correct branch targeted.
 
