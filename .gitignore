@@ -18,6 +18,7 @@
 /manifest-generation/aws-stubs/*
 /pkg
 /pkg/
+/postgres-certs
 /releases/**/*.tgz
 /releases/*.tgz
 /src/acceptance-tests/bin

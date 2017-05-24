@@ -30,6 +30,10 @@ function main() {
   mkdir -p "${RUN_DIR}"
   chown -R vcap:vcap "${RUN_DIR}"
 
+  PG_CERTS_DIR=${JOB_DIR}/config/certificates
+  chmod -R 600 ${PG_CERTS_DIR}/*
+  chown -R vcap:vcap ${PG_CERTS_DIR}/*
+
   sysctl -w "kernel.shmmax=284934144"
 }
 

@@ -18,8 +18,6 @@ instance_groups:
   jobs:
   - name: postgres
     release: postgres
-    provides:
-      postgres: {as: postgres-database}
     properties:
       databases:
         port: 5524

@@ -2,7 +2,7 @@
 
 set -e
 
-manifest_dir=$(dirname $0)/../templates
+manifest_dir=$(dirname $0)/../templates/v1
 
 usage() {
   >&2 cat <<EOF

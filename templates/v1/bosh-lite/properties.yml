@@ -4,14 +4,11 @@ properties:
     databases:
     - citext: true
       name: sandbox
-      tag: test
     port: 5524
     roles:
     - name: pgadmin
       password: admin
-      tag: admin
     - name: pgother
       password: other
-      tag: other
       permissions:
       - CONNECTION LIMIT 10

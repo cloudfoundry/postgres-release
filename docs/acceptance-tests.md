@@ -20,9 +20,9 @@ You can run PGATS in two ways:
 * Upload to the BOSH director the latest stemcell and your dev postgres-release:
 
 ```
-bosh upload stemcell STEMCELL_URL_OR_PATH_TO_DOWNLOADED_STEMCELL
-bosh create release --force
-bosh upload release
+bosh upload-stemcell STEMCELL_URL_OR_PATH_TO_DOWNLOADED_STEMCELL
+bosh create-release --force
+bosh upload-release
 ```
 
 * The acceptance tests are written in Go. Make sure that:
@@ -76,7 +76,7 @@ bosh:
 cloud_configs:
   default_azs: [z1]
   default_networks:
-  - name: private
+  - name: default
   default_persistent_disk_type: 10GB
   default_vm_type: m3.medium
 EOF
@@ -126,13 +126,16 @@ The `PGATS_CONFIG` environment variable must point to the absolute path of the [
 ## Running PGATS as BOSH errand
 
 ### Environment setup
+* Install the BOSH command line Interface (CLI) v2+.
+   Please refer to [BOSH CLI documentation](https://bosh.io/docs/cli-v2.html#install).
+
 
 * Upload to the BOSH director the latest stemcell and your dev postgres-release:
 
 ```
-bosh upload stemcell STEMCELL_URL_OR_PATH_TO_DOWNLOADED_STEMCELL
-bosh create release --force
-bosh upload release
+bosh upload-stemcell STEMCELL_URL_OR_PATH_TO_DOWNLOADED_STEMCELL
+bosh create-release --force
+bosh upload-release
 ```
 
 * Tests make use of BOSH v2 manifests. 
@@ -141,44 +144,25 @@ Make sure that the BOSH director is configured with the [cloud_config.yml](https
 * PGATS use bosh-cli director package for programmatic access to the Director API. 
 It requires the Director to be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html).
 
-* Install spiff on your dev machine. 
-Please refer to [Spiff documentation](https://github.com/cloudfoundry-incubator/spiff#installation)
-
-
 ### Running
+Generate the manifest.
 
-Create a properties stub to match your BOSH director and your IaaS configuration.
-Use the stub to generate a BOSH v2 manifest for a postgres-release acceptance test errand job deployment.
+- You must provide in input a variable file containing BOSH director url, user, password, and ca certificate. See by way of [example](blob/master/templates/v2/bosh-lite/pgats-vars.yml) a variable file for bosh-lite.
+
+- You can provide in input an [operation file](https://bosh.io/docs/cli-ops-files.html). You can use it:
+  - to customize the properties (see [example](blob/master/templates/v2/operations/pgats-props.yml))
+  - to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible
 
 ```
-cat > pgats_errand_properties.yml << EOF
----
-meta:
-  azs: [z1]                      # <-- REPLACE WITH AZS as defined in BOSH director cloud_config.yml
-  environment: "pgats-errand"
-  networks:                      # <-- REPLACE WITH NETWORKS as defined in BOSH director cloud_config.yml
-  - name: private
-  persistent_disk_type: "10GB"   # <-- REPLACE WITH PERSISTENT DISK TYPE as defined in BOSH director cloud_config.yml
-  vm_type: "m3.medium"           # <-- REPLACE WITH VM TYPE as defined in BOSH director cloud_config.yml
-properties:
-  postgres:
-    acceptance_tests:
-      bosh:
-        # Override BOSH DIRECTOR PROPERTIES
-        target: 192.168.50.4     # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
-        username: admin          # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
-        password: admin          # <-- REPLACE WITH THE BOSH DIRECTOR IP ADDRESS
-        director_ca_cert: |+
-          -----BEGIN CERTIFICATE-----
-		  REPLACE WITH THE BOSH DIRECTOR CA CERT
-          -----END CERTIFICATE-----
-EOF
-<postgres-release>/scripts/generate-pgats-manifest-v2 -p $PWD/pgats_errand_properties.yml > pgats_errand.yml
+~/workspace/postgres-release/scripts/generate-pgats-manifest-v2 \
+   -v VARIABLE-FILE-PATH \
+   -o OPERATION-FILE-PATH > pgats_errand.yml
+
 ```
 
 Deploy and run the errand:
 
 ```
-bosh -d pgats_errand.yml deploy
-bosh run errand acceptance-tests
+bosh pgats-errand deploy pgats_errand.yml
+bosh run-errand acceptance-tests
 ```

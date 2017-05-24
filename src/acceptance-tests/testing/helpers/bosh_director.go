@@ -1,7 +1,9 @@
 package helpers
 
 import (
-	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -9,12 +11,15 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshtempl "github.com/cloudfoundry/bosh-cli/director/template"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	cfgtypes "github.com/cloudfoundry/config-server/types"
 )
 
 type BOSHDirector struct {
 	Director               boshdir.Director
-	DeploymentInfo         *DeploymentData
+	DeploymentsInfo        map[string]*DeploymentData
 	DirectorConfig         BOSHConfig
 	CloudConfig            BOSHCloudConfig
 	DefaultReleasesVersion map[string]string
@@ -58,18 +63,18 @@ var DefaultCloudConfig = BOSHCloudConfig{
 	VmType:             "m3.medium",
 }
 
+type VarsCertLoader struct {
+	vars boshtempl.Variables
+}
+
+type EvaluateOptions boshtempl.EvaluateOpts
+
 const MissingDeploymentNameMsg = "Invalid manifest: deployment name not present"
 const VMNotPresentMsg = "No VM exists with name %s"
+const ProcessNotPresentInVmMsg = "Process %s does not exist in vm %s"
 
 func GenerateEnvName(prefix string) string {
-	guid := "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-
-	b := make([]byte, 16)
-	_, err := rand.Read(b[:])
-	if err == nil {
-		guid = fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-	}
-	return fmt.Sprintf("pgats-%s-%s", prefix, guid)
+	return fmt.Sprintf("pgats-%s-%s", prefix, GetUUID())
 }
 
 func NewBOSHDirector(boshConfig BOSHConfig, cloudConfig BOSHCloudConfig, releasesVersions map[string]string) (BOSHDirector, error) {
@@ -96,11 +101,14 @@ func NewBOSHDirector(boshConfig BOSHConfig, cloudConfig BOSHCloudConfig, release
 		return BOSHDirector{}, err
 	}
 	boshDirector.Director = director
-	boshDirector.DeploymentInfo = &DeploymentData{}
+	boshDirector.DeploymentsInfo = make(map[string]*DeploymentData)
 
 	return boshDirector, nil
 }
 
+func (bd BOSHDirector) GetEnv(envName string) *DeploymentData {
+	return bd.DeploymentsInfo[envName]
+}
 func (bd *BOSHDirector) SetDeploymentFromManifest(manifestFilePath string, releasesVersions map[string]string, deploymentName string) error {
 	var err error
 	var dd DeploymentData
@@ -158,7 +166,7 @@ func (bd *BOSHDirector) SetDeploymentFromManifest(manifestFilePath string, relea
 	if err != nil {
 		return err
 	}
-	bd.DeploymentInfo = &dd
+	bd.DeploymentsInfo[deploymentName] = &dd
 	return nil
 }
 func (bd BOSHDirector) UploadPostgresReleaseFromURL(version int) error {
@@ -169,6 +177,55 @@ func (bd BOSHDirector) UploadReleaseFromURL(organization string, repo string, ve
 	return bd.Director.UploadReleaseURL(url, "", false, false)
 }
 
+func (dd *DeploymentData) ContainsVariables() bool {
+	return dd.ManifestData != nil && dd.ManifestData["variables"] != nil
+}
+
+func (dd *DeploymentData) EvaluateTemplate(vars map[string]interface{}, opts EvaluateOptions) error {
+	template := boshtempl.NewTemplate(dd.ManifestBytes)
+
+	var variables boshtempl.StaticVariables
+
+	variables = boshtempl.StaticVariables(vars)
+	result, err := template.Evaluate(boshtempl.StaticVariables(vars), nil, boshtempl.EvaluateOpts(opts))
+	if err != nil {
+		return err
+	}
+	dd.ManifestBytes = result
+	if err := yaml.Unmarshal(dd.ManifestBytes, &dd.ManifestData); err != nil {
+		return err
+	}
+
+	factory := cfgtypes.NewValueGeneratorConcrete(NewVarsCertLoader(variables))
+
+	if dd.ManifestData["variables"] != nil {
+		for _, elem := range dd.ManifestData["variables"].([]interface{}) {
+			vdname := elem.(map[interface{}]interface{})["name"]
+			vdtype := elem.(map[interface{}]interface{})["type"]
+			vdoptions := elem.(map[interface{}]interface{})["options"]
+
+			generator, err := factory.GetGenerator(vdtype.(string))
+			if err != nil {
+				return err
+			}
+			value, err := generator.Generate(vdoptions)
+			if err != nil {
+				return err
+			}
+			variables[vdname.(string)] = value
+		}
+	}
+
+	result, err = template.Evaluate(boshtempl.StaticVariables(vars), nil, boshtempl.EvaluateOpts(opts))
+	if err != nil {
+		return err
+	}
+	dd.ManifestBytes = result
+	if err := yaml.Unmarshal(dd.ManifestBytes, &dd.ManifestData); err != nil {
+		return err
+	}
+	return nil
+}
 func (dd DeploymentData) CreateOrUpdateDeployment() error {
 	updateOpts := boshdir.UpdateOpts{}
 	return dd.Deployment.Update(dd.ManifestBytes, updateOpts)
@@ -183,16 +240,57 @@ func (dd DeploymentData) Restart(instanceGroupName string) error {
 	restartOptions := boshdir.RestartOpts{}
 	return dd.Deployment.Restart(slug, restartOptions)
 }
-
-func (dd DeploymentData) GetVmAddress(vmname string) (string, error) {
+func (dd DeploymentData) IsVmRunning(vmid string) (bool, error) {
+	return dd.IsVmProcessRunning(vmid, "")
+}
+func (dd DeploymentData) IsVmProcessRunning(vmid string, processName string) (bool, error) {
+	vms, err := dd.Deployment.VMInfos()
+	if err != nil {
+		return false, err
+	}
+	for _, info := range vms {
+		if info.ID == vmid {
+			if processName == "" {
+				return info.IsRunning(), nil
+			} else if info.Processes == nil || len(info.Processes) == 0 {
+				return false, nil
+			} else {
+				for _, p := range info.Processes {
+					if p.Name == processName {
+						return p.IsRunning(), nil
+					}
+				}
+				return false, errors.New(fmt.Sprintf(ProcessNotPresentInVmMsg, processName, vmid))
+			}
+		}
+	}
+	return false, errors.New(fmt.Sprintf(VMNotPresentMsg, vmid))
+}
+func (dd DeploymentData) GetVmAddresses(vmname string) ([]string, error) {
+	var result []string
+	vms, err := dd.Deployment.VMInfos()
+	if err != nil {
+		return nil, err
+	}
+	for _, info := range vms {
+		if info.JobName == vmname {
+			result = append(result, info.IPs[0])
+		}
+	}
+	if result == nil {
+		return nil, errors.New(fmt.Sprintf(VMNotPresentMsg, vmname))
+	}
+	return result, nil
+}
+func (dd DeploymentData) GetVmDNS(vmname string) (string, error) {
 	var result string
 	vms, err := dd.Deployment.VMInfos()
 	if err != nil {
 		return "", err
 	}
 	for _, info := range vms {
-		if info.JobName == vmname {
-			result = info.IPs[0]
+		if info.JobName == vmname && len(info.DNS) > 0 {
+			return info.DNS[0], nil
 		}
 	}
 	if result == "" {
@@ -200,15 +298,130 @@ func (dd DeploymentData) GetVmAddress(vmname string) (string, error) {
 	}
 	return result, nil
 }
-func (dd DeploymentData) GetPostgresProps() (Properties, error) {
-	var result Properties
-	bytes, err := yaml.Marshal(dd.ManifestData["properties"])
+func (dd DeploymentData) GetVmAddress(vmname string) (string, error) {
+	addresses, err := dd.GetVmAddresses(vmname)
 	if err != nil {
-		return Properties{}, err
+		return "", err
 	}
-	result, err = LoadProperties(bytes)
+	return addresses[0], nil
+}
+func (dd DeploymentData) GetVmIdByAddress(vmaddress string) (string, error) {
+	vms, err := dd.Deployment.VMInfos()
 	if err != nil {
-		return Properties{}, err
+		return "", err
+	}
+	for _, info := range vms {
+		for _, ip := range info.IPs {
+			if ip == vmaddress {
+				return info.ID, nil
+			}
+		}
+	}
+	return "", errors.New(fmt.Sprintf(VMNotPresentMsg, vmaddress))
+}
+func (dd DeploymentData) UpdateResurrection(enable bool) error {
+	vms, err := dd.Deployment.VMInfos()
+	if err != nil {
+		return err
+	}
+	for _, info := range vms {
+		err = dd.Deployment.EnableResurrection(boshdir.NewInstanceSlug(info.JobName, info.ID), enable)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (dd DeploymentData) GetJobsProperties() (ManifestProperties, error) {
+	// since global properties and instance group properties are deprecated, we only considers those specified for the instance group jobs
+	var result ManifestProperties
+	if dd.ManifestData["instance_groups"] != nil {
+		for _, elem := range dd.ManifestData["instance_groups"].([]interface{}) {
+			if elem.(map[interface{}]interface{})["jobs"] != nil {
+				for _, job := range elem.(map[interface{}]interface{})["jobs"].([]interface{}) {
+					bytes, err := yaml.Marshal(job.(map[interface{}]interface{})["properties"])
+					if err != nil {
+						return ManifestProperties{}, err
+					}
+					jobInstanceName := job.(map[interface{}]interface{})["name"]
+					err = result.LoadJobProperties(jobInstanceName.(string), bytes)
+					if err != nil {
+						return ManifestProperties{}, err
+					}
+				}
+			}
+		}
 	}
 	return result, nil
+}
+
+func NewVarsCertLoader(vars boshtempl.Variables) VarsCertLoader {
+	return VarsCertLoader{vars}
+}
+
+func (l VarsCertLoader) LoadCerts(name string) (*x509.Certificate, *rsa.PrivateKey, error) {
+	val, found, err := l.vars.Get(boshtempl.VariableDefinition{Name: name})
+	if err != nil {
+		return nil, nil, err
+	} else if !found {
+		return nil, nil, fmt.Errorf("Expected to find variable '%s' with a certificate", name)
+	}
+
+	// Convert to YAML for easier struct parsing
+	valBytes, err := yaml.Marshal(val)
+	if err != nil {
+		return nil, nil, bosherr.WrapErrorf(err, "Expected variable '%s' to be serializable", name)
+	}
+
+	type CertVal struct {
+		Certificate string
+		PrivateKey  string `yaml:"private_key"`
+	}
+
+	var certVal CertVal
+
+	err = yaml.Unmarshal(valBytes, &certVal)
+	if err != nil {
+		return nil, nil, bosherr.WrapErrorf(err, "Expected variable '%s' to be deserializable", name)
+	}
+
+	crt, err := l.parseCertificate(certVal.Certificate)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	key, err := l.parsePrivateKey(certVal.PrivateKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return crt, key, nil
+}
+
+func (VarsCertLoader) parseCertificate(data string) (*x509.Certificate, error) {
+	cpb, _ := pem.Decode([]byte(data))
+	if cpb == nil {
+		return nil, bosherr.Error("Certificate did not contain PEM formatted block")
+	}
+
+	crt, err := x509.ParseCertificate(cpb.Bytes)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Parsing certificate")
+	}
+
+	return crt, nil
+}
+
+func (VarsCertLoader) parsePrivateKey(data string) (*rsa.PrivateKey, error) {
+	kpb, _ := pem.Decode([]byte(data))
+	if kpb == nil {
+		return nil, bosherr.Error("Private key did not contain PEM formatted block")
+	}
+
+	key, err := x509.ParsePKCS1PrivateKey(kpb.Bytes)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Parsing private key")
+	}
+
+	return key, nil
 }

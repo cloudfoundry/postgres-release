@@ -29,7 +29,7 @@ func convertQuery(query string) string {
 
 func mockSettings(expected map[string]string, mocks map[string]sqlmock.Sqlmock) {
 	if expected == nil {
-		mocks["postgres"].ExpectQuery(convertQuery(helpers.GetSettingsQuery)).WillReturnError(genericError)
+		mocks[helpers.DefaultDB].ExpectQuery(convertQuery(helpers.GetSettingsQuery)).WillReturnError(genericError)
 	} else {
 		rows := sqlmock.NewRows(expectedcolumns)
 		for key, value := range expected {
@@ -37,13 +37,13 @@ func mockSettings(expected map[string]string, mocks map[string]sqlmock.Sqlmock) 
 			row := fmt.Sprintf(ff, key, value, "some0", "string")
 			rows = rows.AddRow(row)
 		}
-		mocks["postgres"].ExpectQuery(convertQuery(helpers.GetSettingsQuery)).WillReturnRows(rows)
+		mocks[helpers.DefaultDB].ExpectQuery(convertQuery(helpers.GetSettingsQuery)).WillReturnRows(rows)
 	}
 }
 
 func mockDatabases(expected []helpers.PGDatabase, mocks map[string]sqlmock.Sqlmock) {
 	if expected == nil {
-		mocks["postgres"].ExpectQuery(convertQuery(helpers.ListDatabasesQuery)).WillReturnError(genericError)
+		mocks["dbsuper"].ExpectQuery(convertQuery(helpers.ListDatabasesQuery)).WillReturnError(genericError)
 	} else {
 		rows := sqlmock.NewRows(expectedcolumns)
 		for _, elem := range expected {
@@ -56,14 +56,14 @@ func mockDatabases(expected []helpers.PGDatabase, mocks map[string]sqlmock.Sqlmo
 				extrow := fmt.Sprintf(xx, elem.Name)
 				extrows = extrows.AddRow(extrow)
 			}
-			mocks[elem.Name].ExpectQuery(convertQuery(helpers.ListDBExtensionsQuery)).WillReturnRows(extrows)
+			mocks[elem.Name+"super"].ExpectQuery(convertQuery(helpers.ListDBExtensionsQuery)).WillReturnRows(extrows)
 			tableRows := sqlmock.NewRows(expectedcolumns)
 			for _, tElem := range elem.Tables {
 				xx := "{\"schemaname\": \"%s\", \"tablename\":\"%s\",\"tableowner\":\"%s\"}"
 				tableRow := fmt.Sprintf(xx, tElem.SchemaName, tElem.TableName, tElem.TableOwner)
 				tableRows = tableRows.AddRow(tableRow)
 			}
-			mocks[elem.Name].ExpectQuery(convertQuery(helpers.ListTablesQuery)).WillReturnRows(tableRows)
+			mocks[elem.Name+"super"].ExpectQuery(convertQuery(helpers.ListTablesQuery)).WillReturnRows(tableRows)
 			for _, tElem := range elem.Tables {
 				columnRows := sqlmock.NewRows(expectedcolumns)
 				for _, col := range tElem.TableColumns {
@@ -71,18 +71,18 @@ func mockDatabases(expected []helpers.PGDatabase, mocks map[string]sqlmock.Sqlmo
 					columnRow := fmt.Sprintf(xx, col.ColumnName, col.DataType, col.Position)
 					columnRows = columnRows.AddRow(columnRow)
 				}
-				mocks[elem.Name].ExpectQuery(convertQuery(fmt.Sprintf(helpers.ListTableColumnsQuery, tElem.SchemaName, tElem.TableName))).WillReturnRows(columnRows)
+				mocks[elem.Name+"super"].ExpectQuery(convertQuery(fmt.Sprintf(helpers.ListTableColumnsQuery, tElem.SchemaName, tElem.TableName))).WillReturnRows(columnRows)
 				countRows := sqlmock.NewRows(expectedcolumns)
 				countRows = countRows.AddRow(fmt.Sprintf("{\"count\": %d}", tElem.TableRowsCount.Num))
-				mocks[elem.Name].ExpectQuery(convertQuery(fmt.Sprintf(helpers.CountTableRowsQuery, tElem.TableName))).WillReturnRows(countRows)
+				mocks[elem.Name+"super"].ExpectQuery(convertQuery(fmt.Sprintf(helpers.CountTableRowsQuery, tElem.TableName))).WillReturnRows(countRows)
 			}
 		}
-		mocks["postgres"].ExpectQuery(convertQuery(helpers.ListDatabasesQuery)).WillReturnRows(rows)
+		mocks["dbsuper"].ExpectQuery(convertQuery(helpers.ListDatabasesQuery)).WillReturnRows(rows)
 	}
 }
 func mockRoles(expected map[string]helpers.PGRole, mocks map[string]sqlmock.Sqlmock) error {
 	if expected == nil {
-		mocks["postgres"].ExpectQuery(convertQuery(helpers.ListRolesQuery)).WillReturnError(genericError)
+		mocks[helpers.DefaultDB].ExpectQuery(convertQuery(helpers.ListRolesQuery)).WillReturnError(genericError)
 	} else {
 		rows := sqlmock.NewRows(expectedcolumns)
 		for _, elem := range expected {
@@ -92,29 +92,29 @@ func mockRoles(expected map[string]helpers.PGRole, mocks map[string]sqlmock.Sqlm
 			}
 			rows = rows.AddRow(row)
 		}
-		mocks["postgres"].ExpectQuery(convertQuery(helpers.ListRolesQuery)).WillReturnRows(rows)
+		mocks[helpers.DefaultDB].ExpectQuery(convertQuery(helpers.ListRolesQuery)).WillReturnRows(rows)
 	}
 	return nil
 }
 func mockDate(current string, expected string, mocks map[string]sqlmock.Sqlmock) error {
 	sqlCommand := convertQuery(fmt.Sprintf(helpers.ConvertToDateCommand, current))
 	if expected == "" {
-		mocks["postgres"].ExpectQuery(sqlCommand).WillReturnError(genericError)
+		mocks[helpers.DefaultDB].ExpectQuery(sqlCommand).WillReturnError(genericError)
 	} else {
 		row := fmt.Sprintf("{\"timestamptz\": \"%s\"}", expected)
 		rows := sqlmock.NewRows(expectedcolumns).AddRow(row)
-		mocks["postgres"].ExpectQuery(sqlCommand).WillReturnRows(rows)
+		mocks[helpers.DefaultDB].ExpectQuery(sqlCommand).WillReturnRows(rows)
 	}
 	return nil
 }
 func mockPostgreSQLVersion(expected helpers.PGVersion, mocks map[string]sqlmock.Sqlmock) error {
 	sqlCommand := convertQuery(helpers.GetPostgreSQLVersionQuery)
 	if expected.Version == "" {
-		mocks["postgres"].ExpectQuery(sqlCommand).WillReturnError(genericError)
+		mocks[helpers.DefaultDB].ExpectQuery(sqlCommand).WillReturnError(genericError)
 	} else {
 		row := fmt.Sprintf("{\"version\": \"%s\"}", expected.Version)
 		rows := sqlmock.NewRows(expectedcolumns).AddRow(row)
-		mocks["postgres"].ExpectQuery(sqlCommand).WillReturnRows(rows)
+		mocks[helpers.DefaultDB].ExpectQuery(sqlCommand).WillReturnRows(rows)
 	}
 	return nil
 }
@@ -239,8 +239,92 @@ var _ = Describe("Postgres", func() {
 					DefUser:     "uu",
 					DefPassword: "pp",
 				}
-				_, err := helpers.NewPostgres(props)
+				pg, err := helpers.NewPostgres(props)
+				Expect(err).NotTo(HaveOccurred())
+				_, err = pg.GetDefaultConnection()
 				Expect(err).To(MatchError(ContainSubstring("no such host")))
+			})
+			It("Fail if getting super user connection and no super user provided", func() {
+				props := helpers.PGCommon{
+					Address:     "bb",
+					Port:        10,
+					DefUser:     "uu",
+					DefPassword: "pp",
+				}
+				pg, err := helpers.NewPostgres(props)
+				Expect(err).NotTo(HaveOccurred())
+				_, err = pg.GetSuperUserConnection()
+				Expect(err).To(MatchError(helpers.NoSuperUserProvidedErr))
+			})
+			It("Fail if incorrect sslmode provided", func() {
+				props := helpers.PGCommon{
+					Address:     "xx",
+					SSLMode:     "unknown",
+					Port:        10,
+					DefUser:     "uu",
+					DefPassword: "pp",
+				}
+				_, err := helpers.NewPostgres(props)
+				Expect(err).To(MatchError(errors.New(helpers.IncorrectSSLModeErr)))
+			})
+		})
+	})
+	Describe("Validate SSL mode", func() {
+		var (
+			mocks map[string]sqlmock.Sqlmock
+			pg    *helpers.PGData
+		)
+		BeforeEach(func() {
+			mocks = make(map[string]sqlmock.Sqlmock)
+			db, mock, err := sqlmock.New()
+			Expect(err).NotTo(HaveOccurred())
+			mocks[helpers.DefaultDB] = mock
+			pg = &helpers.PGData{
+				Data: helpers.PGCommon{
+					SSLMode: "disable",
+				},
+				DBs: []helpers.PGConn{
+					helpers.PGConn{
+						DB:       db,
+						TargetDB: helpers.DefaultDB,
+					},
+				},
+			}
+		})
+		AfterEach(func() {
+			pg.CloseConnections()
+		})
+		Context("Changing SSL mode", func() {
+			It("Fails to change to an invalid ssl mode", func() {
+				err := pg.ChangeSSLMode("unknown", "")
+				Expect(err).To(MatchError(errors.New(helpers.IncorrectSSLModeErr)))
+			})
+			It("Correctly change to a valid ssl mode", func() {
+				err := pg.ChangeSSLMode("require", "")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(pg.Data.SSLMode).To(Equal("require"))
+			})
+			It("Fails to change to stronger SSL modes if missing root cert", func() {
+				err := pg.ChangeSSLMode("verify-ca", "")
+				Expect(err).To(MatchError(errors.New(helpers.MissingSSLRootCertErr)))
+			})
+			It("Correctly change to SSL modes that require root cert", func() {
+				err := pg.ChangeSSLMode("verify-ca", "/somepath")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(pg.Data.SSLMode).To(Equal("verify-ca"))
+			})
+			It("Correctly close connections when changing ssl mode", func() {
+				_, err := pg.GetDefaultConnection()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(pg.DBs).NotTo(BeNil())
+				err = pg.ChangeSSLMode("verify-full", "/some-path")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(pg.Data.SSLMode).To(Equal("verify-full"))
+				conns := 0
+				if pg.DBs != nil {
+					conns = len(pg.DBs)
+				}
+				Expect(conns).To(BeZero())
 			})
 		})
 	})
@@ -254,19 +338,31 @@ var _ = Describe("Postgres", func() {
 			mocks = make(map[string]sqlmock.Sqlmock)
 			db, mock, err := sqlmock.New()
 			Expect(err).NotTo(HaveOccurred())
-			mocks["postgres"] = mock
+			mocks[helpers.DefaultDB] = mock
 			db1, mock1, err := sqlmock.New()
 			Expect(err).NotTo(HaveOccurred())
 			mocks["db1"] = mock1
 			db2, mock2, err := sqlmock.New()
 			Expect(err).NotTo(HaveOccurred())
 			mocks["db2"] = mock2
+			dbsuper, mocksuper, err := sqlmock.New()
+			Expect(err).NotTo(HaveOccurred())
+			mocks["dbsuper"] = mocksuper
+			db1super, mock1super, err := sqlmock.New()
+			Expect(err).NotTo(HaveOccurred())
+			mocks["db1super"] = mock1super
+			db2super, mock2super, err := sqlmock.New()
+			Expect(err).NotTo(HaveOccurred())
+			mocks["db2super"] = mock2super
 			pg = &helpers.PGData{
-				Data: helpers.PGCommon{},
+				Data: helpers.PGCommon{
+					AdminUser:     "superUser",
+					AdminPassword: "superPassword",
+				},
 				DBs: []helpers.PGConn{
 					helpers.PGConn{
 						DB:       db,
-						TargetDB: "postgres",
+						TargetDB: helpers.DefaultDB,
 					},
 					helpers.PGConn{
 						DB:       db1,
@@ -276,13 +372,26 @@ var _ = Describe("Postgres", func() {
 						DB:       db2,
 						TargetDB: "db2",
 					},
+					helpers.PGConn{
+						DB:       dbsuper,
+						User:     "superUser",
+						TargetDB: helpers.DefaultDB,
+					},
+					helpers.PGConn{
+						DB:       db1super,
+						User:     "superUser",
+						TargetDB: "db1",
+					},
+					helpers.PGConn{
+						DB:       db2super,
+						User:     "superUser",
+						TargetDB: "db2",
+					},
 				},
 			}
 		})
 		AfterEach(func() {
-			for _, conn := range pg.DBs {
-				conn.DB.Close()
-			}
+			pg.CloseConnections()
 		})
 		Context("Run a generic query", func() {
 			It("Returns all the lines", func() {
@@ -294,20 +403,24 @@ var _ = Describe("Postgres", func() {
 					AddRow(expected[0]).
 					AddRow(expected[1])
 				query := "SELECT name,role FROM table"
-				mocks["postgres"].ExpectQuery(convertQuery(query)).WillReturnRows(rows)
-				result, err := pg.GetDefaultConnection().Run(query)
+				mocks[helpers.DefaultDB].ExpectQuery(convertQuery(query)).WillReturnRows(rows)
+				conn, err := pg.GetDefaultConnection()
 				Expect(err).NotTo(HaveOccurred())
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				result, err := conn.Run(query)
+				Expect(err).NotTo(HaveOccurred())
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				Expect(result).To(Equal(expected))
 			})
 			It("Properly reports a failure", func() {
 				query := "SELECT name,role FROM table"
-				mocks["postgres"].ExpectQuery(convertQuery(query)).WillReturnError(genericError)
-				_, err := pg.GetDefaultConnection().Run(query)
+				mocks[helpers.DefaultDB].ExpectQuery(convertQuery(query)).WillReturnError(genericError)
+				conn, err := pg.GetDefaultConnection()
+				Expect(err).NotTo(HaveOccurred())
+				_, err = conn.Run(query)
 				Expect(err).To(MatchError(genericError))
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})
@@ -317,7 +430,7 @@ var _ = Describe("Postgres", func() {
 				mockPostgreSQLVersion(helpers.PGVersion{Version: ""}, mocks)
 				_, err := pg.GetPostgreSQLVersion()
 				Expect(err).To(MatchError(genericError))
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})
@@ -325,7 +438,7 @@ var _ = Describe("Postgres", func() {
 				mockSettings(nil, mocks)
 				_, err := pg.ReadAllSettings()
 				Expect(err).To(MatchError(genericError))
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})
@@ -333,7 +446,7 @@ var _ = Describe("Postgres", func() {
 				mockDatabases(nil, mocks)
 				_, err := pg.ListDatabases()
 				Expect(err).To(MatchError(genericError))
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks["dbsuper"].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})
@@ -342,7 +455,7 @@ var _ = Describe("Postgres", func() {
 				Expect(err).NotTo(HaveOccurred())
 				_, err = pg.ListRoles()
 				Expect(err).To(MatchError(genericError))
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})
@@ -351,7 +464,7 @@ var _ = Describe("Postgres", func() {
 				Expect(err).NotTo(HaveOccurred())
 				_, err = pg.ConvertToPostgresDate("xxx")
 				Expect(err).To(MatchError(genericError))
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})
@@ -362,7 +475,7 @@ var _ = Describe("Postgres", func() {
 				mockPostgreSQLVersion(helpers.PGVersion{Version: version}, mocks)
 				result, err := pg.GetPostgreSQLVersion()
 				Expect(err).NotTo(HaveOccurred())
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				Expect(result.Version).To(Equal(version))
@@ -375,7 +488,7 @@ var _ = Describe("Postgres", func() {
 				mockSettings(expected, mocks)
 				result, err := pg.ReadAllSettings()
 				Expect(err).NotTo(HaveOccurred())
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				Expect(result).NotTo(BeZero())
@@ -397,7 +510,7 @@ var _ = Describe("Postgres", func() {
 				mockDatabases(expected, mocks)
 				result, err := pg.ListDatabases()
 				Expect(err).NotTo(HaveOccurred())
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				if err = mocks["db1"].ExpectationsWereMet(); err != nil {
@@ -426,7 +539,7 @@ var _ = Describe("Postgres", func() {
 				mockDatabases(expected, mocks)
 				result, err := pg.ListDatabases()
 				Expect(err).NotTo(HaveOccurred())
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				if err = mocks["db1"].ExpectationsWereMet(); err != nil {
@@ -477,7 +590,7 @@ var _ = Describe("Postgres", func() {
 				mockDatabases(expected, mocks)
 				result, err := pg.ListDatabases()
 				Expect(err).NotTo(HaveOccurred())
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				if err = mocks["db1"].ExpectationsWereMet(); err != nil {
@@ -514,12 +627,12 @@ var _ = Describe("Postgres", func() {
 				Expect(err).NotTo(HaveOccurred())
 				result, err := pg.ListRoles()
 				Expect(err).NotTo(HaveOccurred())
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				Expect(result).To(Equal(expected))
 			})
-			It("Correctly retrieve all postgres data", func() {
+			It("Correctly retrieves all postgres data", func() {
 				expected := helpers.PGOutputData{
 					Roles: map[string]helpers.PGRole{
 						"pgadmin": helpers.PGRole{
@@ -549,7 +662,7 @@ var _ = Describe("Postgres", func() {
 				mockPostgreSQLVersion(expected.Version, mocks)
 				result, err := pg.GetData()
 				Expect(err).NotTo(HaveOccurred())
-				if err = mocks["postgres"].ExpectationsWereMet(); err != nil {
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				if err = mocks["db1"].ExpectationsWereMet(); err != nil {
@@ -558,7 +671,7 @@ var _ = Describe("Postgres", func() {
 				Expect(result).NotTo(BeZero())
 				Expect(result).To(Equal(expected))
 			})
-			It("Correctly convert date to postgres date", func() {
+			It("Correctly converts date to postgres date", func() {
 				input := "May 5 12:00:00 2017 +1"
 				expected := "2017-05-05 11:00:00"
 				err := mockDate(input, expected, mocks)
@@ -567,7 +680,7 @@ var _ = Describe("Postgres", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).To(Equal(expected))
 			})
-			It("Correctly convert date with quotes to postgres date", func() {
+			It("Correctly converts date with quotes to postgres date", func() {
 				input := "May 5 12:00:00 2017 +1"
 				inputQuotes := fmt.Sprintf("'%s'", input)
 				expected := "2017-05-05 11:00:00"

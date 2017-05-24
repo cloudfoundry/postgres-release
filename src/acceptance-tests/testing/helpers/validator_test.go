@@ -17,35 +17,37 @@ var _ = Describe("Validate deployment", func() {
 		mocks     map[string]sqlmock.Sqlmock
 	)
 	BeforeEach(func() {
-		manifestProps := helpers.PgProperties{
-			Databases: []helpers.PgDBProperties{
-				helpers.PgDBProperties{
-					CITExt: true,
-					Name:   "db1",
-				},
-			},
-			Roles: []helpers.PgRoleProperties{
-				helpers.PgRoleProperties{
-					Name:     "pgadmin",
-					Password: "admin",
-					Permissions: []string{
-						"NOSUPERUSER",
-						"CREATEDB",
-						"CREATEROLE",
-						"NOINHERIT",
-						"REPLICATION",
-						"CONNECTION LIMIT 20",
-						"VALID UNTIL 'May 5 12:00:00 2017 +1'",
+		manifestProps := helpers.Properties{
+			Databases: helpers.PgProperties{
+				Port: 5522,
+				Databases: []helpers.PgDBProperties{
+					helpers.PgDBProperties{
+						CITExt: true,
+						Name:   "db1",
 					},
 				},
-			},
-			Port:                  5522,
-			MaxConnections:        30,
-			LogLinePrefix:         "xxx",
-			CollectStatementStats: true,
-			AdditionalConfig: helpers.PgAdditionalConfigMap{
-				"max_wal_senders": 5,
-				"archive_timeout": "1800s",
+				Roles: []helpers.PgRoleProperties{
+					helpers.PgRoleProperties{
+						Name:     "pgadmin",
+						Password: "admin",
+						Permissions: []string{
+							"NOSUPERUSER",
+							"CREATEDB",
+							"CREATEROLE",
+							"NOINHERIT",
+							"REPLICATION",
+							"CONNECTION LIMIT 20",
+							"VALID UNTIL 'May 5 12:00:00 2017 +1'",
+						},
+					},
+				},
+				MaxConnections:        30,
+				LogLinePrefix:         "xxx",
+				CollectStatementStats: true,
+				AdditionalConfig: helpers.PgAdditionalConfigMap{
+					"max_wal_senders": 5,
+					"archive_timeout": "1800s",
+				},
 			},
 		}
 		postgresData := helpers.PGOutputData{
@@ -70,7 +72,7 @@ var _ = Describe("Validate deployment", func() {
 			},
 			Databases: []helpers.PGDatabase{
 				helpers.PGDatabase{
-					Name: "postgres",
+					Name: helpers.DefaultDB,
 					DBExts: []helpers.PGDatabaseExtensions{
 						helpers.PGDatabaseExtensions{
 							Name: "plpgsql",
@@ -110,13 +112,13 @@ var _ = Describe("Validate deployment", func() {
 		mocks = make(map[string]sqlmock.Sqlmock)
 		db, mock, err := sqlmock.New()
 		Expect(err).NotTo(HaveOccurred())
-		mocks["postgres"] = mock
+		mocks[helpers.DefaultDB] = mock
 		pg := helpers.PGData{
 			Data: helpers.PGCommon{},
 			DBs: []helpers.PGConn{
 				helpers.PGConn{
 					DB:       db,
-					TargetDB: "postgres",
+					TargetDB: helpers.DefaultDB,
 				},
 			},
 		}
@@ -164,7 +166,7 @@ var _ = Describe("Validate deployment", func() {
 	Describe("Validate a bad deployment", func() {
 		Context("Validate databases", func() {
 			It("Fails if DB missing", func() {
-				validator.ManifestProps.Databases = []helpers.PgDBProperties{
+				validator.ManifestProps.Databases.Databases = []helpers.PgDBProperties{
 					helpers.PgDBProperties{
 						CITExt: true,
 						Name:   "db1",
@@ -183,12 +185,12 @@ var _ = Describe("Validate deployment", func() {
 				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.MissingExtensionValidationError, "pgcrypto", "db1"))))
 			})
 			It("Fails if extra database present", func() {
-				validator.ManifestProps.Databases = []helpers.PgDBProperties{}
+				validator.ManifestProps.Databases.Databases = []helpers.PgDBProperties{}
 				err := validator.ValidateDatabases()
 				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.ExtraDatabaseValidationError, "db1"))))
 			})
 			It("Fails if extra extension present", func() {
-				validator.ManifestProps.Databases[0].CITExt = false
+				validator.ManifestProps.Databases.Databases[0].CITExt = false
 				err := validator.ValidateDatabases()
 				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.ExtraExtensionValidationError, "citext", "db1"))))
 			})
@@ -202,7 +204,7 @@ var _ = Describe("Validate deployment", func() {
 		})
 		Context("Validate roles", func() {
 			It("Fails if role missing", func() {
-				validator.ManifestProps.Roles = []helpers.PgRoleProperties{
+				validator.ManifestProps.Databases.Roles = []helpers.PgRoleProperties{
 					helpers.PgRoleProperties{
 						Name:     "pgadmin2",
 						Password: "admin2",
@@ -212,7 +214,7 @@ var _ = Describe("Validate deployment", func() {
 				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.MissingRoleValidationError, "pgadmin2"))))
 			})
 			It("Fails if incorrect role permission", func() {
-				validator.ManifestProps.Roles = []helpers.PgRoleProperties{
+				validator.ManifestProps.Databases.Roles = []helpers.PgRoleProperties{
 					helpers.PgRoleProperties{
 						Name:     "pgadmin",
 						Password: "admin",
@@ -237,29 +239,29 @@ var _ = Describe("Validate deployment", func() {
 		})
 		Context("Validate settings", func() {
 			It("Fails if additional prop value is incorrect", func() {
-				validator.ManifestProps.AdditionalConfig["max_wal_senders"] = 10
+				validator.ManifestProps.Databases.AdditionalConfig["max_wal_senders"] = 10
 				err := validator.ValidateSettings()
-				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, "max_wal_senders"))))
+				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, 10, 5, "max_wal_senders"))))
 			})
 			It("Fails if additional prop value is missing", func() {
-				validator.ManifestProps.AdditionalConfig["some_prop"] = 10
+				validator.ManifestProps.Databases.AdditionalConfig["some_prop"] = 10
 				err := validator.ValidateSettings()
 				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.MissingSettingValidationError, "some_prop"))))
 			})
 			It("Fails if port is wrong", func() {
-				validator.ManifestProps.Port = 1111
+				validator.ManifestProps.Databases.Port = 1111
 				err := validator.ValidateSettings()
-				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, "port"))))
+				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, 1111, 5522, "port"))))
 			})
 			It("Fails if max connextions setting is wrong", func() {
-				validator.ManifestProps.MaxConnections = 10
+				validator.ManifestProps.Databases.MaxConnections = 10
 				err := validator.ValidateSettings()
-				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, "max_connections"))))
+				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, 10, 30, "max_connections"))))
 			})
 			It("Fails if log_line_prefix setting is wrong", func() {
-				validator.ManifestProps.LogLinePrefix = "yyy"
+				validator.ManifestProps.Databases.LogLinePrefix = "yyy"
 				err := validator.ValidateSettings()
-				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, "log_line_prefix"))))
+				Expect(err).To(MatchError(errors.New(fmt.Sprintf(helpers.IncorrectSettingValidationError, "yyy", "xxx", "log_line_prefix"))))
 			})
 		})
 	})
@@ -272,7 +274,7 @@ var _ = Describe("Validate deployment", func() {
 					Roles: map[string]helpers.PGRole{},
 					Databases: []helpers.PGDatabase{
 						helpers.PGDatabase{
-							Name:   "postgres",
+							Name:   helpers.DefaultDB,
 							DBExts: []helpers.PGDatabaseExtensions{},
 							Tables: []helpers.PGTable{},
 						},

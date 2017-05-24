@@ -16,3 +16,6 @@
 [submodule "src/acceptance-tests/vendor/github.com/DATA-DOG/go-sqlmock"]
 	path = src/acceptance-tests/vendor/github.com/DATA-DOG/go-sqlmock
 	url = https://github.com/DATA-DOG/go-sqlmock
+[submodule "src/acceptance-tests/vendor/github.com/cloudfoundry/config-server"]
+	path = src/acceptance-tests/vendor/github.com/cloudfoundry/config-server
+	url = https://github.com/cloudfoundry/config-server.git
