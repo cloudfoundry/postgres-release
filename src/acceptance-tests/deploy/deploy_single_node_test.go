@@ -77,9 +77,13 @@ func connectToPostgres(envName string) (helpers.Properties, helpers.PGData, erro
 	if err != nil {
 		return helpers.Properties{}, helpers.PGData{}, err
 	}
-	vmaddr, err := director.GetEnv(envName).GetVmAddress("postgres")
+	var pgHost string
+	pgHost, err = director.GetEnv(envName).GetVmDNS("postgres")
 	if err != nil {
-		return helpers.Properties{}, helpers.PGData{}, err
+		pgHost, err = director.GetEnv(envName).GetVmAddress("postgres")
+		if err != nil {
+			return helpers.Properties{}, helpers.PGData{}, err
+		}
 	}
 	var adminRole helpers.PgRoleProperties
 	for _, role := range pgprops.Databases.Roles {
@@ -92,7 +96,7 @@ func connectToPostgres(envName string) (helpers.Properties, helpers.PGData, erro
 	}
 	Expect(adminRole).NotTo(Equal(helpers.PgRoleProperties{}))
 	pgc := helpers.PGCommon{
-		Address:       vmaddr,
+		Address:       pgHost,
 		Port:          pgprops.Databases.Port,
 		DefUser:       pgprops.Databases.Roles[0].Name,
 		DefPassword:   pgprops.Databases.Roles[0].Password,
