@@ -4,14 +4,21 @@ import (
 	"os"
 	"strconv"
 
+	cfgtypes "github.com/cloudfoundry/config-server/types"
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, name string) error {
+func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, name string, variables map[string]interface{}) error {
 	var err error
+	var vars map[string]interface{}
+	if variables != nil {
+		vars = variables
+	} else {
+		vars = make(map[string]interface{})
+	}
 	releases := make(map[string]string)
 	if postgresReleaseVersion != -1 {
 		releases["postgres"] = strconv.Itoa(postgresReleaseVersion)
@@ -25,7 +32,6 @@ func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, n
 		return err
 	}
 	if director.GetEnv(name).ContainsVariables() {
-		vars := make(map[string]interface{})
 		if _, err = director.GetEnv(name).GetVmAddress("postgres"); err != nil {
 
 			vars["postgres_host"] = "1.1.1.1"
@@ -47,6 +53,7 @@ func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, n
 			}
 		}
 		vars["postgres_host"] = pgHost
+
 		err = director.SetDeploymentFromManifest(manifestPath, releases, name)
 		if err != nil {
 			return err
@@ -71,7 +78,8 @@ func getPostgresJobProps(envName string) (helpers.Properties, error) {
 	pgprops := manifestProps.GetJobProperties("postgres")[0]
 	return pgprops, nil
 }
-func connectToPostgres(envName string) (helpers.Properties, helpers.PGData, error) {
+
+func connectToPostgres(envName string, variables map[string]interface{}) (helpers.Properties, helpers.PGData, error) {
 
 	pgprops, err := getPostgresJobProps(envName)
 	if err != nil {
@@ -86,22 +94,45 @@ func connectToPostgres(envName string) (helpers.Properties, helpers.PGData, erro
 		}
 	}
 	var adminRole helpers.PgRoleProperties
+	certRoleName := ""
 	for _, role := range pgprops.Databases.Roles {
+		if role.Password == "" {
+			certRoleName = role.Name
+		}
 		for _, permission := range role.Permissions {
 			if permission == "SUPERUSER" {
 				adminRole = role
-				break
 			}
 		}
 	}
+
 	Expect(adminRole).NotTo(Equal(helpers.PgRoleProperties{}))
+	clientCertPath := ""
+	clientKeyPath := ""
+	if certRoleName != "" {
+		certs := director.GetEnv(envName).GetVariable(variables["cert_user_data"].(string))
+		Expect(certs).NotTo(BeNil())
+		clientCertPath, err = helpers.WriteFile(certs.(cfgtypes.CertResponse).Certificate)
+		Expect(err).NotTo(HaveOccurred())
+		clientKeyPath, err = helpers.WriteFile(certs.(cfgtypes.CertResponse).PrivateKey)
+		Expect(err).NotTo(HaveOccurred())
+	}
 	pgc := helpers.PGCommon{
-		Address:       pgHost,
-		Port:          pgprops.Databases.Port,
-		DefUser:       pgprops.Databases.Roles[0].Name,
-		DefPassword:   pgprops.Databases.Roles[0].Password,
-		AdminUser:     adminRole.Name,
-		AdminPassword: adminRole.Password,
+		Address: pgHost,
+		Port:    pgprops.Databases.Port,
+		DefUser: helpers.User{
+			Name:     pgprops.Databases.Roles[0].Name,
+			Password: pgprops.Databases.Roles[0].Password,
+		},
+		AdminUser: helpers.User{
+			Name:     adminRole.Name,
+			Password: adminRole.Password,
+		},
+		CertUser: helpers.User{
+			Name:        certRoleName,
+			Certificate: clientCertPath,
+			Key:         clientKeyPath,
+		},
 	}
 	DB, err := helpers.NewPostgres(pgc)
 	if err != nil {
@@ -118,6 +149,7 @@ var _ = Describe("Deploy single instance", func() {
 	var manifestPath, deploymentPrefix string
 	var version int
 	var latestPostgreSQLVersion string
+	var variables map[string]interface{}
 
 	JustBeforeEach(func() {
 		var err error
@@ -127,11 +159,11 @@ var _ = Describe("Deploy single instance", func() {
 			latestPostgreSQLVersion = versions.GetPostgreSQLVersion(versions.GetLatestVersion())
 		}
 		By("Deploying a single postgres instance")
-		err = createOrUpdateDeployment(version, manifestPath, envName)
+		err = createOrUpdateDeployment(version, manifestPath, envName, variables)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Initializing a postgres client connection")
-		pgprops, DB, err = connectToPostgres(envName)
+		pgprops, DB, err = connectToPostgres(envName, variables)
 		Expect(err).NotTo(HaveOccurred())
 		By("Populating the database")
 		err = DB.CreateAndPopulateTables(pgprops.Databases.Databases[0].Name, helpers.SmallLoad)
@@ -144,6 +176,10 @@ var _ = Describe("Deploy single instance", func() {
 			manifestPath = "../testing/templates/postgres_simple.yml"
 			version = -1
 			deploymentPrefix = "fresh"
+			variables = make(map[string]interface{})
+			variables["cert_user"] = "certuser"
+			variables["cert_user_cn"] = "certuser"
+			variables["cert_user_data"] = "certuser_data"
 		})
 
 		It("Successfully deploys a fresh env", func() {
@@ -155,7 +191,10 @@ var _ = Describe("Deploy single instance", func() {
 
 			By("Enabling SSL")
 			manifestPath = "../testing/templates/postgres_simple_ssl.yml"
-			err = createOrUpdateDeployment(version, manifestPath, envName)
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables)
+			Expect(err).NotTo(HaveOccurred())
+			By("Re-initializing a postgres client connection")
+			pgprops, DB, err = connectToPostgres(envName, variables)
 			Expect(err).NotTo(HaveOccurred())
 
 			pgprops, err := getPostgresJobProps(envName)
@@ -195,6 +234,15 @@ var _ = Describe("Deploy single instance", func() {
 			if err != nil {
 				Expect(err.Error()).NotTo(HaveOccurred())
 			}
+
+			By("Using cert authentication for client connection")
+			err = DB.UseCertAuthentication(true)
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = DB.GetPostgreSQLVersion()
+			if err != nil {
+				Expect(err.Error()).NotTo(HaveOccurred())
+			}
 		})
 	})
 	Describe("Upgrading an existent env", func() {
@@ -210,7 +258,7 @@ var _ = Describe("Deploy single instance", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Upgrading to the new release")
-				err = createOrUpdateDeployment(-1, manifestPath, director.GetEnv(envName).Deployment.Name())
+				err = createOrUpdateDeployment(-1, manifestPath, director.GetEnv(envName).Deployment.Name(), variables)
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Validating the database content is still valid after upgrade")
@@ -262,6 +310,14 @@ var _ = Describe("Deploy single instance", func() {
 		var err error
 		if DB.Data.SSLRootCert != "" {
 			err = os.Remove(DB.Data.SSLRootCert)
+			Expect(err).NotTo(HaveOccurred())
+		}
+		if DB.Data.CertUser.Certificate != "" {
+			err = os.Remove(DB.Data.CertUser.Certificate)
+			Expect(err).NotTo(HaveOccurred())
+		}
+		if DB.Data.CertUser.Key != "" {
+			err = os.Remove(DB.Data.CertUser.Key)
 			Expect(err).NotTo(HaveOccurred())
 		}
 		err = director.GetEnv(envName).DeleteDeployment()

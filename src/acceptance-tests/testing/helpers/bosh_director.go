@@ -28,6 +28,7 @@ type DeploymentData struct {
 	ManifestBytes []byte
 	ManifestData  map[string]interface{}
 	Deployment    boshdir.Deployment
+	Variables     map[string]interface{}
 }
 type BOSHConfig struct {
 	Target         string `yaml:"target"`
@@ -177,8 +178,17 @@ func (bd BOSHDirector) UploadReleaseFromURL(organization string, repo string, ve
 	return bd.Director.UploadReleaseURL(url, "", false, false)
 }
 
-func (dd *DeploymentData) ContainsVariables() bool {
+func (dd DeploymentData) ContainsVariables() bool {
 	return dd.ManifestData != nil && dd.ManifestData["variables"] != nil
+}
+
+func (dd DeploymentData) GetVariable(key string) interface{} {
+	if dd.Variables != nil {
+		if value, ok := dd.Variables[key]; ok {
+			return value
+		}
+	}
+	return nil
 }
 
 func (dd *DeploymentData) EvaluateTemplate(vars map[string]interface{}, opts EvaluateOptions) error {
@@ -224,6 +234,7 @@ func (dd *DeploymentData) EvaluateTemplate(vars map[string]interface{}, opts Eva
 	if err := yaml.Unmarshal(dd.ManifestBytes, &dd.ManifestData); err != nil {
 		return err
 	}
+	dd.Variables = variables
 	return nil
 }
 func (dd DeploymentData) CreateOrUpdateDeployment() error {

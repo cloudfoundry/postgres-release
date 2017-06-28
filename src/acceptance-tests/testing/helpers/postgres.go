@@ -17,15 +17,22 @@ type PGData struct {
 	DBs  []PGConn
 }
 
+type User struct {
+	Name        string
+	Password    string
+	Certificate string
+	Key         string
+}
+
 type PGCommon struct {
-	Address       string `json:"address"`
-	Port          int    `json:"port"`
-	SSLMode       string `json:"sslmode"`
-	SSLRootCert   string `json:"sslrootcert"`
-	DefUser       string `json:"user"`
-	DefPassword   string `json:"password"`
-	AdminUser     string `json:"adminuser,omitempty"`
-	AdminPassword string `json:"adminpassword,omitempty"`
+	Address     string
+	Port        int
+	SSLMode     string
+	SSLRootCert string
+	DefUser     User
+	AdminUser   User
+	CertUser    User
+	UseCert     bool
 }
 
 type PGConn struct {
@@ -104,6 +111,9 @@ const MissingDefaultPasswordErr = "Default password not specified"
 const NoSuperUserProvidedErr = "No super user provided"
 const IncorrectSSLModeErr = "Incorrect SSL mode specified"
 const MissingSSLRootCertErr = "SSL Root Certificate missing"
+const MissingCertUserErr = "No user specified to authenticate with certificates"
+const MissingCertCertErr = "No certificate specified for cert user"
+const MissingCertKeyErr = "No private key specified for cert user's certificate"
 
 func GetFormattedQuery(query string) string {
 	return fmt.Sprintf(QueryResultAsJson, query)
@@ -123,10 +133,13 @@ func NewPostgres(props PGCommon) (PGData, error) {
 	if props.Port == 0 {
 		return PGData{}, errors.New(MissingDBPortErr)
 	}
-	if props.DefUser == "" {
+	if props.DefUser == (User{}) {
 		return PGData{}, errors.New(MissingDefaultUserErr)
 	}
-	if props.DefPassword == "" {
+	if props.DefUser.Name == "" {
+		return PGData{}, errors.New(MissingDefaultUserErr)
+	}
+	if props.DefUser.Password == "" {
 		return PGData{}, errors.New(MissingDefaultPasswordErr)
 	}
 	pg.Data = props
@@ -149,6 +162,35 @@ func checkSSLMode(sslmode string, sslrootcert string) error {
 	return errors.New(IncorrectSSLModeErr)
 }
 
+func (pg PGData) getDefaultUser() User {
+	if pg.Data.UseCert {
+		return pg.Data.CertUser
+	} else {
+		return pg.Data.DefUser
+	}
+}
+
+func (pg PGData) checkCertUser() error {
+	if pg.Data.CertUser == (User{}) {
+		return errors.New(MissingCertUserErr)
+	}
+	if pg.Data.CertUser.Certificate == "" {
+		return errors.New(MissingCertCertErr)
+	}
+	if pg.Data.CertUser.Key == "" {
+		return errors.New(MissingCertKeyErr)
+	}
+	return nil
+}
+
+func (pg *PGData) UseCertAuthentication(useCert bool) error {
+	if err := pg.checkCertUser(); err != nil {
+		return err
+	}
+	pg.Data.UseCert = useCert
+	pg.CloseConnections()
+	return nil
+}
 func (pg *PGData) ChangeSSLMode(sslmode string, sslrootcert string) error {
 	if err := checkSSLMode(sslmode, sslrootcert); err != nil {
 		return err
@@ -159,15 +201,26 @@ func (pg *PGData) ChangeSSLMode(sslmode string, sslrootcert string) error {
 	return nil
 }
 
-func (pg *PGData) OpenConnection(dbname string, user string, password string) (PGConn, error) {
+func (pg PGData) buildConnectionData(dbname string, user User) string {
+	result := fmt.Sprintf("dbname=%s user=%s host=%s port=%d sslmode=%s", dbname, user.Name, pg.Data.Address, pg.Data.Port, pg.Data.SSLMode)
+	if pg.Data.SSLRootCert != "" {
+		result = fmt.Sprintf("%s sslrootcert=%s", result, pg.Data.SSLRootCert)
+	}
+	if user.Password != "" {
+		result = fmt.Sprintf("%s password=%s", result, user.Password)
+	} else {
+		result = fmt.Sprintf("%s sslcert=%s sslkey=%s", result, user.Certificate, user.Key)
+	}
+	return result
+}
+
+func (pg *PGData) OpenConnection(dbname string, user User) (PGConn, error) {
 	var newConn PGConn
 	var err error
-	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", user, password, pg.Data.Address, pg.Data.Port, dbname, pg.Data.SSLMode)
-	if pg.Data.SSLRootCert != "" {
-		url = fmt.Sprintf("%s&sslrootcert=%s", url, pg.Data.SSLRootCert)
-	}
 
-	newConn.DB, err = sql.Open("postgres", url)
+	connectionData := pg.buildConnectionData(dbname, user)
+	fmt.Println(connectionData)
+	newConn.DB, err = sql.Open("postgres", connectionData)
 	if err != nil {
 		return PGConn{}, err
 	}
@@ -175,8 +228,8 @@ func (pg *PGData) OpenConnection(dbname string, user string, password string) (P
 	if err != nil {
 		return PGConn{}, err
 	}
-	newConn.User = user
-	newConn.password = password
+	newConn.User = user.Name
+	newConn.password = user.Password
 	newConn.TargetDB = dbname
 	newConn.DB.SetMaxIdleConns(10)
 	pg.DBs = append(pg.DBs, newConn)
@@ -193,12 +246,14 @@ func (pg *PGData) GetDefaultConnection() (PGConn, error) {
 }
 
 func (pg *PGData) GetDBSuperUserConnection(dbname string) (PGConn, error) {
-	if pg.Data.AdminUser == "" || pg.Data.AdminPassword == "" {
+	if pg.Data.AdminUser == (User{}) ||
+		pg.Data.AdminUser.Name == "" ||
+		pg.Data.AdminUser.Password == "" {
 		return PGConn{}, errors.New(NoSuperUserProvidedErr)
 	}
 	conn, err := pg.GetDBConnectionForUser(dbname, pg.Data.AdminUser)
 	if err != nil {
-		conn, err = pg.OpenConnection(dbname, pg.Data.AdminUser, pg.Data.AdminPassword)
+		conn, err = pg.OpenConnection(dbname, pg.Data.AdminUser)
 		if err != nil {
 			return PGConn{}, err
 		}
@@ -210,23 +265,23 @@ func (pg *PGData) GetSuperUserConnection() (PGConn, error) {
 }
 
 func (pg *PGData) GetDBConnection(dbname string) (PGConn, error) {
-	result, err := pg.GetDBConnectionForUser(dbname, "")
+	result, err := pg.GetDBConnectionForUser(dbname, User{})
 	if (PGConn{}) == result {
-		result, err = pg.OpenConnection(dbname, pg.Data.DefUser, pg.Data.DefPassword)
+		result, err = pg.OpenConnection(dbname, pg.getDefaultUser())
 		if err != nil {
 			return PGConn{}, err
 		}
 	}
 	return result, nil
 }
-func (pg PGData) GetDBConnectionForUser(dbname string, user string) (PGConn, error) {
+func (pg PGData) GetDBConnectionForUser(dbname string, user User) (PGConn, error) {
 	if len(pg.DBs) == 0 {
 		return PGConn{}, errors.New(NoConnectionAvailableErr)
 	}
 	var result PGConn
 	for _, conn := range pg.DBs {
 		if conn.TargetDB == dbname {
-			if user == "" || conn.User == user {
+			if user.Name == "" || conn.User == user.Name {
 				result = conn
 				break
 			}

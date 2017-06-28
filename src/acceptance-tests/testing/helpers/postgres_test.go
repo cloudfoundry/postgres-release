@@ -198,27 +198,33 @@ var _ = Describe("Postgres", func() {
 		Context("Fail if common data is invalid", func() {
 			It("Fail if no address provided", func() {
 				props := helpers.PGCommon{
-					Port:        10,
-					DefUser:     "uu",
-					DefPassword: "pp",
+					Port: 10,
+					DefUser: helpers.User{
+						Name:     "uu",
+						Password: "pp",
+					},
 				}
 				_, err := helpers.NewPostgres(props)
 				Expect(err).To(MatchError(errors.New(helpers.MissingDBAddressErr)))
 			})
 			It("Fail if no port provided", func() {
 				props := helpers.PGCommon{
-					Address:     "bb",
-					DefUser:     "uu",
-					DefPassword: "pp",
+					Address: "bb",
+					DefUser: helpers.User{
+						Name:     "uu",
+						Password: "pp",
+					},
 				}
 				_, err := helpers.NewPostgres(props)
 				Expect(err).To(MatchError(errors.New(helpers.MissingDBPortErr)))
 			})
 			It("Fail if no default user provided", func() {
 				props := helpers.PGCommon{
-					Address:     "bb",
-					Port:        10,
-					DefPassword: "pp",
+					Address: "bb",
+					Port:    10,
+					DefUser: helpers.User{
+						Password: "pp",
+					},
 				}
 				_, err := helpers.NewPostgres(props)
 				Expect(err).To(MatchError(errors.New(helpers.MissingDefaultUserErr)))
@@ -227,17 +233,21 @@ var _ = Describe("Postgres", func() {
 				props := helpers.PGCommon{
 					Address: "bb",
 					Port:    10,
-					DefUser: "uu",
+					DefUser: helpers.User{
+						Name: "uu",
+					},
 				}
 				_, err := helpers.NewPostgres(props)
 				Expect(err).To(MatchError(errors.New(helpers.MissingDefaultPasswordErr)))
 			})
 			It("Fail if incorrect data provided", func() {
 				props := helpers.PGCommon{
-					Address:     "bb",
-					Port:        10,
-					DefUser:     "uu",
-					DefPassword: "pp",
+					Address: "bb",
+					Port:    10,
+					DefUser: helpers.User{
+						Name:     "uu",
+						Password: "pp",
+					},
 				}
 				pg, err := helpers.NewPostgres(props)
 				Expect(err).NotTo(HaveOccurred())
@@ -246,10 +256,12 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fail if getting super user connection and no super user provided", func() {
 				props := helpers.PGCommon{
-					Address:     "bb",
-					Port:        10,
-					DefUser:     "uu",
-					DefPassword: "pp",
+					Address: "bb",
+					Port:    10,
+					DefUser: helpers.User{
+						Name:     "uu",
+						Password: "pp",
+					},
 				}
 				pg, err := helpers.NewPostgres(props)
 				Expect(err).NotTo(HaveOccurred())
@@ -258,11 +270,13 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fail if incorrect sslmode provided", func() {
 				props := helpers.PGCommon{
-					Address:     "xx",
-					SSLMode:     "unknown",
-					Port:        10,
-					DefUser:     "uu",
-					DefPassword: "pp",
+					Address: "xx",
+					SSLMode: "unknown",
+					Port:    10,
+					DefUser: helpers.User{
+						Name:     "uu",
+						Password: "pp",
+					},
 				}
 				_, err := helpers.NewPostgres(props)
 				Expect(err).To(MatchError(errors.New(helpers.IncorrectSSLModeErr)))
@@ -356,8 +370,10 @@ var _ = Describe("Postgres", func() {
 			mocks["db2super"] = mock2super
 			pg = &helpers.PGData{
 				Data: helpers.PGCommon{
-					AdminUser:     "superUser",
-					AdminPassword: "superPassword",
+					AdminUser: helpers.User{
+						Name:     "superUser",
+						Password: "superPassword",
+					},
 				},
 				DBs: []helpers.PGConn{
 					helpers.PGConn{

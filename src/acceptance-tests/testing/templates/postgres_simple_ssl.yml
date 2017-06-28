@@ -35,6 +35,7 @@ instance_groups:
         roles:
         - name: pgadmin
           password: admin
+        - name: ((cert_user))
         - name: superuser
           password: superpsw
           permissions:
@@ -69,3 +70,12 @@ variables:
     alternative_names: [((postgres_host))]
     extended_key_usage:
     - server_auth
+- name: ((cert_user_data))
+  type: certificate
+  options:
+    ca: postgres_ca
+    common_name: ((cert_user_cn))
+    alternative_names: []
+    extended_key_usage:
+    - server_auth
+    - client_auth
