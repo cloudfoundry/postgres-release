@@ -7,7 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
+
+	cfgtypes "github.com/cloudfoundry/config-server/types"
 )
 
 const DefaultDB = "postgres"
@@ -182,6 +185,33 @@ func (pg PGData) checkCertUser() error {
 	}
 	return nil
 }
+func (pg *PGData) SetCertUserCertificates(user string, certs interface{}) error {
+	if user == "" {
+		if pg.Data.UseCert {
+			return errors.New(MissingCertUserErr)
+		}
+		pg.Data.CertUser = User{}
+	} else {
+		clientCertPath, err := WriteFile(certs.(cfgtypes.CertResponse).Certificate)
+		if err != nil {
+			return err
+		}
+		clientKeyPath, err := WriteFile(certs.(cfgtypes.CertResponse).PrivateKey)
+		if err != nil {
+			return err
+		}
+		if pg.Data.CertUser.Certificate != "" {
+			os.Remove(pg.Data.CertUser.Certificate)
+		}
+		if pg.Data.CertUser.Key != "" {
+			os.Remove(pg.Data.CertUser.Key)
+		}
+		pg.Data.CertUser.Name = user
+		pg.Data.CertUser.Certificate = clientCertPath
+		pg.Data.CertUser.Key = clientKeyPath
+	}
+	return nil
+}
 
 func (pg *PGData) UseCertAuthentication(useCert bool) error {
 	if err := pg.checkCertUser(); err != nil {
@@ -219,7 +249,6 @@ func (pg *PGData) OpenConnection(dbname string, user User) (PGConn, error) {
 	var err error
 
 	connectionData := pg.buildConnectionData(dbname, user)
-	fmt.Println(connectionData)
 	newConn.DB, err = sql.Open("postgres", connectionData)
 	if err != nil {
 		return PGConn{}, err

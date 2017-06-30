@@ -4,7 +4,6 @@ import (
 	"os"
 	"strconv"
 
-	cfgtypes "github.com/cloudfoundry/config-server/types"
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
 
 	. "github.com/onsi/ginkgo"
@@ -107,16 +106,6 @@ func connectToPostgres(envName string, variables map[string]interface{}) (helper
 	}
 
 	Expect(adminRole).NotTo(Equal(helpers.PgRoleProperties{}))
-	clientCertPath := ""
-	clientKeyPath := ""
-	if certRoleName != "" {
-		certs := director.GetEnv(envName).GetVariable(variables["cert_user_data"].(string))
-		Expect(certs).NotTo(BeNil())
-		clientCertPath, err = helpers.WriteFile(certs.(cfgtypes.CertResponse).Certificate)
-		Expect(err).NotTo(HaveOccurred())
-		clientKeyPath, err = helpers.WriteFile(certs.(cfgtypes.CertResponse).PrivateKey)
-		Expect(err).NotTo(HaveOccurred())
-	}
 	pgc := helpers.PGCommon{
 		Address: pgHost,
 		Port:    pgprops.Databases.Port,
@@ -128,15 +117,18 @@ func connectToPostgres(envName string, variables map[string]interface{}) (helper
 			Name:     adminRole.Name,
 			Password: adminRole.Password,
 		},
-		CertUser: helpers.User{
-			Name:        certRoleName,
-			Certificate: clientCertPath,
-			Key:         clientKeyPath,
-		},
+		CertUser: helpers.User{},
 	}
 	DB, err := helpers.NewPostgres(pgc)
 	if err != nil {
 		return helpers.Properties{}, helpers.PGData{}, err
+	}
+	if certRoleName != "" {
+		certs := director.GetEnv(envName).GetVariable(variables["certs_same_cn"].(string))
+		err = DB.SetCertUserCertificates(certRoleName, certs)
+		if err != nil {
+			return helpers.Properties{}, helpers.PGData{}, err
+		}
 	}
 	return pgprops, DB, nil
 }
@@ -178,8 +170,11 @@ var _ = Describe("Deploy single instance", func() {
 			deploymentPrefix = "fresh"
 			variables = make(map[string]interface{})
 			variables["cert_user"] = "certuser"
-			variables["cert_user_cn"] = "certuser"
-			variables["cert_user_data"] = "certuser_data"
+			variables["cert_user_good_cn"] = "certuser_good"
+			variables["cert_user_wrong_cn"] = "certuser_wrong"
+			variables["certs_same_cn"] = "certuser_same"
+			variables["certs_good_cn"] = "certuser_good"
+			variables["certs_wrong_cn"] = "certuser_wrong"
 		})
 
 		It("Successfully deploys a fresh env", func() {
@@ -194,6 +189,7 @@ var _ = Describe("Deploy single instance", func() {
 			err = createOrUpdateDeployment(version, manifestPath, envName, variables)
 			Expect(err).NotTo(HaveOccurred())
 			By("Re-initializing a postgres client connection")
+			DB.CloseConnections()
 			pgprops, DB, err = connectToPostgres(envName, variables)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -243,6 +239,12 @@ var _ = Describe("Deploy single instance", func() {
 			if err != nil {
 				Expect(err.Error()).NotTo(HaveOccurred())
 			}
+			certs := director.GetEnv(envName).GetVariable(variables["certs_wrong_cn"].(string))
+			err = DB.SetCertUserCertificates(DB.Data.CertUser.Name, certs)
+			Expect(err).NotTo(HaveOccurred())
+			_, err = DB.GetPostgreSQLVersion()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("certificate authentication failed"))
 		})
 	})
 	Describe("Upgrading an existent env", func() {

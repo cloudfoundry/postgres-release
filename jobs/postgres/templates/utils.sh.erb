@@ -28,12 +28,12 @@ function create_roles() {
     # TODO remove unused roles automatically
     # Default permissions are: nosuperuser nologin inherit nocreatedb.
     # Will fail if role already exists, which is OK
-    pgexec postgres "CREATE ROLE \"<%= role["name"] %>\""
+    pgexec postgres "CREATE ROLE \"<%= role["name"] %>\" WITH LOGIN"
     set -e
-
-    echo "Setting password for role <%= role["name"] %>..."
-    pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH LOGIN PASSWORD '<%= role["password"] %>'"
-
+    <% if role["password"] %>
+      echo "Setting password for role <%= role["name"] %>..."
+      pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH LOGIN PASSWORD '<%= role["password"] %>'"
+    <% end %>
     <% if role["permissions"] %>
       echo "Adding permissions <%= role["permissions"].join(' ') %> for role <%= role["name"] %>..."
       pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH <%= role["permissions"].join(' ') %>"

@@ -70,11 +70,29 @@ variables:
     alternative_names: [((postgres_host))]
     extended_key_usage:
     - server_auth
-- name: ((cert_user_data))
+- name: ((certs_same_cn))
   type: certificate
   options:
     ca: postgres_ca
-    common_name: ((cert_user_cn))
+    common_name: ((cert_user))
+    alternative_names: []
+    extended_key_usage:
+    - server_auth
+    - client_auth
+- name: ((certs_good_cn))
+  type: certificate
+  options:
+    ca: postgres_ca
+    common_name: ((cert_user_good_cn))
+    alternative_names: []
+    extended_key_usage:
+    - server_auth
+    - client_auth
+- name: ((certs_wrong_cn))
+  type: certificate
+  options:
+    ca: postgres_ca
+    common_name: ((cert_user_wrong_cn))
     alternative_names: []
     extended_key_usage:
     - server_auth
