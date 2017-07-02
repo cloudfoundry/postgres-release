@@ -151,7 +151,7 @@ func NewPostgres(props PGCommon) (PGData, error) {
 
 func checkSSLMode(sslmode string, sslrootcert string) error {
 	var strong_sslmodes = [...]string{"verify-ca", "verify-full"}
-	var valid_sslmodes = [...]string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"}
+	var valid_sslmodes = [...]string{"disable", "require", "verify-ca", "verify-full"}
 	for _, valid_mode := range valid_sslmodes {
 		if valid_mode == sslmode {
 			for _, strong_mode := range strong_sslmodes {
@@ -294,7 +294,7 @@ func (pg *PGData) GetSuperUserConnection() (PGConn, error) {
 }
 
 func (pg *PGData) GetDBConnection(dbname string) (PGConn, error) {
-	result, err := pg.GetDBConnectionForUser(dbname, User{})
+	result, err := pg.GetDBConnectionForUser(dbname, pg.getDefaultUser())
 	if (PGConn{}) == result {
 		result, err = pg.OpenConnection(dbname, pg.getDefaultUser())
 		if err != nil {

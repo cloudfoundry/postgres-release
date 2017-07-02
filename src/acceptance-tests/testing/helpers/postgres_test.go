@@ -370,6 +370,10 @@ var _ = Describe("Postgres", func() {
 			mocks["db2super"] = mock2super
 			pg = &helpers.PGData{
 				Data: helpers.PGCommon{
+					DefUser: helpers.User{
+						Name:     "defUser",
+						Password: "defPassword",
+					},
 					AdminUser: helpers.User{
 						Name:     "superUser",
 						Password: "superPassword",
@@ -378,14 +382,17 @@ var _ = Describe("Postgres", func() {
 				DBs: []helpers.PGConn{
 					helpers.PGConn{
 						DB:       db,
+						User:     "defUser",
 						TargetDB: helpers.DefaultDB,
 					},
 					helpers.PGConn{
 						DB:       db1,
+						User:     "defUser",
 						TargetDB: "db1",
 					},
 					helpers.PGConn{
 						DB:       db2,
+						User:     "defUser",
 						TargetDB: "db2",
 					},
 					helpers.PGConn{

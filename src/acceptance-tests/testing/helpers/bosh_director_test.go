@@ -187,6 +187,8 @@ releases:
   type: certificate
 `
 				input := fmt.Sprintf(data, "xx", "xx", "xx", "xx", "xx", "((key))", "((xxx_password))", "xx") + fmt.Sprintf(variables, "((common_name))", "((common_name))")
+				err = os.Remove(manifestFilePath)
+				Expect(err).NotTo(HaveOccurred())
 				manifestFilePath, err = helpers.WriteFile(input)
 				Expect(err).NotTo(HaveOccurred())
 				err = director.SetDeploymentFromManifest(manifestFilePath, nil, envName)

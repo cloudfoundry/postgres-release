@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 
+	cfgtypes "github.com/cloudfoundry/config-server/types"
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
 
 	. "github.com/onsi/ginkgo"
@@ -175,6 +176,7 @@ var _ = Describe("Deploy single instance", func() {
 			variables["certs_same_cn"] = "certuser_same"
 			variables["certs_good_cn"] = "certuser_good"
 			variables["certs_wrong_cn"] = "certuser_wrong"
+			variables["certs_bad_ca"] = "bad_ca"
 		})
 
 		It("Successfully deploys a fresh env", func() {
@@ -198,7 +200,8 @@ var _ = Describe("Deploy single instance", func() {
 			Expect(pgprops.Databases.TLS).NotTo(Equal(helpers.PgTLS{}))
 			rootCertPath, err := helpers.WriteFile(pgprops.Databases.TLS.CA)
 			Expect(err).NotTo(HaveOccurred())
-			certPath, err := helpers.WriteFile(pgprops.Databases.TLS.Certificate)
+			badCAcerts := director.GetEnv(envName).GetVariable(variables["certs_bad_ca"].(string))
+			badCaPath, err := helpers.WriteFile(badCAcerts.(cfgtypes.CertResponse).Certificate)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Checking non-secure connections")
@@ -208,13 +211,13 @@ var _ = Describe("Deploy single instance", func() {
 			}
 
 			By("Checking secure connections")
-			err = DB.ChangeSSLMode("verify-full", certPath)
+			err = DB.ChangeSSLMode("verify-full", badCaPath)
 			Expect(err).NotTo(HaveOccurred())
 			_, err = DB.GetPostgreSQLVersion()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("x509"))
 
-			err = os.Remove(certPath)
+			err = os.Remove(badCaPath)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = DB.ChangeSSLMode("verify-ca", rootCertPath)
@@ -235,10 +238,14 @@ var _ = Describe("Deploy single instance", func() {
 			err = DB.UseCertAuthentication(true)
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = DB.GetPostgreSQLVersion()
-			if err != nil {
-				Expect(err.Error()).NotTo(HaveOccurred())
-			}
+			Eventually(func() string {
+				_, err = DB.GetPostgreSQLVersion()
+				if err != nil {
+					return err.Error()
+				}
+				return ""
+			}, "60s", "5s").Should(BeEmpty())
+
 			certs := director.GetEnv(envName).GetVariable(variables["certs_wrong_cn"].(string))
 			err = DB.SetCertUserCertificates(DB.Data.CertUser.Name, certs)
 			Expect(err).NotTo(HaveOccurred())
