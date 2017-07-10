@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e -x
+set -e
 
 scripts_folder=$(dirname $0)
 ca_name="postgres-ca"
@@ -17,21 +17,21 @@ generate_end_entity_certs() {
 }
 
 show_help() {
-  set +x
-  echo "Usage: generate_postgres_cert --common-name <HOSTNAME|IP_ADDRESS>"
+  echo "Usage: generate_postgres_cert --common-name <HOSTNAME|IP_ADDRESS> [ --client-name <USER_NAME> ]"
   echo "Output Options:"
   echo "  -n --common-name [REQUIRED]     The common name for the server certificate. It must be set to the DNS hostname if any or to the ip address of the PostgreSQL server (see Note below)"
+  echo "  -c --client-name [OPTIONAL]     Specify it if you want to generate the client certificates for certificates authentication. It must be set to the user name for the database connection."
   echo "  -h --help                       Show a help message"
   echo "Note: In ssl mode 'verify-full', the hostname is matched against the common-name."
   echo "If the connection is made using an IP address instead of a host name, the IP address will be matched (without doing any DNS lookups)."
 
-  set -x
   exit 0
 }
 
 while true; do
   case "$1" in
     -n | --common-name ) common_name="$2"; shift 2;;
+    -c | --client-name ) client_name="$2"; shift 2;;
     -h | --help )
       show_help ;;
     * ) break ;;
@@ -54,4 +54,10 @@ certstrap --depot-path ${depot_path} init --passphrase '' --common-name ${ca_nam
 
 # Server certificate for postgres server to act as a TLS server
 generate_end_entity_certs "server" $common_name
+# Client certificate for postgres authentication
+if [ "${client_name}" == "" ]; then
+  echo "Skipping client certiticates generation"
+else
+  ${scripts_folder}/generate-postgres-client-certs -n $client_name -c "${depot_path}/${ca_name}.crt" -k "${depot_path}/${ca_name}.key"
+fi
 
