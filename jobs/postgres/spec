@@ -11,6 +11,7 @@ templates:
   utils.sh.erb: bin/utils.sh
   postgresql.conf.erb: config/postgresql.conf
   pg_hba.conf.erb: config/pg_hba.conf
+  pg_ident.conf.erb: config/pg_ident.conf
   server.private_key.erb: config/certificates/server.private_key
   server.public_cert.erb: config/certificates/server.public_cert
   server.ca_cert.erb: config/certificates/server.ca_cert
@@ -42,6 +43,8 @@ properties:
         password: passwd
         permissions:
         - "CONNECTION LIMIT 33"
+      - name: bud_spencer
+        common_name: "Carlo Pedersoli"
   databases.max_connections:
     description: "Maximum number of database connections"
   databases.log_line_prefix:

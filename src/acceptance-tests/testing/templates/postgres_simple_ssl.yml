@@ -33,11 +33,15 @@ instance_groups:
         additional_config:
           shared_buffers: 32768
         roles:
-        - name: pgadmin
-          password: admin
-        - name: ((cert_user))
-        - name: superuser
-          password: superpsw
+        - name: aaa
+          common_name: aaa_2
+        - name: ((defuser_name))
+          password: ((defuser_password))
+        - name: ((certs_matching_name))
+        - name: ((certs_mapped_name))
+          common_name: ((certs_mapped_cn))
+        - name: ((superuser_name))
+          password: ((superuser_password))
           permissions:
           - "SUPERUSER"
           - "CONNECTION LIMIT 33"
@@ -70,29 +74,29 @@ variables:
     alternative_names: [((postgres_host))]
     extended_key_usage:
     - server_auth
-- name: ((certs_same_cn))
+- name: ((certs_matching_certs))
   type: certificate
   options:
     ca: postgres_ca
-    common_name: ((cert_user))
+    common_name: ((certs_matching_name))
     alternative_names: []
     extended_key_usage:
     - server_auth
     - client_auth
-- name: ((certs_good_cn))
+- name: ((certs_mapped_certs))
   type: certificate
   options:
     ca: postgres_ca
-    common_name: ((cert_user_good_cn))
+    common_name: ((certs_mapped_cn))
     alternative_names: []
     extended_key_usage:
     - server_auth
     - client_auth
-- name: ((certs_wrong_cn))
+- name: ((certs_wrong_certs))
   type: certificate
   options:
     ca: postgres_ca
-    common_name: ((cert_user_wrong_cn))
+    common_name: ((certs_wrong_cn))
     alternative_names: []
     extended_key_usage:
     - server_auth

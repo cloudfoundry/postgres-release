@@ -50,7 +50,7 @@ function main() {
     mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
   fi
 
-  cp "${JOB_DIR}/config/postgresql.conf" "${JOB_DIR}/config/pg_hba.conf" "${DATA_DIR}"
+  cp "${JOB_DIR}/config/postgresql.conf" "${JOB_DIR}/config/pg_hba.conf" "${JOB_DIR}/config/pg_ident.conf" "${DATA_DIR}"
 
   echo "Starting PostgreSQL: "
   "${PACKAGE_DIR}/bin/pg_ctl" -o "-h ${HOST} -p ${PORT}" \

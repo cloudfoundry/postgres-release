@@ -31,32 +31,34 @@ func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, n
 	if err != nil {
 		return err
 	}
-	if director.GetEnv(name).ContainsVariables() {
-		if _, err = director.GetEnv(name).GetVmAddress("postgres"); err != nil {
+	if director.GetEnv(name).ContainsVariables() || variables != nil {
+		if director.GetEnv(name).ContainsVariables() {
+			if _, err = director.GetEnv(name).GetVmAddress("postgres"); err != nil {
 
-			vars["postgres_host"] = "1.1.1.1"
-			err = director.GetEnv(name).EvaluateTemplate(vars, helpers.EvaluateOptions{})
-			if err != nil {
-				return err
+				vars["postgres_host"] = "1.1.1.1"
+				err = director.GetEnv(name).EvaluateTemplate(vars, helpers.EvaluateOptions{})
+				if err != nil {
+					return err
+				}
+				err = director.GetEnv(name).CreateOrUpdateDeployment()
+				if err != nil {
+					return err
+				}
 			}
-			err = director.GetEnv(name).CreateOrUpdateDeployment()
+			var pgHost string
+			pgHost, err = director.GetEnv(name).GetVmDNS("postgres")
 			if err != nil {
-				return err
+				pgHost, err = director.GetEnv(name).GetVmAddress("postgres")
+				if err != nil {
+					return err
+				}
 			}
-		}
-		var pgHost string
-		pgHost, err = director.GetEnv(name).GetVmDNS("postgres")
-		if err != nil {
-			pgHost, err = director.GetEnv(name).GetVmAddress("postgres")
-			if err != nil {
-				return err
-			}
-		}
-		vars["postgres_host"] = pgHost
+			vars["postgres_host"] = pgHost
 
-		err = director.SetDeploymentFromManifest(manifestPath, releases, name)
-		if err != nil {
-			return err
+			err = director.SetDeploymentFromManifest(manifestPath, releases, name)
+			if err != nil {
+				return err
+			}
 		}
 		err = director.GetEnv(name).EvaluateTemplate(vars, helpers.EvaluateOptions{})
 		if err != nil {
@@ -93,43 +95,23 @@ func connectToPostgres(envName string, variables map[string]interface{}) (helper
 			return helpers.Properties{}, helpers.PGData{}, err
 		}
 	}
-	var adminRole helpers.PgRoleProperties
-	certRoleName := ""
-	for _, role := range pgprops.Databases.Roles {
-		if role.Password == "" {
-			certRoleName = role.Name
-		}
-		for _, permission := range role.Permissions {
-			if permission == "SUPERUSER" {
-				adminRole = role
-			}
-		}
-	}
 
-	Expect(adminRole).NotTo(Equal(helpers.PgRoleProperties{}))
 	pgc := helpers.PGCommon{
 		Address: pgHost,
 		Port:    pgprops.Databases.Port,
 		DefUser: helpers.User{
-			Name:     pgprops.Databases.Roles[0].Name,
-			Password: pgprops.Databases.Roles[0].Password,
+			Name:     variables["defuser_name"].(string),
+			Password: variables["defuser_password"].(string),
 		},
 		AdminUser: helpers.User{
-			Name:     adminRole.Name,
-			Password: adminRole.Password,
+			Name:     variables["superuser_name"].(string),
+			Password: variables["superuser_password"].(string),
 		},
 		CertUser: helpers.User{},
 	}
 	DB, err := helpers.NewPostgres(pgc)
 	if err != nil {
 		return helpers.Properties{}, helpers.PGData{}, err
-	}
-	if certRoleName != "" {
-		certs := director.GetEnv(envName).GetVariable(variables["certs_same_cn"].(string))
-		err = DB.SetCertUserCertificates(certRoleName, certs)
-		if err != nil {
-			return helpers.Properties{}, helpers.PGData{}, err
-		}
 	}
 	return pgprops, DB, nil
 }
@@ -151,6 +133,12 @@ var _ = Describe("Deploy single instance", func() {
 		if latestPostgreSQLVersion == "current" {
 			latestPostgreSQLVersion = versions.GetPostgreSQLVersion(versions.GetLatestVersion())
 		}
+
+		variables["defuser_name"] = "pgadmin"
+		variables["defuser_password"] = "admin"
+		variables["superuser_name"] = "superuser"
+		variables["superuser_password"] = "superpsw"
+
 		By("Deploying a single postgres instance")
 		err = createOrUpdateDeployment(version, manifestPath, envName, variables)
 		Expect(err).NotTo(HaveOccurred())
@@ -170,12 +158,17 @@ var _ = Describe("Deploy single instance", func() {
 			version = -1
 			deploymentPrefix = "fresh"
 			variables = make(map[string]interface{})
-			variables["cert_user"] = "certuser"
-			variables["cert_user_good_cn"] = "certuser_good"
-			variables["cert_user_wrong_cn"] = "certuser_wrong"
-			variables["certs_same_cn"] = "certuser_same"
-			variables["certs_good_cn"] = "certuser_good"
-			variables["certs_wrong_cn"] = "certuser_wrong"
+
+			variables["certs_matching_certs"] = "certuser_matching_certs"
+			variables["certs_matching_name"] = "certuser_matching_name"
+
+			variables["certs_mapped_certs"] = "certuser_mapped_certs"
+			variables["certs_mapped_name"] = "certuser_mapped_name"
+			variables["certs_mapped_cn"] = "certuser mapped cn"
+
+			variables["certs_wrong_certs"] = "certuser_wrong_certs"
+			variables["certs_wrong_cn"] = "certuser_wrong_cn"
+
 			variables["certs_bad_ca"] = "bad_ca"
 		})
 
@@ -235,6 +228,9 @@ var _ = Describe("Deploy single instance", func() {
 			}
 
 			By("Using cert authentication for client connection")
+			certs := director.GetEnv(envName).GetVariable(variables["certs_matching_certs"].(string))
+			err = DB.SetCertUserCertificates(variables["certs_matching_name"].(string), certs)
+			Expect(err).NotTo(HaveOccurred())
 			err = DB.UseCertAuthentication(true)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -244,14 +240,20 @@ var _ = Describe("Deploy single instance", func() {
 					return err.Error()
 				}
 				return ""
-			}, "60s", "5s").Should(BeEmpty())
+			}, "30s", "5s").Should(BeEmpty())
 
-			certs := director.GetEnv(envName).GetVariable(variables["certs_wrong_cn"].(string))
+			certs = director.GetEnv(envName).GetVariable(variables["certs_wrong_certs"].(string))
 			err = DB.SetCertUserCertificates(DB.Data.CertUser.Name, certs)
 			Expect(err).NotTo(HaveOccurred())
 			_, err = DB.GetPostgreSQLVersion()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("certificate authentication failed"))
+
+			certs = director.GetEnv(envName).GetVariable(variables["certs_mapped_certs"].(string))
+			err = DB.SetCertUserCertificates(variables["certs_mapped_name"].(string), certs)
+			Expect(err).NotTo(HaveOccurred())
+			_, err = DB.GetPostgreSQLVersion()
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 	Describe("Upgrading an existent env", func() {
@@ -294,6 +296,7 @@ var _ = Describe("Deploy single instance", func() {
 				manifestPath = "../testing/templates/postgres_simple_nolinks.yml"
 				version = versions.GetOlderVersion()
 				deploymentPrefix = "upg-older"
+				variables = make(map[string]interface{})
 			})
 			It("Successfully upgrades from older", AssertUpgradeSuccessful())
 		})
@@ -302,6 +305,7 @@ var _ = Describe("Deploy single instance", func() {
 				manifestPath = "../testing/templates/postgres_simple_nolinks.yml"
 				version = versions.GetOldVersion()
 				deploymentPrefix = "upg-old"
+				variables = make(map[string]interface{})
 			})
 			It("Successfully upgrades from old", AssertUpgradeSuccessful())
 		})
@@ -310,6 +314,7 @@ var _ = Describe("Deploy single instance", func() {
 				manifestPath = "../testing/templates/postgres_simple_nolinks.yml"
 				version = versions.GetLatestVersion()
 				deploymentPrefix = "upg-master"
+				variables = make(map[string]interface{})
 			})
 			It("Successfully upgrades from master", AssertUpgradeSuccessful())
 		})

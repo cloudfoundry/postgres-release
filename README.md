@@ -72,13 +72,15 @@ databases.port | The database port
 databases.databases | A list of databases and associated properties to create when Postgres starts
 databases.databases[n].name | Database name
 databases.databases[n].citext | If `true` the citext extension is created for the db
-databases.databases[n].run_on_every_startup | A list of SQL commands run at each postgres start against the given database as `vcap`
+databases.databases[n].run\_on\_every_startup | A list of SQL commands run at each postgres start against the given database as `vcap`
 databases.roles | A list of database roles and associated properties to create
 databases.roles[n].name | Role name
-databases.roles[n].password | Login password for the role
+databases.roles[n].password | Login password for the role. If not provided, SSL certificate authentication is assumed for the user.
+databases.roles[n].common_name| The cn attribute of the certificate for the user. It only applies to SSL certificate authentication.
 databases.roles[n].permissions| A list of attributes for the role. For the complete list of attributes, refer to [ALTER ROLE command options](https://www.postgresql.org/docs/9.4/static/sql-alterrole.html).
 databases.tls.certificate | PEM-encoded certificate for secure TLS communication
 databases.tls.private_key | PEM-encoded key for secure TLS communication
+databases.tls.ca | PEM-encoded certification authority for secure TLS communication. Only needed to let users authenticate with SSL certificate.
 databases.max_connections | Maximum number of database connections
 databases.log_line\_prefix | The postgres `printf` style string that is output at the beginning of each log line. Default: `%m:`
 databases.collect_statement\_statistics | Enable the `pg_stat_statements` extension and collect statement execution statistics. Default: `false`
@@ -108,6 +110,24 @@ A script is provided that creates a CA, generates a keypair, and signs it with t
    -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
 
 ```
+### Enabling SSL certificate authentication
+
+In order to perform authentication using SSL client certificates, you must not specify a user password and you must configure the following properties:
+
+- `databases.tls.certificate`
+- `databases.tls.private_key`
+- `databases.tls.ca`
+
+The cn (Common Name) attribute of the certificate will be compared to the requested database user name, and if they match the login will be allowed. 
+
+Optionally you can map the common_name to a different database user by specifying property `databases.roles[n].common_name`.
+
+A script is provided that creates a client certificates:
+
+```
+./scripts/generate-postgres-client-certs --ca-cert <PATH-TO-CA-CERT> --ca-key <PATH-TO-CA-KEY> --client-name <USER_NAME>
+```
+
 
 ## Contributing
 

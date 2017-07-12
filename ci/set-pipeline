@@ -7,7 +7,7 @@ pipeline="${1:-postgres}"
 
 function grab() {
   local key=${1:?"Missing key to grab"}
-  local deployment="${SCRIPT_PATH}/../../postgres-ci-env/deployments/concourse/concourse.yml"
+  local deployment="${SCRIPT_PATH}/../../postgres-ci-env/deployments/concourse/concourse_v2.yml"
   grep "${key}" "${deployment}" | awk '{split($0,a,": "); print a[2]}'
 }
 

@@ -30,10 +30,10 @@ instance_groups:
         additional_config:
           shared_buffers: 32768
         roles:
-        - name: pgadmin
-          password: admin
-        - name: superuser
-          password: superpsw
+        - name: ((defuser_name))
+          password: ((defuser_password))
+        - name: ((superuser_name))
+          password: ((superuser_password))
           permissions:
           - "SUPERUSER"
           - "CONNECTION LIMIT 33"
