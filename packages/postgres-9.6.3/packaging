@@ -24,23 +24,23 @@ function compile() {
     fi
 
     pushd src/bin/pg_config > /dev/null
-      make
+      make -j$(nproc)
       make install
     popd > /dev/null
 
     cp -LR src/include "${BOSH_INSTALL_TARGET}"
     pushd src/interfaces/libpq > /dev/null
-      make
+      make -j$(nproc)
       make install
     popd > /dev/null
 
     pushd src > /dev/null
-      make
+      make -j$(nproc)
       make install
     popd > /dev/null
 
     pushd contrib > /dev/null
-      make
+      make -j$(nproc)
       make install
     popd > /dev/null
   popd > /dev/null
