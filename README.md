@@ -50,7 +50,7 @@ In order to deploy the postgres-release you must follow the standard steps for d
 
    ```
 
-   You can use the operation file to specify postgres properties ( see by way of [example](blob/master/templates/v2/operations/set_properties.yml)) or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
+   You can use the operation file to specify postgres properties (see by way of [example](templates/v2/operations/set_properties.yml)) or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
 
    You are also provided with options to enable ssl in the PostgreSQL server or to use static ips.
 
