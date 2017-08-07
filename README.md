@@ -64,7 +64,7 @@ In order to deploy the postgres-release you must follow the standard steps for d
 ## Customizing
 
 The table below shows the most significant properties you can use to customize your postgres installation.
-The complete list of available properties can be found in the [spec](blob/master/jobs/postgres/spec).
+The complete list of available properties can be found in the [spec](jobs/postgres/spec).
 
 Property | Description
 -------- | -------------
@@ -102,7 +102,7 @@ A script is provided that creates a CA, generates a keypair, and signs it with t
 ```
  The common name for the server certificate  must be set to the DNS hostname if any or to the ip address of the PostgreSQL server. This because in ssl mode 'verify-full', the hostname is matched against the common-name. Refer to [PostgreSQL documentation](https://www.postgresql.org/docs/9.6/static/libpq-ssl.html) for more details.
 
- You can also use [BOSH variables](https://bosh.io/docs/cli-int.html) to generate the certificates. See by way of [example](blob/master/templates/v2/operations/use_ssl.yml) the operation file used by the manifest generation script. 
+ You can also use [BOSH variables](https://bosh.io/docs/cli-int.html) to generate the certificates. See by way of [example](templates/v2/operations/use_ssl.yml) the operation file used by the manifest generation script. 
 
 ```
 ~/workspace/postgres-release/scripts/generate-deployment-manifest-v2 \
@@ -147,7 +147,7 @@ Follow the directions [here](https://www.cloudfoundry.org/community/contribute/)
    git checkout -b feature-branch
    ```
 1. Make changes on your branch
-1. Test your changes by running [acceptance tests](blob/master/docs/acceptance-tests.md)
+1. Test your changes by running [acceptance tests](docs/acceptance-tests.md)
 1. Push to your fork (`git push origin feature-branch`) and [submit a pull request](https://help.github.com/articles/creating-a-pull-request) selecting `develop` as the target branch.
    PRs submitted against other branches will need to be resubmitted with the correct branch targeted.
 
@@ -158,7 +158,7 @@ Even if you deploy more instances, no replication is configured.
 
 ## Upgrading
 
-Refer to [versions.yml](blob/master/versions.yml) in order to assess if you are upgrading to a new PostgreSQL version.
+Refer to [versions.yml](versions.yml) in order to assess if you are upgrading to a new PostgreSQL version.
 
 ### Considerations before deploying
 
