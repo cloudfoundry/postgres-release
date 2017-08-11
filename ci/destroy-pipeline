@@ -1,7 +1,6 @@
 #!/bin/bash -eu
 
 # We generally assume that postgres-ci-env is cloned to ../postgres-ci-env
-
 SCRIPT_PATH=$(dirname $(realpath -s $0))
 
 if [ $# -eq 0 ]; then
@@ -27,18 +26,16 @@ function login() {
       --password="$(grab basic_auth_password)"
 }
 
-function set-pipeline(){
+function destroy-pipeline(){
   fly \
       --target pgci \
-    set-pipeline \
-      --pipeline=$pipeline \
-      --config="${SCRIPT_PATH}/pipelines/$pipeline.yml" \
-      --load-vars-from="${SCRIPT_PATH}/../../postgres-ci-env/pipeline_vars/postgres.yml"
+    destroy-pipeline \
+      --pipeline=$pipeline
 }
 
 function main(){
   login
-  set-pipeline
+  destroy-pipeline
 }
 
 main "${PWD}"
