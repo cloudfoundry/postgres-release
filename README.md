@@ -15,17 +15,17 @@ This is a [BOSH](https://www.bosh.io) release for [PostgreSQL](https://www.postg
 
 In order to deploy the postgres-release you must follow the standard steps for deploying software with BOSH.
 
-1. Install and target a BOSH director.
+1. Deploy and run a BOSH director.
    Please refer to [BOSH documentation](http://bosh.io/docs) for instructions on how to do that.
    Bosh-lite specific instructions can be found [here](https://github.com/cloudfoundry/bosh-lite).
 
 1. Install the BOSH command line Interface (CLI) v2+.
-   Please refer to [BOSH CLI documentation](https://bosh.io/docs/cli-v2.html#install).
+   Please refer to [BOSH CLI documentation](https://bosh.io/docs/cli-v2.html#install). Use the CLI to target your director.
 
 1. Upload the desired stemcell directly to bosh. [bosh.io](http://bosh.io/stemcells) provides a resource to find and download stemcells.
-   For bosh-lite:
 
    ```
+   # Example for bosh-lite
    bosh upload-stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent
    ```
 
@@ -47,18 +47,25 @@ In order to deploy the postgres-release you must follow the standard steps for d
    ```
    ~/workspace/postgres-release/scripts/generate-deployment-manifest-v2 \
    -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
-
    ```
 
-   You can use the operation file to specify postgres properties (see by way of [example](templates/v2/operations/set_properties.yml)) or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
+   You can use the operation file to specify postgres properties or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
+
+   [This example operation file](templates/v2/operations/set_properties.yml) is a great starting point.
+   Note: when using this operation file, you will need to inject `pgadmin_database_password` at `bosh deploy`-time, which is a good pattern for keeping credentials out of manifests.
 
    You are also provided with options to enable ssl in the PostgreSQL server or to use static ips.
-
 
 1. Deploy:
 
    ```
    bosh -d DEPLOYMENT_NAME deploy OUTPUT_MANIFEST_PATH
+   ```
+
+   Example, injecting the `pgadmin_database_password` variable:
+
+   ```
+   bosh -d DEPLOYMENT_NAME deploy -v pgadmin_database_password=foobarbaz OUTPUT_MANIFEST_PATH
    ```
 
 ## Customizing
