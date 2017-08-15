@@ -49,15 +49,23 @@ In order to deploy the postgres-release you must follow the standard steps for d
    -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
    ```
 
-   You can use the operation file to specify postgres properties (see by way of [example](templates/v2/operations/set_properties.yml)) or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
+   You can use the operation file to specify postgres properties or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
+
+   [This example operation file](templates/v2/operations/set_properties.yml) is a great starting point.
+   Note: when using this operation file, you will need to inject `pgadmin_database_password` at `bosh deploy`-time, which is a good pattern for keeping credentials out of manifests.
 
    You are also provided with options to enable ssl in the PostgreSQL server or to use static ips.
-
 
 1. Deploy:
 
    ```
    bosh -d DEPLOYMENT_NAME deploy OUTPUT_MANIFEST_PATH
+   ```
+
+   Example, injecting the `pgadmin_database_password` variable:
+
+   ```
+   bosh -d DEPLOYMENT_NAME deploy -v pgadmin_database_password=foobarbaz OUTPUT_MANIFEST_PATH
    ```
 
 ## Customizing
