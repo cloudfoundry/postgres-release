@@ -1,0 +1,40 @@
+---
+packages:
+- name: acceptance-tests
+  version: b1c70c1dc1d54300d11fbfb2d0901d9222ad756e
+  fingerprint: b1c70c1dc1d54300d11fbfb2d0901d9222ad756e
+  sha1: 2dc2b78fcd58d1d961425f686b7e22a4355af501
+  dependencies:
+  - golang1.7
+- name: golang1.7
+  version: 46105d4480ca083a6cafb8ca307d5e5084c655c4
+  fingerprint: 46105d4480ca083a6cafb8ca307d5e5084c655c4
+  sha1: 035f80b866d5ea99baf0d3bedefddca5ee4c82b2
+  dependencies: []
+- name: postgres-9.6.4
+  version: 28776ce2c2590bbe36a275feac179c758e413e72
+  fingerprint: 28776ce2c2590bbe36a275feac179c758e413e72
+  sha1: 85c7476557592cb99a548ece987ecc1efd7792da
+  dependencies: []
+- name: postgres-common
+  version: f08d4732baff71e70c048966bef239300679f3e1
+  fingerprint: f08d4732baff71e70c048966bef239300679f3e1
+  sha1: 544870c5ea4ef24432c58eccfdcde9d1f271ece4
+  dependencies: []
+jobs:
+- name: acceptance-tests
+  version: ab517de7e6de808b595c186f60d4e62712fca295
+  fingerprint: ab517de7e6de808b595c186f60d4e62712fca295
+  sha1: d1fead0c2f7303ad462732b427519187ec5c8fe4
+- name: postgres
+  version: 897145efd5041531bf544f7b7208c60ad8eaf650
+  fingerprint: 897145efd5041531bf544f7b7208c60ad8eaf650
+  sha1: d8d6dbfb9f3f99445a917aac7131d71e4a727017
+license:
+  version: 2fbc337cd1b43c3089936226f5392120ef0f0558
+  fingerprint: 2fbc337cd1b43c3089936226f5392120ef0f0558
+  sha1: 293bbb78caaa42e6656b1d849b340f6c1847efbd
+commit_hash: 4030a2ef
+uncommitted_changes: true
+name: postgres
+version: '20'
