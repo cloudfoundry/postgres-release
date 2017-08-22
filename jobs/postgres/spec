@@ -34,7 +34,6 @@ properties:
         citext: true
       - name: sandbox2
         citext: false
-        run_on_every_startup: "SELECT * FROM TABLEA"
   databases.roles:
     description: "A list of database roles and associated properties to create"
     example: |

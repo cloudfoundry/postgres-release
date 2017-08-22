@@ -68,6 +68,7 @@ function create_databases() {
 
     <% if database["run_on_every_startup"] %>
       <% database["run_on_every_startup"].each do |query| %>
+        echo "WARNING: run_on_every_startup option is deprecated!!!"
         pgexec "<%= database["name"] %>" "<%= query %>"
       <% end %>
     <% end %>

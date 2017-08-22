@@ -79,7 +79,7 @@ databases.port | The database port
 databases.databases | A list of databases and associated properties to create when Postgres starts
 databases.databases[n].name | Database name
 databases.databases[n].citext | If `true` the citext extension is created for the db
-databases.databases[n].run\_on\_every_startup | A list of SQL commands run at each postgres start against the given database as `vcap`
+databases.databases[n].run\_on\_every_startup | A list of SQL commands run at each postgres start against the given database as `vcap` (DEPRECATED!)
 databases.roles | A list of database roles and associated properties to create
 databases.roles[n].name | Role name
 databases.roles[n].password | Login password for the role. If not provided, SSL certificate authentication is assumed for the user.
