@@ -4,6 +4,7 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/postgres-release.git
     branch: develop
+    disable_ci_skip: true
 
 - name: oss-s3-buckets-stack
   type: git
@@ -18,6 +19,7 @@ resources:
     uri: git@github.com:cloudfoundry/postgres-release.git
     branch: master
     private_key: {{postgres-release-private-key}}
+    disable_ci_skip: true
 
 - name: postgres-release-merge-target
   type: git
@@ -25,6 +27,7 @@ resources:
     uri: git@github.com:cloudfoundry/postgres-release.git
     branch: develop
     private_key: {{postgres-release-private-key}}
+    disable_ci_skip: true
 
 jobs:
 - name: create-final-release
