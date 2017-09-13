@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	cfgtypes "github.com/cloudfoundry/config-server/types"
 )
 
 const DefaultDB = "postgres"
@@ -185,18 +183,18 @@ func (pg PGData) checkCertUser() error {
 	}
 	return nil
 }
-func (pg *PGData) SetCertUserCertificates(user string, certs interface{}) error {
+func (pg *PGData) SetCertUserCertificates(user string, certs map[interface{}]interface{}) error {
 	if user == "" {
 		if pg.Data.UseCert {
 			return errors.New(MissingCertUserErr)
 		}
 		pg.Data.CertUser = User{}
 	} else {
-		clientCertPath, err := WriteFile(certs.(cfgtypes.CertResponse).Certificate)
+		clientCertPath, err := WriteFile(certs["certificate"].(string))
 		if err != nil {
 			return err
 		}
-		clientKeyPath, err := WriteFile(certs.(cfgtypes.CertResponse).PrivateKey)
+		clientKeyPath, err := WriteFile(certs["private_key"].(string))
 		if err != nil {
 			return err
 		}

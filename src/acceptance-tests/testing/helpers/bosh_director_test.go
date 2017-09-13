@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
 
@@ -130,11 +131,12 @@ properties:
     - name: pguser
       password: pgpsw
   %s: %s
+  ssh_key: %s
 releases:
 - name: postgres
   version: %s
 `
-				input := fmt.Sprintf(data, "xx", "xx", "xx", "xx", "xx", "((key))", "((value))", "xx")
+				input := fmt.Sprintf(data, "xx", "xx", "xx", "xx", "xx", "((key))", "((value))", "((sshkey.public_key))", "xx")
 				manifestFilePath, err = helpers.WriteFile(input)
 				Expect(err).NotTo(HaveOccurred())
 				err = director.SetDeploymentFromManifest(manifestFilePath, nil, envName)
@@ -156,10 +158,11 @@ releases:
 			})
 			It("Can interpolate variables", func() {
 				vars := map[string]interface{}{
-					"key":   "foo",
-					"value": "bar",
+					"key":               "foo",
+					"value":             "bar",
+					"sshkey.public_key": "key",
 				}
-				data = fmt.Sprintf(data, "z1", "private", "10GB", "m3.medium", envName, vars["key"], vars["value"], "latest")
+				data = fmt.Sprintf(data, "z1", "private", "10GB", "m3.medium", envName, vars["key"], vars["value"], vars["sshkey.public_key"], "latest")
 				err := director.GetEnv(envName).EvaluateTemplate(vars, helpers.EvaluateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(director.GetEnv(envName).ManifestBytes)).To(Equal(data))
@@ -173,6 +176,8 @@ releases:
 				variables := `variables:
 - name: xxx_password
   type: password
+- name: sshkey
+  type: ssh
 - name: xxx_ca
   options:
     common_name: xxx_ca
@@ -186,7 +191,7 @@ releases:
     common_name: %s
   type: certificate
 `
-				input := fmt.Sprintf(data, "xx", "xx", "xx", "xx", "xx", "((key))", "((xxx_password))", "xx") + fmt.Sprintf(variables, "((common_name))", "((common_name))")
+				input := fmt.Sprintf(data, "xx", "xx", "xx", "xx", "xx", "((key))", "((xxx_password))", "((sshkey.public_key))", "xx") + fmt.Sprintf(variables, "((common_name))", "((common_name))")
 				err = os.Remove(manifestFilePath)
 				Expect(err).NotTo(HaveOccurred())
 				manifestFilePath, err = helpers.WriteFile(input)
@@ -198,8 +203,12 @@ releases:
 				Expect(err).NotTo(HaveOccurred())
 				props := director.GetEnv(envName).ManifestData["properties"]
 				password := props.(map[interface{}]interface{})["foo"]
-				data = fmt.Sprintf(data, "z1", "private", "10GB", "m3.medium", envName, "foo", password, "latest") + fmt.Sprintf(variables, vars["common_name"], vars["common_name"])
-				Expect(string(director.GetEnv(envName).ManifestBytes)).To(Equal(data))
+
+				sshkey := director.GetEnv(envName).GetVariable("sshkey")
+				public_key := sshkey.(map[interface{}]interface{})["public_key"]
+				actualDataProperties := director.GetEnv(envName).ManifestData["properties"]
+				Expect(strings.TrimSpace(public_key.(string))).To(Equal(strings.TrimSpace(actualDataProperties.(map[interface{}]interface{})["ssh_key"].(string))))
+				Expect(strings.TrimSpace(password.(string))).To(Equal(strings.TrimSpace(actualDataProperties.(map[interface{}]interface{})["foo"].(string))))
 			})
 			It("Fails to interpolate variables", func() {
 				vars := map[string]interface{}{

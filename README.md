@@ -93,6 +93,7 @@ databases.log_line\_prefix | The postgres `printf` style string that is output a
 databases.collect_statement\_statistics | Enable the `pg_stat_statements` extension and collect statement execution statistics. Default: `false`
 databases.additional_config | A map of additional key/value pairs to include as extra configuration properties
 databases.monit_timeout | Monit timout in seconds for the postgres job start. By default the global monit timeout applies. You may need to specify a higher value if you have a large database and the postgres-release deployment includes a PostgreSQL upgrade.
+databases.trust_local_connection | Whether or not postgres must trust local connections. `vcap` is always trusted. It defaults to `true`.
 
 *Note*
 - Removing a database from `databases.databases` list and deploying again does not trigger a physical deletion of the database in PostgreSQL.

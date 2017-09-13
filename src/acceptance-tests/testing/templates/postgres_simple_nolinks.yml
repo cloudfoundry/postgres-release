@@ -3,6 +3,8 @@ name: pgats-simple
 releases:
 - name: postgres
   version: YOUR_RELEASE_VERSION
+- name: os-conf
+  version: latest
 
 stemcells:
 - alias: linux
@@ -16,6 +18,12 @@ instance_groups:
   networks:
   - name: YOUR_NETWORK
   jobs:
+  - name: user_add
+    release: os-conf
+    properties:
+      users:
+      - name: ((testuser_name))
+        public_key: ((sshkey.public_key))
   - name: postgres
     release: postgres
     properties:
@@ -38,13 +46,16 @@ instance_groups:
           - "SUPERUSER"
           - "CONNECTION LIMIT 33"
           - "VALID UNTIL 'May 5 12:00:00 2025 +1'"
+        trust_local_connections: false
   persistent_disk_type: YOUR_DISK_TYPE
   vm_type: YOUR_VM_TYPE
   stemcell: linux
   env:
     bosh:
       keep_root_password: true
-
+variables:
+- name: sshkey
+  type: ssh
 update:
   canaries: 1
   canary_watch_time: 30000-600000

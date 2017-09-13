@@ -20,6 +20,14 @@ func WriteFile(data string) (string, error) {
 
 	return tempFile.Name(), nil
 }
+
+func SetPermissions(pathToFile string, mode os.FileMode) error {
+	if err := os.Chmod(pathToFile, mode); err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetUUID() string {
 	guid := "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 

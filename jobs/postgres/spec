@@ -72,3 +72,6 @@ properties:
   databases.tls.private_key:
     description: "PEM-encoded key for secure TLS communication"
     default: ''
+  databases.trust_local_connections:
+    description: Whether to trust or not local connections. Note that vcap is always trusted.
+    default: true

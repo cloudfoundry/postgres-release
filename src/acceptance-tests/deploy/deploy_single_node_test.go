@@ -1,10 +1,11 @@
 package deploy_test
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 
-	cfgtypes "github.com/cloudfoundry/config-server/types"
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
 
 	. "github.com/onsi/ginkgo"
@@ -81,20 +82,23 @@ func getPostgresJobProps(envName string) (helpers.Properties, error) {
 	return pgprops, nil
 }
 
-func connectToPostgres(envName string, variables map[string]interface{}) (helpers.Properties, helpers.PGData, error) {
+func getPGPropsAndHost(envName string) (helpers.Properties, string, error) {
 
 	pgprops, err := getPostgresJobProps(envName)
 	if err != nil {
-		return helpers.Properties{}, helpers.PGData{}, err
+		return helpers.Properties{}, "", err
 	}
 	var pgHost string
 	pgHost, err = director.GetEnv(envName).GetVmDNS("postgres")
 	if err != nil {
 		pgHost, err = director.GetEnv(envName).GetVmAddress("postgres")
 		if err != nil {
-			return helpers.Properties{}, helpers.PGData{}, err
+			return pgprops, "", err
 		}
 	}
+	return pgprops, pgHost, nil
+}
+func connectToPostgres(pgHost string, pgprops helpers.Properties, variables map[string]interface{}) (helpers.PGData, error) {
 
 	pgc := helpers.PGCommon{
 		Address: pgHost,
@@ -111,9 +115,19 @@ func connectToPostgres(envName string, variables map[string]interface{}) (helper
 	}
 	DB, err := helpers.NewPostgres(pgc)
 	if err != nil {
-		return helpers.Properties{}, helpers.PGData{}, err
+		return helpers.PGData{}, err
 	}
-	return pgprops, DB, nil
+	return DB, nil
+}
+
+func writeSSHKey(envName string) (string, error) {
+	sshKey := director.GetEnv(envName).GetVariable("sshkey")
+	keyPath, err := helpers.WriteFile(sshKey.(map[interface{}]interface{})["private_key"].(string))
+	if err != nil {
+		// set permission to 600
+		err = helpers.SetPermissions(keyPath, 0600)
+	}
+	return keyPath, err
 }
 
 var _ = Describe("Deploy single instance", func() {
@@ -125,6 +139,7 @@ var _ = Describe("Deploy single instance", func() {
 	var version int
 	var latestPostgreSQLVersion string
 	var variables map[string]interface{}
+	var pgHost string
 
 	JustBeforeEach(func() {
 		var err error
@@ -138,13 +153,16 @@ var _ = Describe("Deploy single instance", func() {
 		variables["defuser_password"] = "admin"
 		variables["superuser_name"] = "superuser"
 		variables["superuser_password"] = "superpsw"
+		variables["testuser_name"] = "sshuser"
 
 		By("Deploying a single postgres instance")
 		err = createOrUpdateDeployment(version, manifestPath, envName, variables)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Initializing a postgres client connection")
-		pgprops, DB, err = connectToPostgres(envName, variables)
+		pgprops, pgHost, err = getPGPropsAndHost(envName)
+		Expect(err).NotTo(HaveOccurred())
+		DB, err = connectToPostgres(pgHost, pgprops, variables)
 		Expect(err).NotTo(HaveOccurred())
 		By("Populating the database")
 		err = DB.CreateAndPopulateTables(pgprops.Databases.Databases[0].Name, helpers.SmallLoad)
@@ -179,13 +197,31 @@ var _ = Describe("Deploy single instance", func() {
 			err = validator.ValidateAll()
 			Expect(err).NotTo(HaveOccurred())
 
+			By("Testing local connections")
+			// TEST THAT VCAP LOCAL CONNECTION IS  TRUSTED
+			sshKeyFile, err := writeSSHKey(envName)
+			Expect(err).NotTo(HaveOccurred())
+			bosh_ssh_command := "export PGPASSWORD=%s; /var/vcap/packages/postgres-9.6.4/bin/psql -p 5524 -U %s postgres -c 'select now()'"
+			cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, "fake", "vcap"))
+			err = cmd.Run()
+			// TEST THAT NON-VCAP LOCAL CONNECTIONS ARE NOT TRUSTED
+			Expect(err).NotTo(HaveOccurred())
+			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, "fake", variables["defuser_name"]))
+			err = cmd.Run()
+			Expect(err).To(HaveOccurred())
+			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, variables["defuser_password"], variables["defuser_name"]))
+			err = cmd.Run()
+			Expect(err).NotTo(HaveOccurred())
+			err = os.Remove(sshKeyFile)
+			Expect(err).NotTo(HaveOccurred())
+
 			By("Enabling SSL")
 			manifestPath = "../testing/templates/postgres_simple_ssl.yml"
 			err = createOrUpdateDeployment(version, manifestPath, envName, variables)
 			Expect(err).NotTo(HaveOccurred())
 			By("Re-initializing a postgres client connection")
 			DB.CloseConnections()
-			pgprops, DB, err = connectToPostgres(envName, variables)
+			DB, err = connectToPostgres(pgHost, pgprops, variables)
 			Expect(err).NotTo(HaveOccurred())
 
 			pgprops, err := getPostgresJobProps(envName)
@@ -194,7 +230,7 @@ var _ = Describe("Deploy single instance", func() {
 			rootCertPath, err := helpers.WriteFile(pgprops.Databases.TLS.CA)
 			Expect(err).NotTo(HaveOccurred())
 			badCAcerts := director.GetEnv(envName).GetVariable(variables["certs_bad_ca"].(string))
-			badCaPath, err := helpers.WriteFile(badCAcerts.(cfgtypes.CertResponse).Certificate)
+			badCaPath, err := helpers.WriteFile(badCAcerts.(map[interface{}]interface{})["certificate"].(string))
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Checking non-secure connections")
@@ -202,6 +238,18 @@ var _ = Describe("Deploy single instance", func() {
 			if err != nil {
 				Expect(err.Error()).NotTo(HaveOccurred())
 			}
+			// TEST THAT VCAP LOCAL CONNECTION IS  TRUSTED
+			sshKeyFile, err = writeSSHKey(envName)
+			Expect(err).NotTo(HaveOccurred())
+			bosh_ssh_command = "/var/vcap/packages/postgres-9.6.4/bin/psql -p 5524 -U %s postgres -c 'select now()'"
+			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, "vcap"))
+			err = cmd.Run()
+
+			// TEST THAT NON-VCAP NON-SECURE LOCAL CONNECTIONS ARE NOT TRUSTED
+			Expect(err).NotTo(HaveOccurred())
+			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, variables["defuser_name"]))
+			err = cmd.Run()
+			Expect(err).To(HaveOccurred())
 
 			By("Checking secure connections")
 			err = DB.ChangeSSLMode("verify-full", badCaPath)
@@ -229,7 +277,7 @@ var _ = Describe("Deploy single instance", func() {
 
 			By("Using cert authentication for client connection")
 			certs := director.GetEnv(envName).GetVariable(variables["certs_matching_certs"].(string))
-			err = DB.SetCertUserCertificates(variables["certs_matching_name"].(string), certs)
+			err = DB.SetCertUserCertificates(variables["certs_matching_name"].(string), certs.(map[interface{}]interface{}))
 			Expect(err).NotTo(HaveOccurred())
 			err = DB.UseCertAuthentication(true)
 			Expect(err).NotTo(HaveOccurred())
@@ -241,19 +289,27 @@ var _ = Describe("Deploy single instance", func() {
 				}
 				return ""
 			}, "30s", "5s").Should(BeEmpty())
+			// TEST THAT NON-VCAP SECURE LOCAL CONNECTIONS ARE NOT TRUSTED
+			Expect(err).NotTo(HaveOccurred())
+			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, variables["certs_matching_name"]))
+			err = cmd.Run()
+			Expect(err).To(HaveOccurred())
+			err = os.Remove(sshKeyFile)
+			Expect(err).NotTo(HaveOccurred())
 
 			certs = director.GetEnv(envName).GetVariable(variables["certs_wrong_certs"].(string))
-			err = DB.SetCertUserCertificates(DB.Data.CertUser.Name, certs)
+			err = DB.SetCertUserCertificates(DB.Data.CertUser.Name, certs.(map[interface{}]interface{}))
 			Expect(err).NotTo(HaveOccurred())
 			_, err = DB.GetPostgreSQLVersion()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("certificate authentication failed"))
 
 			certs = director.GetEnv(envName).GetVariable(variables["certs_mapped_certs"].(string))
-			err = DB.SetCertUserCertificates(variables["certs_mapped_name"].(string), certs)
+			err = DB.SetCertUserCertificates(variables["certs_mapped_name"].(string), certs.(map[interface{}]interface{}))
 			Expect(err).NotTo(HaveOccurred())
 			_, err = DB.GetPostgreSQLVersion()
 			Expect(err).NotTo(HaveOccurred())
+
 		})
 	})
 	Describe("Upgrading an existent env", func() {
