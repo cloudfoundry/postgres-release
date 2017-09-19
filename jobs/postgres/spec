@@ -27,6 +27,7 @@ provides:
 properties:
   databases.port:
     description: "The database port"
+    default: 5432
   databases.databases:
     description: "A list of databases and associated properties to create"
     example: |
