@@ -34,6 +34,7 @@ LOG_DIR=/var/vcap/sys/log/postgres
 # external_pid_file in postgresql.conf takes care of
 # overwriting $PIDFILE with actual DB server pid
 PIDFILE="${RUN_DIR}/postgres.pid"
+CONTROL_JOB_PIDFILE="${RUN_DIR}/postgresctl.pid"
 
 HOST="0.0.0.0"
 PORT="<%= p("databases.port") %>"

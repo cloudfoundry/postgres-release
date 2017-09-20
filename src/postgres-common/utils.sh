@@ -1,17 +1,21 @@
 pid_guard() {
-  echo "------------ STARTING `basename $0` at `date` --------------" | tee /dev/stderr
-  pidfile=$1
-  name=$2
+  local pidfile=$1
+  local name=$2
+  local logall=${3:-true}
+
+  if [ "${logall}" == "true" ]; then
+    echo "------------ STARTING `basename $0` at `date` --------------" | tee /dev/stderr
+  fi
 
   if [ -f "$pidfile" ]; then
     pid=$(head -1 "$pidfile")
 
     if [ -n "$pid" ] && [ -e /proc/$pid ]; then
-      echo "$name is already running, please stop it first"
+      echo "$name is already running with pid $pid. Exiting."
       exit 1
     fi
 
-    echo "Removing stale pidfile..."
+    echo "Removing $name stale pidfile"
     rm $pidfile
   fi
 }

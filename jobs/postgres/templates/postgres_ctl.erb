@@ -14,6 +14,9 @@ function main() {
 
   case "${action}" in
     "start")
+      pid_guard "${CONTROL_JOB_PIDFILE}" "Postgres control job" "false"
+      echo $$ > ${CONTROL_JOB_PIDFILE}
+
       if [ -d $DATA_DIR -a -f $POSTGRES_UPGRADE_LOCK ]; then
         echo "FAIL: DB upgrade stopped in the middle, manual intervention required, quitting..."
         exit 1
@@ -41,6 +44,8 @@ function main() {
       echo "" > "${PIDFILE}"
 
       exec "${JOB_DIR}/bin/postgres_start.sh"
+
+      echo "" > "${CONTROL_JOB_PIDFILE}"
       ;;
 
     "stop")
