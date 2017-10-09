@@ -23,6 +23,11 @@ packages:
 provides:
 - name: postgres
   type: database
+  properties:
+  - databases.port
+  - databases.databases
+  - databases.roles
+  - databases.tls.ca
 
 properties:
   databases.port:
