@@ -3,5 +3,5 @@
   value: pgats-errand-other
 
 - type: replace
-  path: /instance_groups/name=acceptance_tests/jobs/name=acceptance_tests/properties?/postgres_release_version
+  path: /instance_groups/name=acceptance-tests/jobs/name=acceptance-tests/properties?/postgres_release_version
   value: latest
