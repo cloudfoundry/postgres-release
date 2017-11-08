@@ -1,0 +1,91 @@
+#!/bin/bash -exu
+
+set +u
+source /var/vcap/packages/postgres-common/utils.sh
+set -u
+source /var/vcap/jobs/postgres/bin/pgconfig.sh
+
+function upgrade(){
+  source /var/vcap/jobs/postgres/bin/utils.sh
+  if [ -d $DATA_DIR -a -f $POSTGRES_UPGRADE_LOCK ]; then
+    echo "FAIL: DB upgrade stopped in the middle, manual intervention required, quitting..."
+    exit 1
+  fi
+
+  if [ ! -f "${DATA_DIR}/postgresql.conf" ]; then
+    # initdb creates data directories
+    su - vcap -c "${PACKAGE_DIR}/bin/initdb -E utf8 --locale en_US.UTF-8 -D ${DATA_DIR}"
+
+    mkdir -p "${DATA_DIR}/pg_log"
+    chown vcap:vcap $DATA_DIR/pg_log
+  fi
+
+  if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
+    rm -rf ${DATA_DIR_PREVIOUS}
+    if is_major; then
+      echo "Running a PostgreSQL major upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
+      touch "$POSTGRES_UPGRADE_LOCK"
+      chmod 755 "$POSTGRES_UPGRADE_LOCK"
+      # Move to a directory writeable by vcap user
+      su - vcap <<EOF
+      mkdir -p "${PG_STORE_DIR}/pg_upgrade_tmp"
+      pushd "${PG_STORE_DIR}/pg_upgrade_tmp"
+        ${PACKAGE_DIR}/bin/pg_upgrade \
+          --old-datadir ${DATA_DIR_OLD} \
+          --new-datadir ${DATA_DIR} \
+          --old-bindir ${PACKAGE_DIR_OLD}/bin \
+          --new-bindir ${PACKAGE_DIR}/bin
+      popd
+EOF
+      rm -f "${POSTGRES_UPGRADE_LOCK}"
+    else
+      echo "Running a PostgreSQL minor upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
+      mkdir -p "${DATA_DIR}"
+      chown -R vcap:vcap "${DATA_DIR}"
+      chmod 700 "${DATA_DIR}"
+
+      su - vcap <<EOF
+      pushd "${DATA_DIR_OLD}" > /dev/null
+        cp -r * ${DATA_DIR}
+      popd > /dev/null
+EOF
+    fi
+    mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
+  fi
+}
+
+function main() {
+  echo "Checking PostgreSQL is stopped"
+  check_pidfile "${PIDFILE}" 30
+  mkdir -p "${PG_STORE_DIR}"
+  chown -R vcap:vcap "${PG_STORE_DIR}"
+  chmod 700 "${PG_STORE_DIR}"
+
+  for dir in ${pgversion_older} ${pgversion_old} ${pgversion_current} postgres-previous; do
+    if [[ -d "${STORE_DIR}/${dir}" ]]; then
+      if [[ -f "${STORE_DIR}/${dir}/postgresql.conf" ]]; then
+        mv "${STORE_DIR}/${dir}" "${PG_STORE_DIR}"
+        chown -R vcap:vcap "${PG_STORE_DIR}/${dir}"
+        chmod 700 "${PG_STORE_DIR}/${dir}"
+      else
+        rm -r ${STORE_DIR}/${dir}
+      fi
+    fi
+  done
+
+  mkdir -p "${LOG_DIR}"
+  chown -R vcap:vcap "${LOG_DIR}"
+
+  mkdir -p "${RUN_DIR}"
+  chown -R vcap:vcap "${RUN_DIR}"
+
+  PG_CERTS_DIR=${JOB_DIR}/config/certificates
+  chmod -R 600 ${PG_CERTS_DIR}/*
+  chown -R vcap:vcap ${PG_CERTS_DIR}/*
+
+  sysctl -w "kernel.shmmax=284934144"
+}
+
+main
+upgrade
+

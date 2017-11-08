@@ -92,7 +92,7 @@ databases.max_connections | Maximum number of database connections
 databases.log_line\_prefix | The postgres `printf` style string that is output at the beginning of each log line. Default: `%m:`
 databases.collect_statement\_statistics | Enable the `pg_stat_statements` extension and collect statement execution statistics. Default: `false`
 databases.additional_config | A map of additional key/value pairs to include as extra configuration properties
-databases.monit_timeout | Monit timout in seconds for the postgres job start. By default the global monit timeout applies. You may need to specify a higher value if you have a large database and the postgres-release deployment includes a PostgreSQL upgrade.
+databases.monit_timeout | Monit timout in seconds for the postgres job start. Default: `90`.
 databases.trust_local_connection | Whether or not postgres must trust local connections. `vcap` is always trusted. It defaults to `true`.
 
 *Note*
@@ -171,7 +171,7 @@ Refer to [versions.yml](versions.yml) in order to assess if you are upgrading to
 ### Considerations before deploying
 
 1. A copy of the database is made for the upgrade, you may need to adjust the persistent disk capacity of the postgres job.
-1. The upgrade happens as part of the monit start and its duration may vary basing on your env. The postgres monit start timeout can be adjusted using property `databases.monit_timeout`. You may need to specify a higher value if you have a large database
+1. The upgrade happens as part of the pre-start and its duration may vary basing on your env.
     - In case of a PostgreSQL minor upgrade a simple copy of the old data directory is made.
     - In case of a PostgreSQL major upgrade the `pg_upgrade` utility is used.
 1. Postgres will be unavailable during this upgrade.
@@ -182,7 +182,7 @@ Post upgrade, both old and new databases are kept. The old database moved to `/v
 
 ### Recovering a failure during deployment
 
-In case the timeout was not sufficient, the deployment would fail; anyway monit would not stop the actual upgrade process. In this case you can just wait for the upgrade to complete and only when postgres is up and running rerun the bosh deploy.
+In case of a long upgrade, the deployment may time out; anyway bosh would not stop the actual upgrade process. In this case you can just wait for the upgrade to complete and, only when postgres is up and running, rerun the bosh deploy.
 
 If the upgrade fails:
 
