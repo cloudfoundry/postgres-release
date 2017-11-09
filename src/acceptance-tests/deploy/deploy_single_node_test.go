@@ -344,6 +344,31 @@ var _ = Describe("Deploy single instance", func() {
 				err = director.GetEnv(envName).Restart("postgres")
 				Expect(err).NotTo(HaveOccurred())
 
+				if deploymentPrefix == "upg-old-nocopy" {
+					By("Validating the postgres-previous is not created")
+					if !versions.IsMajor(latestPostgreSQLVersion, versions.GetOldVersion()) {
+						sshKeyFile, err := writeSSHKey(envName)
+						Expect(err).NotTo(HaveOccurred())
+						cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
+						err = cmd.Run()
+						Expect(err).To(HaveOccurred())
+						err = os.Remove(sshKeyFile)
+						Expect(err).NotTo(HaveOccurred())
+					}
+				} else if deploymentPrefix == "upg-old" {
+					By("Validating the postgres-previous is created")
+					sshKeyFile, err := writeSSHKey(envName)
+					fmt.Println("key file", sshKeyFile)
+					Expect(err).NotTo(HaveOccurred())
+					fmt.Println("host", pgHost)
+					fmt.Println("user", variables["testuser_name"])
+					cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
+					err = cmd.Run()
+					Expect(err).NotTo(HaveOccurred())
+					err = os.Remove(sshKeyFile)
+					Expect(err).NotTo(HaveOccurred())
+				}
+
 			}
 		}
 
@@ -364,6 +389,15 @@ var _ = Describe("Deploy single instance", func() {
 				variables = make(map[string]interface{})
 			})
 			It("Successfully upgrades from old", AssertUpgradeSuccessful())
+		})
+		Context("Upgrading from minor-no-copy version", func() {
+			BeforeEach(func() {
+				manifestPath = "../testing/templates/postgres_simple_nocopy.yml"
+				version = versions.GetOldVersion()
+				deploymentPrefix = "upg-old-nocopy"
+				variables = make(map[string]interface{})
+			})
+			It("Successfully upgrades from old with no copy of the data directory", AssertUpgradeSuccessful())
 		})
 		Context("Upgrading from master version", func() {
 			BeforeEach(func() {

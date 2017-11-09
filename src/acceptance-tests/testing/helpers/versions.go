@@ -3,6 +3,7 @@ package helpers
 import (
 	"io/ioutil"
 	"sort"
+	"strings"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -50,4 +51,12 @@ func (v PostgresReleaseVersions) GetLatestVersion() int {
 }
 func (v PostgresReleaseVersions) GetPostgreSQLVersion(key int) string {
 	return v.Versions[key]
+}
+func (v PostgresReleaseVersions) IsMajor(current string, key int) bool {
+	value1 := strings.Split(v.Versions[key], ".")
+	value2 := strings.Split(current, ".")
+	if strings.Join(value1[:len(value1)-1], ".") == strings.Join(value2[:len(value2)-1], ".") {
+		return false
+	}
+	return true
 }

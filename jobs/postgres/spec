@@ -75,3 +75,6 @@ properties:
   databases.trust_local_connections:
     description: Whether to trust or not local connections. Note that vcap is always trusted.
     default: true
+  databases.skip_data_copy_in_minor:
+    description: "If false, during a PostgreSQL minor upgrade a copy of the data directory is created."
+    default: false

@@ -20,7 +20,7 @@ function main() {
       -succinct \
       -randomizeAllSpecs \
       -randomizeSuites \
-      --skip="Upgrading from (master|older) version" \
+      --skip="Upgrading from (master|older|minor-no-copy) version" \
       -slowSpecThreshold 300 \
       "$@"
   popd > /dev/null

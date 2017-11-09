@@ -94,6 +94,7 @@ databases.collect_statement\_statistics | Enable the `pg_stat_statements` extens
 databases.additional_config | A map of additional key/value pairs to include as extra configuration properties
 databases.monit_timeout | Monit timout in seconds for the postgres job start. Default: `90`.
 databases.trust_local_connection | Whether or not postgres must trust local connections. `vcap` is always trusted. It defaults to `true`.
+databases.skip_data_copy_in_minor | Whether or not a copy of the data directory is created during PostgreSQL minor upgrades. A copy is created by default.
 
 *Note*
 - Removing a database from `databases.databases` list and deploying again does not trigger a physical deletion of the database in PostgreSQL.
@@ -171,6 +172,8 @@ Refer to [versions.yml](versions.yml) in order to assess if you are upgrading to
 ### Considerations before deploying
 
 1. A copy of the database is made for the upgrade, you may need to adjust the persistent disk capacity of the postgres job.
+    - For major upgrades the copy is always created
+    - For minor upgrades the copy is created unless the `databases.skip_data_copy_in_minor` is set to `true`.
 1. The upgrade happens as part of the pre-start and its duration may vary basing on your env.
     - In case of a PostgreSQL minor upgrade a simple copy of the old data directory is made.
     - In case of a PostgreSQL major upgrade the `pg_upgrade` utility is used.
@@ -178,7 +181,7 @@ Refer to [versions.yml](versions.yml) in order to assess if you are upgrading to
 
 ### Considerations after a successfull deployment
 
-Post upgrade, both old and new databases are kept. The old database moved to `/var/vcap/store/postgres/postgres-previous`. The postgres-previous directory will be kept until the next postgres upgrade is performed in the future. You are free to remove this if you have verified the new database works and you want to reclaim the space.
+In case a copy of the old database is kept (see considerations above), the old database is moved to `/var/vcap/store/postgres/postgres-previous`. The postgres-previous directory will be kept until the next postgres upgrade is performed in the future. You are free to remove this if you have verified the new database works and you want to reclaim the space.
 
 ### Recovering a failure during deployment
 

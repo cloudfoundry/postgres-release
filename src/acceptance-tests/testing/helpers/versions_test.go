@@ -68,6 +68,12 @@ older: 1
 			pgVersion = pgVersions.GetPostgreSQLVersion(3)
 			Expect(pgVersion).To(Equal("PostgreSQL 9.4.9"))
 		})
+		It("Check if major upgrade", func() {
+			isMajor := pgVersions.IsMajor("PostgreSQL 9.5.7", 2)
+			Expect(isMajor).To(BeTrue())
+			isMajor = pgVersions.IsMajor("PostgreSQL 9.4.7", 2)
+			Expect(isMajor).To(BeFalse())
+		})
 	})
 	Context("With an invalid config yaml location", func() {
 		It("Should return an error that the file does not exist", func() {

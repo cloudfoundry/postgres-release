@@ -5,13 +5,7 @@ source /var/vcap/packages/postgres-common/utils.sh
 set -u
 source /var/vcap/jobs/postgres/bin/pgconfig.sh
 
-function upgrade(){
-  source /var/vcap/jobs/postgres/bin/utils.sh
-  if [ -d $DATA_DIR -a -f $POSTGRES_UPGRADE_LOCK ]; then
-    echo "FAIL: DB upgrade stopped in the middle, manual intervention required, quitting..."
-    exit 1
-  fi
-
+function init_data_dir(){
   if [ ! -f "${DATA_DIR}/postgresql.conf" ]; then
     # initdb creates data directories
     su - vcap -c "${PACKAGE_DIR}/bin/initdb -E utf8 --locale en_US.UTF-8 -D ${DATA_DIR}"
@@ -19,13 +13,23 @@ function upgrade(){
     mkdir -p "${DATA_DIR}/pg_log"
     chown vcap:vcap $DATA_DIR/pg_log
   fi
+}
+
+function upgrade(){
+  source /var/vcap/jobs/postgres/bin/utils.sh
+  if [ -d $DATA_DIR -a -f $POSTGRES_UPGRADE_LOCK ]; then
+    echo "FAIL: DB upgrade stopped in the middle, manual intervention required, quitting..."
+    exit 1
+  fi
 
   if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
+    # UPGRADING
     rm -rf ${DATA_DIR_PREVIOUS}
     if is_major; then
       echo "Running a PostgreSQL major upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
       touch "$POSTGRES_UPGRADE_LOCK"
       chmod 755 "$POSTGRES_UPGRADE_LOCK"
+      init_data_dir
       # Move to a directory writeable by vcap user
       su - vcap <<EOF
       mkdir -p "${PG_STORE_DIR}/pg_upgrade_tmp"
@@ -36,10 +40,14 @@ function upgrade(){
           --old-bindir ${PACKAGE_DIR_OLD}/bin \
           --new-bindir ${PACKAGE_DIR}/bin
       popd
+      mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
 EOF
       rm -f "${POSTGRES_UPGRADE_LOCK}"
     else
       echo "Running a PostgreSQL minor upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
+      <% if p("databases.skip_data_copy_in_minor") %>
+      mv "${DATA_DIR_OLD}" "${DATA_DIR}"
+      <% else %>
       mkdir -p "${DATA_DIR}"
       chown -R vcap:vcap "${DATA_DIR}"
       chmod 700 "${DATA_DIR}"
@@ -48,9 +56,12 @@ EOF
       pushd "${DATA_DIR_OLD}" > /dev/null
         cp -r * ${DATA_DIR}
       popd > /dev/null
+      mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
 EOF
+      <% end %>
     fi
-    mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
+  else
+    init_data_dir
   fi
 }
 
