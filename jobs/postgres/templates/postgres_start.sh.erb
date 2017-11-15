@@ -8,7 +8,7 @@ function main() {
 
   echo "Starting PostgreSQL: "
   "${PACKAGE_DIR}/bin/pg_ctl" -o "-h ${HOST} -p ${PORT}" \
-    -w start -D "${DATA_DIR}" -l "${DATA_DIR}/pg_log/startup.log"
+    -w start -D "${DATA_DIR}" -l "${LOG_DIR}/startup.log"
 
   echo "PostgreSQL started successfully"
 

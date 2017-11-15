@@ -9,9 +9,6 @@ function init_data_dir(){
   if [ ! -f "${DATA_DIR}/postgresql.conf" ]; then
     # initdb creates data directories
     su - vcap -c "${PACKAGE_DIR}/bin/initdb -E utf8 --locale en_US.UTF-8 -D ${DATA_DIR}"
-
-    mkdir -p "${DATA_DIR}/pg_log"
-    chown vcap:vcap $DATA_DIR/pg_log
   fi
 }
 
