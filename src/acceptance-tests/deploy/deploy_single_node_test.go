@@ -224,10 +224,8 @@ var _ = Describe("Deploy single instance", func() {
 			DB, err = connectToPostgres(pgHost, pgprops, variables)
 			Expect(err).NotTo(HaveOccurred())
 
-			pgprops, err := getPostgresJobProps(envName)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(pgprops.Databases.TLS).NotTo(Equal(helpers.PgTLS{}))
-			rootCertPath, err := helpers.WriteFile(pgprops.Databases.TLS.CA)
+			goodCACerts := director.GetEnv(envName).GetVariable("postgres_cert")
+			rootCertPath, err := helpers.WriteFile(goodCACerts.(map[interface{}]interface{})["ca"].(string))
 			Expect(err).NotTo(HaveOccurred())
 			badCAcerts := director.GetEnv(envName).GetVariable(variables["certs_bad_ca"].(string))
 			badCaPath, err := helpers.WriteFile(badCAcerts.(map[interface{}]interface{})["certificate"].(string))
@@ -250,6 +248,8 @@ var _ = Describe("Deploy single instance", func() {
 			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, variables["defuser_name"]))
 			err = cmd.Run()
 			Expect(err).To(HaveOccurred())
+			err = os.Remove(sshKeyFile)
+			Expect(err).NotTo(HaveOccurred())
 
 			By("Checking secure connections")
 			err = DB.ChangeSSLMode("verify-full", badCaPath)
@@ -275,8 +275,24 @@ var _ = Describe("Deploy single instance", func() {
 				Expect(err.Error()).NotTo(HaveOccurred())
 			}
 
+			err = os.Remove(rootCertPath)
+			Expect(err).NotTo(HaveOccurred())
+
 			By("Using cert authentication for client connection")
+			manifestPath = "../testing/templates/postgres_simple_mssl.yml"
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables)
+			Expect(err).NotTo(HaveOccurred())
+			By("Re-initializing a postgres client connection")
+			DB.CloseConnections()
+			DB, err = connectToPostgres(pgHost, pgprops, variables)
+			Expect(err).NotTo(HaveOccurred())
+
 			certs := director.GetEnv(envName).GetVariable(variables["certs_matching_certs"].(string))
+			goodCACerts = director.GetEnv(envName).GetVariable("postgres_cert")
+			rootCertPath, err = helpers.WriteFile(goodCACerts.(map[interface{}]interface{})["ca"].(string))
+			Expect(err).NotTo(HaveOccurred())
+			err = DB.ChangeSSLMode("verify-full", rootCertPath)
+			Expect(err).NotTo(HaveOccurred())
 			err = DB.SetCertUserCertificates(variables["certs_matching_name"].(string), certs.(map[interface{}]interface{}))
 			Expect(err).NotTo(HaveOccurred())
 			err = DB.UseCertAuthentication(true)
@@ -290,6 +306,7 @@ var _ = Describe("Deploy single instance", func() {
 				return ""
 			}, "30s", "5s").Should(BeEmpty())
 			// TEST THAT NON-VCAP SECURE LOCAL CONNECTIONS ARE NOT TRUSTED
+			sshKeyFile, err = writeSSHKey(envName)
 			Expect(err).NotTo(HaveOccurred())
 			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, variables["certs_matching_name"]))
 			err = cmd.Run()
@@ -358,10 +375,7 @@ var _ = Describe("Deploy single instance", func() {
 				} else if deploymentPrefix == "upg-old" {
 					By("Validating the postgres-previous is created")
 					sshKeyFile, err := writeSSHKey(envName)
-					fmt.Println("key file", sshKeyFile)
 					Expect(err).NotTo(HaveOccurred())
-					fmt.Println("host", pgHost)
-					fmt.Println("user", variables["testuser_name"])
 					cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
 					err = cmd.Run()
 					Expect(err).NotTo(HaveOccurred())

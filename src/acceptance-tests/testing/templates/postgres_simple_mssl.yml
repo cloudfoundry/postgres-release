@@ -31,9 +31,7 @@ instance_groups:
     properties:
       databases:
         port: 5524
-        tls:
-          certificate: "((postgres_cert.certificate))"
-          private_key: "((postgres_cert.private_key))"
+        tls: "((postgres_cert))"
         databases:
         - citext: false
           name: sandbox
@@ -43,8 +41,13 @@ instance_groups:
         additional_config:
           shared_buffers: 32768
         roles:
+        - name: aaa
+          common_name: aaa_2
         - name: ((defuser_name))
           password: ((defuser_password))
+        - name: ((certs_matching_name))
+        - name: ((certs_mapped_name))
+          common_name: ((certs_mapped_cn))
         - name: ((superuser_name))
           password: ((superuser_password))
           permissions:
