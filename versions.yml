@@ -1,4 +1,5 @@
 versions:
+  23: "PostgreSQL 9.6.4"
   22: "PostgreSQL 9.6.4"
   21: "PostgreSQL 9.6.4"
   20: "PostgreSQL 9.6.4"
