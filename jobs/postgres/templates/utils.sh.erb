@@ -20,6 +20,58 @@ function is_major() {
   [ "${pgversion_current%.*}" != "${pgversion_upgrade_from%.*}" ]
 }
 
+function init_data_dir(){
+  if [ ! -f "${DATA_DIR}/postgresql.conf" ]; then
+    # initdb creates data directories
+    su - vcap -c "${PACKAGE_DIR}/bin/initdb -E utf8 --locale en_US.UTF-8 -D ${DATA_DIR}"
+  fi
+}
+
+function run_major_upgrade(){
+  if is_major; then
+    rm -rf ${DATA_DIR_PREVIOUS}
+    echo "Running a PostgreSQL major upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
+    touch "$POSTGRES_UPGRADE_LOCK"
+    chmod 755 "$POSTGRES_UPGRADE_LOCK"
+    init_data_dir
+    # Move to a directory writeable by vcap user
+    su - vcap <<EOF
+    set -e
+    mkdir -p "${PG_STORE_DIR}/pg_upgrade_tmp"
+    pushd "${PG_STORE_DIR}/pg_upgrade_tmp"
+      ${PACKAGE_DIR}/bin/pg_upgrade \
+        --old-datadir ${DATA_DIR_OLD} \
+        --new-datadir ${DATA_DIR} \
+        --old-bindir ${PACKAGE_DIR_OLD}/bin \
+        --new-bindir ${PACKAGE_DIR}/bin
+    popd
+    mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
+EOF
+    rm -f "${POSTGRES_UPGRADE_LOCK}"
+  fi
+}
+function run_minor_upgrade(){
+  if ! is_major; then
+    rm -rf ${DATA_DIR_PREVIOUS}
+    echo "Running a PostgreSQL minor upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
+    <% if p("databases.skip_data_copy_in_minor") %>
+    mv "${DATA_DIR_OLD}" "${DATA_DIR}"
+    <% else %>
+    mkdir -p "${DATA_DIR}"
+    chown -R vcap:vcap "${DATA_DIR}"
+    chmod 700 "${DATA_DIR}"
+
+    su - vcap <<EOF
+    set -e
+    pushd "${DATA_DIR_OLD}" > /dev/null
+      cp -r * ${DATA_DIR}
+    popd > /dev/null
+    mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
+EOF
+    <% end %>
+  fi
+}
+
 function create_roles() {
   echo "Creating roles..."
   <% p("databases.roles", []).each do |role| %>
