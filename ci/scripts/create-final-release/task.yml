@@ -1,7 +1,10 @@
 ---
 platform: linux
 
-image: docker:///cfinfrastructure/deployment
+image_resource:
+  type: docker-image
+  source:
+    repository: cfinfrastructure/deployment
 
 inputs:
   - name: oss-s3-buckets-stack

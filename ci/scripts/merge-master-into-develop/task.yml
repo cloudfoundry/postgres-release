@@ -1,7 +1,10 @@
 ---
 platform: linux
 
-image: docker:///cfinfrastructure/minimal
+image_resource:
+  type: docker-image
+  source:
+    repository: cfinfrastructure/minimal
 
 inputs:
   - name: postgres-release
