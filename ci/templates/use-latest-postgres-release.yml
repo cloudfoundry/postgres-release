@@ -1,0 +1,7 @@
+- path: /releases/name=postgres/version
+  type: replace
+  value: latest
+- path: /releases/name=postgres/sha1
+  type: remove
+- path: /releases/name=postgres/url
+  type: remove

@@ -15,5 +15,5 @@ run:
 
 params:
   CF_DEPLOYMENT:
-  API_USER:
+  API_USER: admin
   API_PASSWORD:

@@ -31,7 +31,7 @@ properties:
 
   postgres.acceptance_tests.cloud_configs.default_networks:
    description: "List of networks used by acceptance tests while deploying"
-   default: [{name: private}]
+   default: [{name: default}]
 
   postgres.acceptance_tests.cloud_configs.default_persistent_disk_type:
    description: "Persistent disk type used by acceptance tests while deploying"
@@ -39,7 +39,7 @@ properties:
 
   postgres.acceptance_tests.cloud_configs.default_vm_type:
    description: "VM type used by acceptance tests while deploying"
-   default: "m3.medium"
+   default: "small"
 
   postgres.acceptance_tests.postgres_release_version:
    description: "The postgres-release version to test. If not specified, the latest uploaded to the director is used."

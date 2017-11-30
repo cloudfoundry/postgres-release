@@ -162,7 +162,7 @@ releases:
 					"value":             "bar",
 					"sshkey.public_key": "key",
 				}
-				data = fmt.Sprintf(data, "z1", "private", "10GB", "m3.medium", envName, vars["key"], vars["value"], vars["sshkey.public_key"], "latest")
+				data = fmt.Sprintf(data, "z1", "default", "10GB", "small", envName, vars["key"], vars["value"], vars["sshkey.public_key"], "latest")
 				err := director.GetEnv(envName).EvaluateTemplate(vars, helpers.EvaluateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(director.GetEnv(envName).ManifestBytes)).To(Equal(data))

@@ -14,7 +14,7 @@ bosh:
 $indented_cert
 cloud_configs:
   default_vm_type: "pgats"
-  default_persistent_disk_type: "dp_10G"
+  default_persistent_disk_type: "10GB"
 postgres_release_version: $REL_VERSION
 postgresql_version: "PostgreSQL ${current_version}"
 EOF

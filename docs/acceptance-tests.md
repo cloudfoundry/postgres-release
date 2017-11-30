@@ -78,7 +78,7 @@ cloud_configs:
   default_networks:
   - name: default
   default_persistent_disk_type: 10GB
-  default_vm_type: m3.medium
+  default_vm_type: small
 EOF
 export PGATS_CONFIG=$PWD/pgats_config.yml
 ```
@@ -95,9 +95,9 @@ The full set of config parameters is explained below.
 `cloud_config` parameters are used to generate a BOSH v2 manifest that matches your IaaS configuration:
 
 * `cloud_config.default_azs` List of vailability zones. It defaults to `[z1]`.
-* `cloud_config.default_networks` List of networks. It defaults to `[{name: private}]`.
+* `cloud_config.default_networks` List of networks. It defaults to `[{name: default}]`.
 * `cloud_config.default_persistent_disk_type` Persistent disk type. It defaults to `10GB`.
-* `cloud_config.default_vm_type` VM type. It defaults to `m3.medium`.
+* `cloud_config.default_vm_type` VM type. It defaults to `small`.
 
 Other paramaters:
 

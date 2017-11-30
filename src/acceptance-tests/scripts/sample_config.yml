@@ -29,7 +29,7 @@ bosh:
 cloud_configs:
   default_azs: [z1]
   default_networks:
-  - name: private
+  - name: default
   default_persistent_disk_type: 10GB
-  default_vm_type: m3.medium
+  default_vm_type: small
 

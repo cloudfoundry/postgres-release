@@ -57,11 +57,11 @@ var DefaultCloudConfig = BOSHCloudConfig{
 	AZs: []string{"z1"},
 	Networks: []BOSHJobNetwork{
 		BOSHJobNetwork{
-			Name: "private",
+			Name: "default",
 		},
 	},
 	PersistentDiskType: "10GB",
-	VmType:             "m3.medium",
+	VmType:             "small",
 }
 
 type VarsCertLoader struct {

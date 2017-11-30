@@ -23,7 +23,7 @@ function main() {
   cf target -o ${CF_DEPLOYMENT}
   cf create-space ${CF_DEPLOYMENT}
   cf target -s ${CF_DEPLOYMENT}
-  cf install-plugin Diego-Enabler -f -r CF-Community
+ # cf install-plugin Diego-Enabler -f -r CF-Community
 
   pushd "${root}/cf-acceptance-tests/assets/dora"
     cf push dora

@@ -25,7 +25,7 @@ instance_groups:
   - name: default
   azs:
   - z1
-  vm_type: m3.medium
+  vm_type: small
   persistent_disk_type: 10GB
   jobs:
   - name: acceptance-tests
@@ -45,4 +45,4 @@ instance_groups:
             default_networks:
             - name: default
             default_persistent_disk_type: 10GB
-            default_vm_type: m3.large
+            default_vm_type: small
