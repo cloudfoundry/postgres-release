@@ -54,6 +54,12 @@ In order to deploy the postgres-release you must follow the standard steps for d
    [This example operation file](templates/v2/operations/set_properties.yml) is a great starting point.
    Note: when using this operation file, you will need to inject `pgadmin_database_password` at `bosh deploy`-time, which is a good pattern for keeping credentials out of manifests.
 
+   For deployment on bosh-lite, the VM- and disk types defined by the postgres-release can be changed to `default` (as specified by the cloud-config that [comes with bosh-lite](https://github.com/cloudfoundry/bosh-deployment/blob/master/warden/cloud-config.yml)) using the following ops file:
+
+   ```bash
+   scripts/generate-deployment-manifest-v2 -o templates/v2/operations/use-lite-types.yml > /tmp/pg.yml
+   ```
+
    You are also provided with options to enable ssl in the PostgreSQL server or to use static ips.
 
 1. Deploy:
