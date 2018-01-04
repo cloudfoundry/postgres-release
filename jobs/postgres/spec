@@ -51,6 +51,7 @@ properties:
         common_name: "Carlo Pedersoli"
   databases.max_connections:
     description: "Maximum number of database connections"
+    default: 500
   databases.log_line_prefix:
     description: "The postgres `printf` style string that is output at the beginning of each log line"
     default: "%m: "
