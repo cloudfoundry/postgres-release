@@ -1,6 +1,14 @@
 - type: replace
-  path: /instance_groups/name=postgres/jobs/name=postgres/properties?/databases/tls
-  value: "((postgres_cert))"
+  path: /instance_groups/name=postgres/jobs/name=postgres/properties/databases/tls?/ca
+  value: ((postgres_cert.ca))
+
+- type: replace
+  path: /instance_groups/name=postgres/jobs/name=postgres/properties/databases/tls?/certificate
+  value: ((postgres_cert.certificate))
+
+- type: replace
+  path: /instance_groups/name=postgres/jobs/name=postgres/properties/databases/tls?/private_key
+  value: ((postgres_cert.private_key))
 
 - type: replace
   path: /variables?/name=postgres_ca?
