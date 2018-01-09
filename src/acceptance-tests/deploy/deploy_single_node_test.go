@@ -150,7 +150,7 @@ var _ = Describe("Deploy single instance", func() {
 		}
 
 		variables["defuser_name"] = "pgadmin"
-		variables["defuser_password"] = "admin"
+		variables["defuser_password"] = "adm$in!"
 		variables["superuser_name"] = "superuser"
 		variables["superuser_password"] = "superpsw"
 		variables["testuser_name"] = "sshuser"
@@ -201,7 +201,7 @@ var _ = Describe("Deploy single instance", func() {
 			// TEST THAT VCAP LOCAL CONNECTION IS  TRUSTED
 			sshKeyFile, err := writeSSHKey(envName)
 			Expect(err).NotTo(HaveOccurred())
-			bosh_ssh_command := "export PGPASSWORD=%s; /var/vcap/packages/postgres-9.6.4/bin/psql -p 5524 -U %s postgres -c 'select now()'"
+			bosh_ssh_command := "export PGPASSWORD='%s'; /var/vcap/packages/postgres-9.6.4/bin/psql -p 5524 -U %s postgres -c 'select now()'"
 			cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, "fake", "vcap"))
 			err = cmd.Run()
 			// TEST THAT NON-VCAP LOCAL CONNECTIONS ARE NOT TRUSTED

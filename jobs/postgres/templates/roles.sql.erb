@@ -1,0 +1,9 @@
+<% p("databases.roles", []).each do |role| %>
+CREATE ROLE "<%= role["name"] %>" WITH LOGIN;
+  <% if role["password"] %>
+ALTER ROLE "<%= role["name"] %>" WITH LOGIN PASSWORD '<%= role["password"] %>';
+  <% end %>
+  <% if role["permissions"] %>
+ALTER ROLE "<%= role["name"] %>" WITH <%= role["permissions"].join(' ') %>;
+  <% end %>
+<% end %>

@@ -12,6 +12,7 @@ templates:
   postgresql.conf.erb: config/postgresql.conf
   pg_hba.conf.erb: config/pg_hba.conf
   pg_ident.conf.erb: config/pg_ident.conf
+  roles.sql.erb: config/roles.sql
   server.private_key.erb: config/certificates/server.private_key
   server.public_cert.erb: config/certificates/server.public_cert
   server.ca_cert.erb: config/certificates/server.ca_cert

@@ -74,24 +74,10 @@ EOF
 
 function create_roles() {
   echo "Creating roles..."
-  <% p("databases.roles", []).each do |role| %>
-    echo "Trying to create role <%= role["name"] %>..."
-    set +e
-    # TODO remove unused roles automatically
-    # Default permissions are: nosuperuser nologin inherit nocreatedb.
-    # Will fail if role already exists, which is OK
-    pgexec postgres "CREATE ROLE \"<%= role["name"] %>\" WITH LOGIN"
-    set -e
-    <% if role["password"] %>
-      <% require 'shellwords' %>
-      echo "Setting password for role <%= role["name"] %>..."
-      pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH LOGIN PASSWORD '<%= Shellwords.shellescape(role["password"]) %>'"
-    <% end %>
-    <% if role["permissions"] %>
-      echo "Adding permissions <%= role["permissions"].join(' ') %> for role <%= role["name"] %>..."
-      pgexec postgres "ALTER ROLE \"<%= role["name"] %>\" WITH <%= role["permissions"].join(' ') %>"
-    <% end %>
-  <% end %>
+  "${PACKAGE_DIR}/bin/psql" \
+    -U "vcap" \
+    -p "${PORT}" \
+	-d "postgres" < ${JOB_DIR}/config/roles.sql
 }
 
 function create_databases() {
