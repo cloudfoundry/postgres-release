@@ -149,8 +149,6 @@ var _ = Describe("Deploy single instance", func() {
 			latestPostgreSQLVersion = versions.GetPostgreSQLVersion(versions.GetLatestVersion())
 		}
 
-		variables["defuser_name"] = "pgadmin"
-		variables["defuser_password"] = "adm$in!"
 		variables["superuser_name"] = "superuser"
 		variables["superuser_password"] = "superpsw"
 		variables["testuser_name"] = "sshuser"
@@ -176,6 +174,8 @@ var _ = Describe("Deploy single instance", func() {
 			version = -1
 			deploymentPrefix = "fresh"
 			variables = make(map[string]interface{})
+			variables["defuser_name"] = "pgadmin"
+			variables["defuser_password"] = "adm$in!"
 
 			variables["certs_matching_certs"] = "certuser_matching_certs"
 			variables["certs_matching_name"] = "certuser_matching_name"
@@ -392,6 +392,8 @@ var _ = Describe("Deploy single instance", func() {
 				version = versions.GetOlderVersion()
 				deploymentPrefix = "upg-older"
 				variables = make(map[string]interface{})
+				variables["defuser_name"] = "pgadmin"
+				variables["defuser_password"] = "admin"
 			})
 			It("Successfully upgrades from older", AssertUpgradeSuccessful())
 		})
@@ -401,6 +403,8 @@ var _ = Describe("Deploy single instance", func() {
 				version = versions.GetOldVersion()
 				deploymentPrefix = "upg-old"
 				variables = make(map[string]interface{})
+				variables["defuser_name"] = "pgadmin"
+				variables["defuser_password"] = "admin"
 			})
 			It("Successfully upgrades from old", AssertUpgradeSuccessful())
 		})
@@ -410,6 +414,8 @@ var _ = Describe("Deploy single instance", func() {
 				version = versions.GetOldVersion()
 				deploymentPrefix = "upg-old-nocopy"
 				variables = make(map[string]interface{})
+				variables["defuser_name"] = "pgadmin"
+				variables["defuser_password"] = "admin"
 			})
 			It("Successfully upgrades from old with no copy of the data directory", AssertUpgradeSuccessful())
 		})
@@ -419,6 +425,8 @@ var _ = Describe("Deploy single instance", func() {
 				version = versions.GetLatestVersion()
 				deploymentPrefix = "upg-master"
 				variables = make(map[string]interface{})
+				variables["defuser_name"] = "pgadmin"
+				variables["defuser_password"] = "admin"
 			})
 			It("Successfully upgrades from master", AssertUpgradeSuccessful())
 		})
