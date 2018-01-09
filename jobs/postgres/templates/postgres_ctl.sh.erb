@@ -14,6 +14,8 @@ function main() {
 
   case "${action}" in
     "start")
+      mkdir -p "${RUN_DIR}"
+
       pid_guard "${CONTROL_JOB_PIDFILE}" "Postgres control job" "false"
       echo $$ > ${CONTROL_JOB_PIDFILE}
 
@@ -38,8 +40,6 @@ function main() {
       # if some queries fail job is still considered running.
       # Later we'll change it to use a more involved approach
       # (i.e. script that brings DB to sync)
-
-      mkdir -p "${RUN_DIR}"
 
       echo "" > "${PIDFILE}"
 
