@@ -15,6 +15,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	cfgtypes "github.com/cloudfoundry/config-server/types"
+	patch "github.com/cppforlife/go-patch/patch"
 )
 
 type BOSHDirector struct {
@@ -69,6 +70,7 @@ type VarsCertLoader struct {
 }
 
 type EvaluateOptions boshtempl.EvaluateOpts
+type OpDefinition patch.OpDefinition
 
 const MissingDeploymentNameMsg = "Invalid manifest: deployment name not present"
 const VMNotPresentMsg = "No VM exists with name %s"
@@ -196,8 +198,18 @@ func (dd DeploymentData) GetVariable(key string) interface{} {
 	return nil
 }
 
-func (dd *DeploymentData) EvaluateTemplate(vars map[string]interface{}, opts EvaluateOptions) error {
+func (dd *DeploymentData) EvaluateTemplate(vars map[string]interface{}, opDefs []OpDefinition, opts EvaluateOptions) error {
 	template := boshtempl.NewTemplate(dd.ManifestBytes)
+
+	var ops patch.Ops
+	var opDefinitions []patch.OpDefinition
+	for _, def := range opDefs {
+		opDefinitions = append(opDefinitions, patch.OpDefinition(def))
+	}
+	ops, err := patch.NewOpsFromDefinitions(opDefinitions)
+	if err != nil {
+		return err
+	}
 
 	var staticVariables boshtempl.StaticVariables
 	var structVariables boshtempl.StaticVariables
@@ -205,7 +217,7 @@ func (dd *DeploymentData) EvaluateTemplate(vars map[string]interface{}, opts Eva
 
 	staticVariables = boshtempl.StaticVariables(vars)
 	structVariables = boshtempl.StaticVariables(make(map[string]interface{}))
-	result, err := template.Evaluate(boshtempl.StaticVariables(vars), nil, boshtempl.EvaluateOpts(opts))
+	result, err := template.Evaluate(boshtempl.StaticVariables(vars), ops, boshtempl.EvaluateOpts(opts))
 	if err != nil {
 		return err
 	}
@@ -241,7 +253,7 @@ func (dd *DeploymentData) EvaluateTemplate(vars map[string]interface{}, opts Eva
 		mapVariables.Add(key, value)
 	}
 	multiVars = boshtempl.NewMultiVars([]boshtempl.Variables{staticVariables, mapVariables})
-	result, err = template.Evaluate(multiVars, nil, boshtempl.EvaluateOpts(opts))
+	result, err = template.Evaluate(multiVars, ops, boshtempl.EvaluateOpts(opts))
 	if err != nil {
 		return err
 	}

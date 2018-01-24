@@ -123,6 +123,7 @@ instance_groups:
   vm_type: %s
 name: %s
 properties:
+  %s: %s
   databases:
     databases:
     - name: pgdb
@@ -130,7 +131,6 @@ properties:
     roles:
     - name: pguser
       password: pgpsw
-  %s: %s
   ssh_key: %s
 releases:
 - name: postgres
@@ -158,12 +158,12 @@ releases:
 			})
 			It("Can interpolate variables", func() {
 				vars := map[string]interface{}{
-					"key":               "foo",
+					"key":               "aaa",
 					"value":             "bar",
 					"sshkey.public_key": "key",
 				}
 				data = fmt.Sprintf(data, "z1", "default", "10GB", "small", envName, vars["key"], vars["value"], vars["sshkey.public_key"], "latest")
-				err := director.GetEnv(envName).EvaluateTemplate(vars, helpers.EvaluateOptions{})
+				err := director.GetEnv(envName).EvaluateTemplate(vars, nil, helpers.EvaluateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(director.GetEnv(envName).ManifestBytes)).To(Equal(data))
 			})
@@ -199,7 +199,7 @@ releases:
 				err = director.SetDeploymentFromManifest(manifestFilePath, nil, envName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(director.GetEnv(envName).ContainsVariables()).To(BeTrue())
-				err = director.GetEnv(envName).EvaluateTemplate(vars, helpers.EvaluateOptions{})
+				err = director.GetEnv(envName).EvaluateTemplate(vars, nil, helpers.EvaluateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				props := director.GetEnv(envName).ManifestData["properties"]
 				password := props.(map[interface{}]interface{})["foo"]
@@ -215,8 +215,30 @@ releases:
 					"key": "foo",
 				}
 				options := helpers.EvaluateOptions{ExpectAllKeys: true}
-				err := director.GetEnv(envName).EvaluateTemplate(vars, options)
+				err := director.GetEnv(envName).EvaluateTemplate(vars, nil, options)
 				Expect(err).NotTo(BeNil())
+			})
+			It("Fails to interpolate operation directives", func() {
+
+				var ops []helpers.OpDefinition
+				var value interface{}
+				value = "aaa"
+
+				helpers.AddOpDefinition(&ops, "replace", "/properties/fake/((key))", value)
+				data = fmt.Sprintf(data, "z1", "default", "10GB", "small", envName, "((key))", value, value, "latest")
+				err := director.GetEnv(envName).EvaluateTemplate(nil, ops, helpers.EvaluateOptions{})
+				Expect(err).NotTo(BeNil())
+			})
+			It("Can interpolate operation directives", func() {
+				var ops []helpers.OpDefinition
+				var value interface{}
+				value = "aaa"
+				helpers.AddOpDefinition(&ops, "replace", "/properties/((key))", value)
+				helpers.AddOpDefinition(&ops, "replace", "/properties/ssh_key", value)
+				data = fmt.Sprintf(data, "z1", "default", "10GB", "small", envName, "((key))", value, value, "latest")
+				err := director.GetEnv(envName).EvaluateTemplate(nil, ops, helpers.EvaluateOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(director.GetEnv(envName).ManifestBytes)).To(Equal(data))
 			})
 		})
 	})

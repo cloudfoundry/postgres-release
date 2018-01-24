@@ -19,3 +19,6 @@
 [submodule "src/acceptance-tests/vendor/github.com/cloudfoundry/config-server"]
 	path = src/acceptance-tests/vendor/github.com/cloudfoundry/config-server
 	url = https://github.com/cloudfoundry/config-server.git
+[submodule "src/acceptance-tests/vendor/github.com/cppforlife/go-patch"]
+	path = src/acceptance-tests/vendor/github.com/cppforlife/go-patch
+	url = https://github.com/cppforlife/go-patch

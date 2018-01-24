@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, name string, variables map[string]interface{}) error {
+func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, name string, variables map[string]interface{}, opDefs []helpers.OpDefinition) error {
 	var err error
 	var vars map[string]interface{}
 	if variables != nil {
@@ -37,7 +37,7 @@ func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, n
 			if _, err = director.GetEnv(name).GetVmAddress("postgres"); err != nil {
 
 				vars["postgres_host"] = "1.1.1.1"
-				err = director.GetEnv(name).EvaluateTemplate(vars, helpers.EvaluateOptions{})
+				err = director.GetEnv(name).EvaluateTemplate(vars, opDefs, helpers.EvaluateOptions{})
 				if err != nil {
 					return err
 				}
@@ -61,7 +61,7 @@ func createOrUpdateDeployment(postgresReleaseVersion int, manifestPath string, n
 				return err
 			}
 		}
-		err = director.GetEnv(name).EvaluateTemplate(vars, helpers.EvaluateOptions{})
+		err = director.GetEnv(name).EvaluateTemplate(vars, opDefs, helpers.EvaluateOptions{})
 		if err != nil {
 			return err
 		}
@@ -142,6 +142,7 @@ var _ = Describe("Deploy single instance", func() {
 	var pgHost string
 
 	JustBeforeEach(func() {
+		manifestPath = "../testing/templates/postgres_simple.yml"
 		var err error
 		envName = helpers.GenerateEnvName(deploymentPrefix)
 		latestPostgreSQLVersion = configParams.PostgreSQLVersion
@@ -154,7 +155,7 @@ var _ = Describe("Deploy single instance", func() {
 		variables["testuser_name"] = "sshuser"
 
 		By("Deploying a single postgres instance")
-		err = createOrUpdateDeployment(version, manifestPath, envName, variables)
+		err = createOrUpdateDeployment(version, manifestPath, envName, variables, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Initializing a postgres client connection")
@@ -170,7 +171,6 @@ var _ = Describe("Deploy single instance", func() {
 	Context("With a fresh deployment", func() {
 
 		BeforeEach(func() {
-			manifestPath = "../testing/templates/postgres_simple.yml"
 			version = -1
 			deploymentPrefix = "fresh"
 			variables = make(map[string]interface{})
@@ -215,9 +215,12 @@ var _ = Describe("Deploy single instance", func() {
 			err = os.Remove(sshKeyFile)
 			Expect(err).NotTo(HaveOccurred())
 
+			By("Updating with bad role")
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables, helpers.Define_add_bad_role())
+			Expect(err).To(HaveOccurred())
+
 			By("Enabling SSL")
-			manifestPath = "../testing/templates/postgres_simple_ssl.yml"
-			err = createOrUpdateDeployment(version, manifestPath, envName, variables)
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables, helpers.Define_ssl_ops())
 			Expect(err).NotTo(HaveOccurred())
 			By("Re-initializing a postgres client connection")
 			DB.CloseConnections()
@@ -279,8 +282,7 @@ var _ = Describe("Deploy single instance", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Using cert authentication for client connection")
-			manifestPath = "../testing/templates/postgres_simple_mssl.yml"
-			err = createOrUpdateDeployment(version, manifestPath, envName, variables)
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables, helpers.Define_mutual_ssl_ops())
 			Expect(err).NotTo(HaveOccurred())
 			By("Re-initializing a postgres client connection")
 			DB.CloseConnections()
@@ -331,6 +333,8 @@ var _ = Describe("Deploy single instance", func() {
 	})
 	Describe("Upgrading an existent env", func() {
 
+		var opDefs []helpers.OpDefinition
+
 		AssertUpgradeSuccessful := func() func() {
 			return func() {
 				var err error
@@ -342,7 +346,7 @@ var _ = Describe("Deploy single instance", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Upgrading to the new release")
-				err = createOrUpdateDeployment(-1, manifestPath, director.GetEnv(envName).Deployment.Name(), variables)
+				err = createOrUpdateDeployment(-1, manifestPath, director.GetEnv(envName).Deployment.Name(), variables, opDefs)
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Validating the database content is still valid after upgrade")
@@ -388,7 +392,6 @@ var _ = Describe("Deploy single instance", func() {
 
 		Context("Upgrading from older version", func() {
 			BeforeEach(func() {
-				manifestPath = "../testing/templates/postgres_simple_nolinks.yml"
 				version = versions.GetOlderVersion()
 				deploymentPrefix = "upg-older"
 				variables = make(map[string]interface{})
@@ -399,7 +402,6 @@ var _ = Describe("Deploy single instance", func() {
 		})
 		Context("Upgrading from old version", func() {
 			BeforeEach(func() {
-				manifestPath = "../testing/templates/postgres_simple_nolinks.yml"
 				version = versions.GetOldVersion()
 				deploymentPrefix = "upg-old"
 				variables = make(map[string]interface{})
@@ -410,18 +412,17 @@ var _ = Describe("Deploy single instance", func() {
 		})
 		Context("Upgrading from minor-no-copy version", func() {
 			BeforeEach(func() {
-				manifestPath = "../testing/templates/postgres_simple_nocopy.yml"
 				version = versions.GetOldVersion()
 				deploymentPrefix = "upg-old-nocopy"
 				variables = make(map[string]interface{})
 				variables["defuser_name"] = "pgadmin"
 				variables["defuser_password"] = "admin"
+				opDefs = helpers.Define_upgrade_no_copy_ops()
 			})
 			It("Successfully upgrades from old with no copy of the data directory", AssertUpgradeSuccessful())
 		})
 		Context("Upgrading from master version", func() {
 			BeforeEach(func() {
-				manifestPath = "../testing/templates/postgres_simple_nolinks.yml"
 				version = versions.GetLatestVersion()
 				deploymentPrefix = "upg-master"
 				variables = make(map[string]interface{})
