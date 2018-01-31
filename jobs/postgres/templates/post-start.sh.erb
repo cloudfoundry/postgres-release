@@ -25,7 +25,7 @@ function create_databases() {
       -U "vcap" \
       -p "${PORT}" \
       -d "postgres" \
-	  -c "CREATE DATABASE <%= database["name"] %>"
+	  -c "CREATE DATABASE \"<%= database["name"] %>\""
 	
     <% if database["citext"] %>
       echo "Trying to install citext..."
