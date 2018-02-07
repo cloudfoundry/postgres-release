@@ -1,0 +1,37 @@
+resource_types:
+- name: rss-resource
+  type: docker-image
+  source:
+    repository: suhlig/concourse-rss-resource
+    tag: latest
+
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+resources:
+- name: postgresql-versions
+  type: rss-resource
+  source:
+    url: https://www.postgresql.org/versions.rss
+
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: {{slack-webhook-url}}
+
+jobs:
+- name: monitor-postgresql-releases
+  plan:
+  - get: postgresql-versions
+    trigger: true
+
+  - put: slack-alert
+    params:
+      channel: '#postgres-release'
+      text_file:  postgresql-versions/link
+      text: |
+        New Postgres version available: $TEXT_FILE_CONTENT
+        See $ATC_EXTERNAL_URL/builds/$BUILD_ID for more details.
