@@ -160,3 +160,25 @@ func Define_add_bad_role() []OpDefinition {
 
 	return ops
 }
+
+func DefineHooks(hooks_timeout string, pre_start string, post_start string, pre_stop string, post_stop string) []OpDefinition {
+	var ops []OpDefinition
+	var path string
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/databases/hooks?/timeout?"
+	AddOpDefinition(&ops, "replace", path, hooks_timeout)
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/databases/hooks?/pre_start?"
+	AddOpDefinition(&ops, "replace", path, pre_start)
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/databases/hooks?/post_start?"
+	AddOpDefinition(&ops, "replace", path, post_start)
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/databases/hooks?/pre_stop?"
+	AddOpDefinition(&ops, "replace", path, pre_stop)
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/databases/hooks?/post_stop?"
+	AddOpDefinition(&ops, "replace", path, post_stop)
+
+	return ops
+}

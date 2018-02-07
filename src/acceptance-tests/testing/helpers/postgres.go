@@ -95,6 +95,7 @@ type PGOutputData struct {
 
 const GetSettingsQuery = "SELECT * FROM pg_settings"
 const ListRolesQuery = "SELECT * from pg_roles"
+const GetRoleQuery = "SELECT * from pg_roles where rolname='%s'"
 const ListDatabasesQuery = "SELECT datname from pg_database where datistemplate=false"
 const ListDBExtensionsQuery = "SELECT extname from pg_extension"
 const ConvertToDateCommand = "SELECT '%s'::timestamptz"
@@ -546,6 +547,20 @@ func (pg PGData) ListRoles() (map[string]PGRole, error) {
 		result[out.Name] = out
 	}
 	return result, nil
+}
+func (pg PGData) CheckRoleExist(role_name string) (bool, error) {
+	conn, err := pg.GetDefaultConnection()
+	if err != nil {
+		return false, err
+	}
+	rows, err := conn.Run(fmt.Sprintf(GetRoleQuery, role_name))
+	if err != nil {
+		return false, err
+	}
+	if rows != nil && len(rows) != 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (pg PGData) ConvertToPostgresDate(inputDate string) (string, error) {

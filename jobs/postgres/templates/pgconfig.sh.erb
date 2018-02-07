@@ -31,6 +31,8 @@ fi
 
 RUN_DIR=/var/vcap/sys/run/postgres
 LOG_DIR=/var/vcap/sys/log/postgres
+HOOK_LOG_OUT=${LOG_DIR}/hooks.stdout.log
+HOOK_LOG_ERR=${LOG_DIR}/hooks.stderr.log
 # external_pid_file in postgresql.conf takes care of
 # overwriting $PIDFILE with actual DB server pid
 PIDFILE="${RUN_DIR}/postgres.pid"

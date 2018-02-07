@@ -49,6 +49,9 @@ function main() {
       ;;
 
     "stop")
+      <% unless p("databases.hooks.pre_stop").empty? %>
+        ${JOB_DIR}/bin/hooks/call-hooks.sh "pre-stop"
+      <% end %>
       echo "Stopping PostgreSQL: "
       for dir in ${pgversion_older} ${pgversion_old} ${pgversion_current}; do
         if [ -d "${STORE_DIR}/${dir}" -a -f "${STORE_DIR}/${dir}/postgresql.conf" ]; then
@@ -72,6 +75,9 @@ function main() {
       wait_pidfile "${PIDFILE}"
       set -u
 
+      <% unless p("databases.hooks.post_stop").empty? %>
+      ${JOB_DIR}/bin/hooks/call-hooks.sh "post-stop"
+      <% end %>
       ;;
 
     *)

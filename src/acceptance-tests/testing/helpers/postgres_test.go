@@ -96,6 +96,22 @@ func mockRoles(expected map[string]helpers.PGRole, mocks map[string]sqlmock.Sqlm
 	}
 	return nil
 }
+func mockGetRole(expected map[string]helpers.PGRole, mocks map[string]sqlmock.Sqlmock, role_name string) error {
+	if expected == nil {
+		mocks[helpers.DefaultDB].ExpectQuery(convertQuery(fmt.Sprintf(helpers.GetRoleQuery, role_name))).WillReturnError(genericError)
+	} else {
+		rows := sqlmock.NewRows(expectedcolumns)
+		for _, elem := range expected {
+			row, err := json.Marshal(elem)
+			if err != nil {
+				return err
+			}
+			rows = rows.AddRow(row)
+		}
+		mocks[helpers.DefaultDB].ExpectQuery(convertQuery(fmt.Sprintf(helpers.GetRoleQuery, role_name))).WillReturnRows(rows)
+	}
+	return nil
+}
 func mockDate(current string, expected string, mocks map[string]sqlmock.Sqlmock) error {
 	sqlCommand := convertQuery(fmt.Sprintf(helpers.ConvertToDateCommand, current))
 	if expected == "" {
@@ -491,6 +507,17 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 				}
 			})
+			It("Fails to check that role exist", func() {
+				expected := map[string]helpers.PGRole{}
+				err := mockGetRole(expected, mocks, "role1")
+				Expect(err).NotTo(HaveOccurred())
+				result, err := pg.CheckRoleExist("role1")
+				Expect(err).NotTo(HaveOccurred())
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+				Expect(result).To(BeFalse())
+			})
 		})
 		Context("Correctly retrieve env info", func() {
 			It("Correctly get postgresql version", func() {
@@ -654,6 +681,21 @@ var _ = Describe("Postgres", func() {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				Expect(result).To(Equal(expected))
+			})
+			It("Correctly checks that role exist", func() {
+				expected := map[string]helpers.PGRole{
+					"role1": helpers.PGRole{
+						Name: "role1",
+					},
+				}
+				err := mockGetRole(expected, mocks, "role1")
+				Expect(err).NotTo(HaveOccurred())
+				result, err := pg.CheckRoleExist("role1")
+				Expect(err).NotTo(HaveOccurred())
+				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+				Expect(result).To(BeTrue())
 			})
 			It("Correctly retrieves all postgres data", func() {
 				expected := helpers.PGOutputData{

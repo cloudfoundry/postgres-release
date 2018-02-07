@@ -49,12 +49,12 @@ In order to deploy the postgres-release you must follow the standard steps for d
    -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
    ```
 
-   You can use the operation file to specify postgres properties or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
+   You can use the operation file to specify `postgres` job properties or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
 
    [This example operation file](templates/operations/set_properties.yml) is a great starting point.
    Note: when using this operation file, you will need to inject `pgadmin_database_password` at `bosh deploy`-time, which is a good pattern for keeping credentials out of manifests.
 
-   You are also provided with options to enable ssl in the PostgreSQL server or to use static ips.
+   You are also provided with options to enable TLS in the PostgreSQL server or to use static ips.
 
 1. Deploy:
 
@@ -70,7 +70,7 @@ In order to deploy the postgres-release you must follow the standard steps for d
 
 ## Customizing
 
-The table below shows the most significant properties you can use to customize your postgres installation.
+The table below shows the most significant properties you can use to customize your PostgreSQL installation.
 The complete list of available properties can be found in the [spec](jobs/postgres/spec).
 
 Property | Description
@@ -82,12 +82,12 @@ databases.databases[n].citext | If `true` the citext extension is created for th
 databases.databases[n].run\_on\_every_startup | A list of SQL commands run at each postgres start against the given database as `vcap` (DEPRECATED!)
 databases.roles | A list of database roles and associated properties to create
 databases.roles[n].name | Role name
-databases.roles[n].password | Login password for the role. If not provided, SSL certificate authentication is assumed for the user.
-databases.roles[n].common_name| The cn attribute of the certificate for the user. It only applies to SSL certificate authentication.
+databases.roles[n].password | Login password for the role. If not provided, TLS certificate authentication is assumed for the user.
+databases.roles[n].common_name| The cn attribute of the certificate for the user. It only applies to TLS certificate authentication.
 databases.roles[n].permissions| A list of attributes for the role. For the complete list of attributes, refer to [ALTER ROLE command options](https://www.postgresql.org/docs/9.4/static/sql-alterrole.html).
 databases.tls.certificate | PEM-encoded certificate for secure TLS communication
 databases.tls.private_key | PEM-encoded key for secure TLS communication
-databases.tls.ca | PEM-encoded certification authority for secure TLS communication. Only needed to let users authenticate with SSL certificate.
+databases.tls.ca | PEM-encoded certification authority for secure TLS communication. Only needed to let users authenticate with TLS certificate.
 databases.max_connections | Maximum number of database connections
 databases.log_line\_prefix | The postgres `printf` style string that is output at the beginning of each log line. Default: `%m:`
 databases.collect_statement\_statistics | Enable the `pg_stat_statements` extension and collect statement execution statistics. Default: `false`
@@ -95,21 +95,26 @@ databases.additional_config | A map of additional key/value pairs to include as 
 databases.monit_timeout | Monit timout in seconds for the postgres job start. Default: `90`.
 databases.trust_local_connection | Whether or not postgres must trust local connections. `vcap` is always trusted. It defaults to `true`.
 databases.skip_data_copy_in_minor | Whether or not a copy of the data directory is created during PostgreSQL minor upgrades. A copy is created by default.
+databases.hooks.timeout | Time limit in seconds for the hook script. By default, it's set to `0` that means no time limit.
+databases.hooks.pre-start | Script to run before starting PostgreSQL.
+databases.hooks.post-start | Script to run after PostgreSQL has started.
+databases.hooks.pre-stop | Script to run before stopping PostgreSQL.
+databases.hooks.post-stop | Script to run after PostgreSQL has stopped.
 
 *Note*
 - Removing a database from `databases.databases` list and deploying again does not trigger a physical deletion of the database in PostgreSQL.
 - Removing a role from `databases.roles` list and deploying again does not trigger a physical deletion of the role in PostgreSQL.
 
-### Enabling SSL on the PostgreSQL server
-PostgreSQL has native support for using SSL connections to encrypt client/server communications for increased security.
+### Enabling TLS on the PostgreSQL server
+PostgreSQL has native support for using TLS connections to encrypt client/server communications for increased security.
 You can enable it by setting the `databases.tls.certificate` and the `databases.tls.private_key` properties.
 
-A script is provided that creates a CA, generates a keypair, and signs it with the CA:
+A script is provided that creates a CA, generates a key pair, and signs it with the CA:
 
 ```
 ./scripts/generate-postgres-certs -n HOSTNAME_OR_IP_ADDRESS
 ```
- The common name for the server certificate  must be set to the DNS hostname if any or to the ip address of the PostgreSQL server. This because in ssl mode 'verify-full', the hostname is matched against the common-name. Refer to [PostgreSQL documentation](https://www.postgresql.org/docs/9.6/static/libpq-ssl.html) for more details.
+ The common name for the server certificate must be set to the DNS hostname if any or to the ip address of the PostgreSQL server. This because in TLS mode `verify-full`, the hostname is matched against the common-name. Refer to [PostgreSQL documentation](https://www.postgresql.org/docs/9.6/static/libpq-ssl.html) for more details.
 
  You can also use [BOSH variables](https://bosh.io/docs/cli-int.html) to generate the certificates. See by way of [example](templates/operations/use_ssl.yml) the operation file used by the manifest generation script.
 
@@ -119,15 +124,15 @@ A script is provided that creates a CA, generates a keypair, and signs it with t
    -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
 
 ```
-### Enabling SSL certificate authentication
+### Enabling TLS certificate authentication
 
-In order to perform authentication using SSL client certificates, you must not specify a user password and you must configure the following properties:
+In order to perform authentication using TLS client certificates, you must not specify a user password and you must configure the following properties:
 
 - `databases.tls.certificate`
 - `databases.tls.private_key`
 - `databases.tls.ca`
 
-The cn (Common Name) attribute of the certificate will be compared to the requested database user name, and if they match the login will be allowed. 
+The cn (Common Name) attribute of the certificate will be compared to the requested database user name, and if they match the login will be allowed.
 
 Optionally you can map the common_name to a different database user by specifying property `databases.roles[n].common_name`.
 
@@ -137,6 +142,20 @@ A script is provided that creates a client certificates:
 ./scripts/generate-postgres-client-certs --ca-cert <PATH-TO-CA-CERT> --ca-key <PATH-TO-CA-KEY> --client-name <USER_NAME>
 ```
 
+### Hooks
+You can run custom code before or after PostgreSQL starts or stops by using the `databases.hooks` properties.
+If you plan to use this feature, you have to take into consideration that:
+- The return code of the hook script is not propagated to the monit control job
+- The output of the hook scripts is logged into `/var/vcap/sys/log/postgres/hooks.std{out,err}.log`
+- The time spent in the pre-start hook will delay the start of PostgreSQL. In the same way, the time spent in the pre-stop will delay the stop of PostgreSQL. This would influence an eventual deployment. For this reason we suggest to avoid long running actions in the hooks and to leverage the `databases.hooks.timeout` property to prevent unexpected delays.
+- The following environment variables will be available in the hooks:
+
+  - `DATA_DIR`: the PostgreSQL data directory (e.g. `/var/vcap/store/postgres/postgres-x.x.x`)
+  - `PORT`: the PostgreSQL port (e.g. `5432`)
+  - `PACKAGE_DIR`: the PostgreSQL binaries directory (e.g. `/var/vcap/packages/postgres-x.x.x`)
+
+  If for example you want to use psql in your hook, you can specify:
+  `${PACKAGE_DIR}/bin/psql -p ${PORT} -U vcap postgres -c "\l"`
 
 ## Contributing
 
@@ -171,7 +190,7 @@ Refer to [versions.yml](versions.yml) in order to assess if you are upgrading to
 
 ### Considerations before deploying
 
-1. A copy of the database is made for the upgrade, you may need to adjust the persistent disk capacity of the postgres job.
+1. A copy of the database is made for the upgrade, you may need to adjust the persistent disk capacity of the `postgres` job.
     - For major upgrades the copy is always created
     - For minor upgrades the copy is created unless the `databases.skip_data_copy_in_minor` is set to `true`.
 1. The upgrade happens as part of the pre-start and its duration may vary basing on your env.
@@ -179,21 +198,21 @@ Refer to [versions.yml](versions.yml) in order to assess if you are upgrading to
     - In case of a PostgreSQL major upgrade the `pg_upgrade` utility is used.
 1. Postgres will be unavailable during this upgrade.
 
-### Considerations after a successfull deployment
+### Considerations after a successful deployment
 
 In case a copy of the old database is kept (see considerations above), the old database is moved to `/var/vcap/store/postgres/postgres-previous`. The postgres-previous directory will be kept until the next postgres upgrade is performed in the future. You are free to remove this if you have verified the new database works and you want to reclaim the space.
 
 ### Recovering a failure during deployment
 
-In case of a long upgrade, the deployment may time out; anyway bosh would not stop the actual upgrade process. In this case you can just wait for the upgrade to complete and, only when postgres is up and running, rerun the bosh deploy.
+In case of a long upgrade, the deployment may time out; anyway, bosh would not stop the actual upgrade process. In this case you can just wait for the upgrade to complete and, only when postgres is up and running, rerun the bosh deploy.
 
 If the upgrade fails:
 
-- The old data directory is still available at `/var/vcap/store/postgres/postgres-x.x.x` where x.x.x is the old PostgreSQL version
-- The new data directory is at `/var/vcap/store/postgres/postgres-y.y.y` where y.y.y is the new PostgreSQL version
+- The old data directory is still available at `/var/vcap/store/postgres/postgres-x.x.x` where `x.x.x` is the old PostgreSQL version
+- The new data directory is at `/var/vcap/store/postgres/postgres-y.y.y` where `y.y.y` is the new PostgreSQL version
 - If the upgrade is a PostgreSQL major upgrade:
   - A marker file is kept at `/var/vcap/store/postgres/POSTGRES_UPGRADE_LOCK` to prevent the upgrade from happening again.
   - `pg_upgrade` logs that may have details of why the migration failed can be found in `/var/vcap/sys/log/postgres/postgres_ctl.log`
 
-If you want to attempt the upgrade again or to rollback to the previous release, you should remove the new data directory and, if present, the marker file.
+If you want to attempt the upgrade again or to roll back to the previous release, you should remove the new data directory and, if present, the marker file.
 

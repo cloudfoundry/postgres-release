@@ -16,6 +16,52 @@ function pgexec() {
     -c "${command}"
 }
 
+function create_roles() {
+  echo "Creating roles..."
+  "${PACKAGE_DIR}/bin/psql" \
+    -U "vcap" \
+    -p "${PORT}" \
+    -d "postgres" -c "\set ON_ERROR_STOP on" -f "${JOB_DIR}/config/roles.sql"
+}
+
+function create_databases() {
+  echo "Creating databases..."
+  <% p("databases.databases", []).each do |database| %>
+    echo "Creating database <%= database["name"] %>..."
+    "${PACKAGE_DIR}/bin/psql" \
+      -U "vcap" \
+      -p "${PORT}" \
+      -d "postgres" \
+	  -tc "SELECT 1 FROM pg_database WHERE datname = '<%= database["name"] %>'" \
+      | grep -q 1 || \
+      "${PACKAGE_DIR}/bin/psql" \
+      -U "vcap" \
+      -p "${PORT}" \
+      -d "postgres" \
+	  -c "CREATE DATABASE \"<%= database["name"] %>\""
+	
+    <% if database["citext"] %>
+      echo "Trying to install citext..."
+      pgexec "<%= database["name"] %>" "CREATE EXTENSION IF NOT EXISTS citext"
+    <% end %>
+
+    echo "Enabling pgcrypto extension..."
+    pgexec "<%= database["name"] %>" "CREATE EXTENSION IF NOT EXISTS pgcrypto"
+
+    <% if p("databases.collect_statement_statistics") %>
+      echo "Enabling pg_stat_statements extension..."
+      pgexec "<%= database["name"] %>" "CREATE EXTENSION IF NOT EXISTS pg_stat_statements"
+    <% end %>
+
+    <% if database["run_on_every_startup"] %>
+      <% database["run_on_every_startup"].each do |query| %>
+        echo "WARNING: run_on_every_startup option is deprecated!!!"
+        pgexec "<%= database["name"] %>" "<%= query %>"
+      <% end %>
+    <% end %>
+  <% end %>
+}
+
 function is_major() {
   [ "${pgversion_current%.*}" != "${pgversion_upgrade_from%.*}" ]
 }

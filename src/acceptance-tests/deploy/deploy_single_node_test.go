@@ -190,6 +190,66 @@ var _ = Describe("Deploy single instance", func() {
 			variables["certs_bad_ca"] = "bad_ca"
 		})
 
+		It("Successfully manage hooks", func() {
+			var err error
+			By("Deploying hooks")
+			psql_command := "${PACKAGE_DIR}/bin/psql -U vcap -p ${PORT} -d postgres -c 'CREATE ROLE %s WITH LOGIN'"
+			pre_start_uuid := helpers.GetUUID()
+			post_start_role_name := "poststartuser"
+			pre_stop_role_name := "prestopuser"
+			post_stop_uuid := helpers.GetUUID()
+
+			pre_start_value := fmt.Sprintf("echo %s", pre_start_uuid)
+			post_start_value := fmt.Sprintf(psql_command, post_start_role_name)
+			pre_stop_value := fmt.Sprintf(psql_command, pre_stop_role_name)
+			post_stop_value := fmt.Sprintf("echo %s", post_stop_uuid)
+
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables, helpers.DefineHooks("0", pre_start_value, post_start_value, pre_stop_value, post_stop_value))
+			Expect(err).NotTo(HaveOccurred())
+
+			sshKeyFile, err := writeSSHKey(envName)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Testing the pre-start hook")
+			bosh_ssh_command := "source /var/vcap/jobs/postgres/bin/pgconfig.sh; grep %s ${HOOK_LOG_OUT}"
+			cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, pre_start_uuid))
+			err = cmd.Run()
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Testing the post-start hook")
+			role_exist, err := DB.CheckRoleExist(post_start_role_name)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(role_exist).To(BeTrue())
+
+			By("Restarting postgres node")
+			err = director.GetEnv(envName).Restart("postgres")
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Testing the pre-stop hook")
+			role_exist, err = DB.CheckRoleExist(pre_stop_role_name)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(role_exist).To(BeTrue())
+
+			By("Testing the post-stop hook")
+			bosh_ssh_command = "source /var/vcap/jobs/postgres/bin/pgconfig.sh; grep %s ${HOOK_LOG_OUT}"
+			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, post_stop_uuid))
+			err = cmd.Run()
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Verifying that hooks failure does not prevent postgres to start")
+			pre_start_uuid = helpers.GetUUID()
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables, helpers.DefineHooks("3", fmt.Sprintf("for i in $(seq 10); do echo %s-$i; sleep 1; done", pre_start_uuid), "", "", ""))
+			Expect(err).NotTo(HaveOccurred())
+			sshKeyFile, err = writeSSHKey(envName)
+			Expect(err).NotTo(HaveOccurred())
+			bosh_ssh_command = "source /var/vcap/jobs/postgres/bin/pgconfig.sh; if ! grep %s-10 ${HOOK_LOG_OUT}; then exit 0; else exit 1; fi"
+			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, pre_start_uuid))
+			err = cmd.Run()
+			Expect(err).NotTo(HaveOccurred())
+			_, err = DB.GetPostgreSQLVersion()
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		It("Successfully deploys a fresh env", func() {
 			pgData, err := DB.GetData()
 			Expect(err).NotTo(HaveOccurred())
@@ -204,8 +264,8 @@ var _ = Describe("Deploy single instance", func() {
 			bosh_ssh_command := "export PGPASSWORD='%s'; /var/vcap/packages/postgres-9.6.6/bin/psql -p 5524 -U %s postgres -c 'select now()'"
 			cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, "fake", "vcap"))
 			err = cmd.Run()
-			// TEST THAT NON-VCAP LOCAL CONNECTIONS ARE NOT TRUSTED
 			Expect(err).NotTo(HaveOccurred())
+			// TEST THAT NON-VCAP LOCAL CONNECTIONS ARE NOT TRUSTED
 			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, "fake", variables["defuser_name"]))
 			err = cmd.Run()
 			Expect(err).To(HaveOccurred())
