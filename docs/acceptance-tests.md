@@ -1,6 +1,7 @@
 # Postgres-release Acceptance Tests (PGATS)
 
 The acceptance tests run several deployments of the postgres-release in order to exercise a variety of scenario:
+
 - Verify that customizable configurations are properly reflected in the PostgreSQL server
   - Roles
   - Databases
@@ -8,14 +9,7 @@ The acceptance tests run several deployments of the postgres-release in order to
   - Properties (e.g. max_connections)
 - Test supported upgrade paths from previous versions
 
-You can run PGATS in two ways:
-
-* [locally](#running-pgats-locally)
-* [as BOSH errand](#running-pgats-as-bosh-errand)
-
-## Running PGATS locally
-
-### Environment setup
+## Environment setup
 
 * Upload to the BOSH director the latest stemcell and your dev postgres-release:
 
@@ -39,7 +33,7 @@ Make sure that the BOSH director is configured with the [cloud_config.yml](https
 It requires the Director to be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html).
 
 
-### Configuration
+## Configuration
 
 An example config yml for bosh-lite would look like:
 
@@ -105,8 +99,7 @@ Other paramaters:
 * `postgresql_version` The PostgreSQL version that is expected to be deployed. You only need to specify it if your changes include a PostgreSQL version upgrade.
 If not specified, we expect that the one in the latest published postgres-release is deployed.
 
-
-### Running
+## Running
 
 Run all the tests with:
 
@@ -121,48 +114,3 @@ PGATS_CONFIG=[pgats_config.yml] <postgres-release>/src/acceptance-tests/scripts/
 ```
 
 The `PGATS_CONFIG` environment variable must point to the absolute path of the [configuration file](#configuration)
-
-
-## Running PGATS as BOSH errand
-
-### Environment setup
-* Install the BOSH command line Interface (CLI) v2+.
-   Please refer to [BOSH CLI documentation](https://bosh.io/docs/cli-v2.html#install).
-
-
-* Upload to the BOSH director the latest stemcell and your dev postgres-release:
-
-```
-bosh upload-stemcell STEMCELL_URL_OR_PATH_TO_DOWNLOADED_STEMCELL
-bosh create-release --force
-bosh upload-release
-```
-
-* Tests make use of BOSH v2 manifests. 
-Make sure that the BOSH director is configured with the [cloud_config.yml](https://bosh.io/docs/cloud-config.html#update).
-
-* PGATS use bosh-cli director package for programmatic access to the Director API. 
-It requires the Director to be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html).
-
-### Running
-Generate the manifest.
-
-- You must provide in input a variable file containing BOSH director url, user, password, and ca certificate. See by way of [example](blob/master/templates/v2/bosh-lite/pgats-vars.yml) a variable file for bosh-lite.
-
-- You can provide in input an [operation file](https://bosh.io/docs/cli-ops-files.html). You can use it:
-  - to customize the properties (see [example](blob/master/templates/v2/operations/pgats-props.yml))
-  - to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible
-
-```
-~/workspace/postgres-release/scripts/generate-pgats-manifest-v2 \
-   -v VARIABLE-FILE-PATH \
-   -o OPERATION-FILE-PATH > pgats_errand.yml
-
-```
-
-Deploy and run the errand:
-
-```
-bosh pgats-errand deploy pgats_errand.yml
-bosh run-errand acceptance-tests
-```
