@@ -45,20 +45,14 @@ In order to deploy the postgres-release you must follow the standard steps for d
 1. Generate the manifest. You can provide in input an [operation file](https://bosh.io/docs/cli-ops-files.html) to customize the manifest:
 
    ```
-   ~/workspace/postgres-release/scripts/generate-deployment-manifest-v2 \
+   ~/workspace/postgres-release/scripts/generate-deployment-manifest \
    -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
    ```
 
    You can use the operation file to specify postgres properties or to override the configuration if your BOSH director [cloud-config](http://bosh.io/docs/cloud-config.html) is not compatible.
 
-   [This example operation file](templates/v2/operations/set_properties.yml) is a great starting point.
+   [This example operation file](templates/operations/set_properties.yml) is a great starting point.
    Note: when using this operation file, you will need to inject `pgadmin_database_password` at `bosh deploy`-time, which is a good pattern for keeping credentials out of manifests.
-
-   For deployment on bosh-lite, the VM- and disk types defined by the postgres-release can be changed to `default` (as specified by the cloud-config that [comes with bosh-lite](https://github.com/cloudfoundry/bosh-deployment/blob/master/warden/cloud-config.yml)) using the following ops file:
-
-   ```bash
-   scripts/generate-deployment-manifest-v2 -o templates/v2/operations/use-lite-types.yml > /tmp/pg.yml
-   ```
 
    You are also provided with options to enable ssl in the PostgreSQL server or to use static ips.
 
@@ -117,10 +111,10 @@ A script is provided that creates a CA, generates a keypair, and signs it with t
 ```
  The common name for the server certificate  must be set to the DNS hostname if any or to the ip address of the PostgreSQL server. This because in ssl mode 'verify-full', the hostname is matched against the common-name. Refer to [PostgreSQL documentation](https://www.postgresql.org/docs/9.6/static/libpq-ssl.html) for more details.
 
- You can also use [BOSH variables](https://bosh.io/docs/cli-int.html) to generate the certificates. See by way of [example](templates/v2/operations/use_ssl.yml) the operation file used by the manifest generation script. 
+ You can also use [BOSH variables](https://bosh.io/docs/cli-int.html) to generate the certificates. See by way of [example](templates/operations/use_ssl.yml) the operation file used by the manifest generation script.
 
 ```
-~/workspace/postgres-release/scripts/generate-deployment-manifest-v2 \
+~/workspace/postgres-release/scripts/generate-deployment-manifest \
    -s -h HOSTNAME_OR_IP_ADDRESS \
    -o OPERATION-FILE-PATH > OUTPUT_MANIFEST_PATH
 

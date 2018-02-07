@@ -2,7 +2,7 @@
 
 set -e
 
-manifest_dir=$(dirname $0)/../templates/v2
+manifest_dir=$(dirname $0)/../templates
 
 usage() {
   >&2 cat <<EOF
@@ -15,7 +15,7 @@ USAGE:
 OPTIONAL ARGUMENTS:
     -s                           Enable SSL on PostgreSQL server.
     -i                           Use a static ip for postgres vm.
-    -o <path-to-operations-file> Path to operation file. You can use it to customize the manifest (see by way of example 'templates/v2/operations/set_properties.yml').
+    -o <path-to-operations-file> Path to operation file. You can use it to customize the manifest (see by way of example 'templates/operations/set_properties.yml').
     -h <postgres-host-or-ip>     Required by '-s' and '-i' options. Specify the DNS hostname or the ip address of the PostgreSQL server (see note for details about ssl).
 	-v <var_store_file>          Optionally provide a read write value source where to save generated variable values.
     -b <bosh-cli-alias>          Specify the bosh cli if different from 'bosh'.
