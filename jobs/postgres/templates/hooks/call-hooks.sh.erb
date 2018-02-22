@@ -1,0 +1,10 @@
+#!/bin/bash
+source /var/vcap/jobs/postgres/bin/pgconfig.sh
+phase=$1
+echo "Invoking postgres ${phase} hook"
+echo "------------ STARTING ${phase} at `date` --------------" >> ${HOOK_LOG_OUT} 2>>${HOOK_LOG_ERR}
+env -i PACKAGE_DIR=${PACKAGE_DIR} PORT=${PORT} DATA_DIR=${DATA_DIR} timeout <%=p("databases.hooks.timeout") %> ${JOB_DIR}/bin/hooks/postgres-${phase}.sh >> ${HOOK_LOG_OUT} 2>>${HOOK_LOG_ERR}
+retcode=$?
+echo "------------ COMPLETED ${phase} at `date` with return code $retcode--------------" >> ${HOOK_LOG_OUT} 2>>${HOOK_LOG_ERR}
+echo "postgres ${phase} hook invoked with return code $retcode"
+exit 0
