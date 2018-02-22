@@ -1,0 +1,53 @@
+#!/bin/bash -exu
+
+exec > >(tee -a >(logger -p user.info -t vcap.$(basename $0).stdout) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")]"); print " " $0 }' >> /var/vcap/sys/log/postgres/$(basename $0).log)
+exec 2> >(tee -a >(logger -p user.error -t vcap.$(basename $0).stderr) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")]"); print " " $0 }' >> /var/vcap/sys/log/postgres/$(basename $0).err.log)
+
+function main() {
+  local action
+  action="${1}"
+
+  source /var/vcap/jobs/postgres/bin/utils.sh
+  set +u
+  source /var/vcap/packages/postgres-common/utils.sh
+  set -u
+
+  case "${action}" in
+    "start")
+      mkdir -p "${RUN_DIR}"
+      pid_guard "${PGJANITOR_PIDFILE}" "Postgres Janitor"
+
+      # wait for postgres to start for at most n seconds
+      timeout <%= p("databases.monit_timeout") %> bash -c "while true; do
+        ${PACKAGE_DIR}/bin/pg_isready -p ${PORT} -U vcap
+        if [ "$?" == "0" ]; then
+          exit 0
+        fi
+        sleep 1
+      done"
+      # update/create roles and databases
+      if [ "$?" != "0" ]; then
+        echo "Failed while waiting for postgres to start"
+        exit 1
+      fi
+      create_roles
+      create_databases
+      echo $$ > "${PGJANITOR_PIDFILE}"
+      sleep infinity
+      ;;
+
+    "stop")
+      echo "Stopping Postgres janitor"
+      kill_and_wait "${PGJANITOR_PIDFILE}"
+      ;;
+
+    *)
+      echo "Usage: ${0} {start|stop|status}"
+      exit 1
+
+      ;;
+
+  esac
+}
+
+main "${1}"

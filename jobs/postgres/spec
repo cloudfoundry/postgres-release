@@ -5,8 +5,8 @@ description: "The Postgres server provides a single instance Postgres database t
 
 templates:
   pre-start.sh.erb: bin/pre-start
-  post-start.sh.erb: bin/post-start
   postgres_ctl.sh.erb: bin/postgres_ctl
+  pg_janitor_ctl.sh.erb: bin/pg_janitor_ctl
   postgres_start.sh.erb: bin/postgres_start.sh
   pgconfig.sh.erb: bin/pgconfig.sh
   utils.sh.erb: bin/utils.sh

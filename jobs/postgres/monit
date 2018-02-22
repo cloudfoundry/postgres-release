@@ -4,3 +4,10 @@ check process postgres
     as uid vcap and gid vcap timeout <%= p("databases.monit_timeout") %> seconds
   stop program "/var/vcap/jobs/postgres/bin/postgres_ctl stop"
   group vcap
+check process pg_janitor
+  with pidfile /var/vcap/sys/run/postgres/pg_janitor.pid
+  start program "/var/vcap/jobs/postgres/bin/pg_janitor_ctl start"
+    as uid vcap and gid vcap timeout <%= p("databases.monit_timeout") %> seconds
+  stop program "/var/vcap/jobs/postgres/bin/pg_janitor_ctl stop"
+  depends on postgres
+  group vcap

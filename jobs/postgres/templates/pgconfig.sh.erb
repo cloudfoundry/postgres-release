@@ -37,6 +37,7 @@ HOOK_LOG_ERR=${LOG_DIR}/hooks.stderr.log
 # overwriting $PIDFILE with actual DB server pid
 PIDFILE="${RUN_DIR}/postgres.pid"
 CONTROL_JOB_PIDFILE="${RUN_DIR}/postgresctl.pid"
+PGJANITOR_PIDFILE="${RUN_DIR}/pg_janitor.pid"
 
 HOST="0.0.0.0"
 PORT="<%= p("databases.port") %>"
