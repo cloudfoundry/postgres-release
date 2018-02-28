@@ -25,15 +25,17 @@ function main() {
         fi
         sleep 1
       done"
-      # update/create roles and databases
       if [ "$?" != "0" ]; then
         echo "Failed while waiting for postgres to start"
         exit 1
       fi
+
+      # update/create roles and databases
       create_roles
       create_databases
+
       echo $$ > "${PGJANITOR_PIDFILE}"
-      sleep infinity
+      exec ${JOB_DIR}/bin/pg_janitor.sh
       ;;
 
     "stop")

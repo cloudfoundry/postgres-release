@@ -63,4 +63,4 @@ update:
   canary_watch_time: 30000-600000
   max_in_flight: 1
   serial: true
-  update_watch_time: 5000-600000
+  update_watch_time: 15000-300000

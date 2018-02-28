@@ -7,6 +7,7 @@ templates:
   pre-start.sh.erb: bin/pre-start
   postgres_ctl.sh.erb: bin/postgres_ctl
   pg_janitor_ctl.sh.erb: bin/pg_janitor_ctl
+  pg_janitor.sh.erb: bin/pg_janitor.sh
   postgres_start.sh.erb: bin/postgres_start.sh
   pgconfig.sh.erb: bin/pgconfig.sh
   utils.sh.erb: bin/utils.sh
@@ -19,6 +20,7 @@ templates:
   server.ca_cert.erb: config/certificates/server.ca_cert
   hooks/call-hooks.sh.erb: bin/hooks/call-hooks.sh
   hooks/postgres-pre-start.sh.erb: bin/hooks/postgres-pre-start.sh
+  hooks/janitor.sh.erb: bin/hooks/janitor.sh
   hooks/postgres-pre-stop.sh.erb: bin/hooks/postgres-pre-stop.sh
   hooks/postgres-post-start.sh.erb: bin/hooks/postgres-post-start.sh
   hooks/postgres-post-stop.sh.erb: bin/hooks/postgres-post-stop.sh
@@ -112,3 +114,16 @@ properties:
   databases.hooks.post_stop:
     description: "Script to run after PostgreSQL has stopped"
     default: ''
+  janitor.script:
+    description: "If specified, janitor would periodically run this script"
+    default: ''
+    example: |
+      #!/bin/bash
+      echo "Run VACUUM"
+      ${PACKAGE_DIR}/bin/psql -p ${PORT} -U vcap sandbox -c "VACUUM ANALYZE"
+  janitor.interval:
+    description: "Interval in seconds between two invocations of the janitor script. By default it's set to 1 day."
+    default: 86400
+  janitor.timeout:
+    description: "Time limit in seconds for the janitor script. By default it's set to 0 that means no time limit"
+    default: 0

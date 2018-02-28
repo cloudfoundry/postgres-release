@@ -100,6 +100,9 @@ databases.hooks.pre-start | Script to run before starting PostgreSQL.
 databases.hooks.post-start | Script to run after PostgreSQL has started.
 databases.hooks.pre-stop | Script to run before stopping PostgreSQL.
 databases.hooks.post-stop | Script to run after PostgreSQL has stopped.
+janitor.script | If specified, this script would be run periodically. This would be useful for running house-keeping tasks.
+janitor.interval | Interval in seconds between two invocations of the janitor script. By default it's set to `1` day.
+janitor.timeout | Time limit in seconds for the janitor script. By default it's set to `0` that means no time limit.
 
 *Note*
 - Removing a database from `databases.databases` list and deploying again does not trigger a physical deletion of the database in PostgreSQL.
@@ -156,6 +159,8 @@ If you plan to use this feature, you have to take into consideration that:
 
   If for example you want to use psql in your hook, you can specify:
   `${PACKAGE_DIR}/bin/psql -p ${PORT} -U vcap postgres -c "\l"`
+
+If you are interested in running something periodically, see the `janitor` configuration.
 
 ## Contributing
 

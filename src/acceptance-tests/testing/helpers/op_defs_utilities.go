@@ -1,5 +1,11 @@
 package helpers
 
+type Janitor struct {
+	Timeout  int
+	Interval int
+	Script   string
+}
+
 func AddOpDefinition(ods *[]OpDefinition, defType string, defPath string, defValue interface{}) {
 	od := OpDefinition{
 		Type:  defType,
@@ -179,6 +185,22 @@ func DefineHooks(hooks_timeout string, pre_start string, post_start string, pre_
 
 	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/databases/hooks?/post_stop?"
 	AddOpDefinition(&ops, "replace", path, post_stop)
+
+	return ops
+}
+
+func (j Janitor) GetOpDefinitions() []OpDefinition {
+	var ops []OpDefinition
+	var path string
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/janitor?/timeout?"
+	AddOpDefinition(&ops, "replace", path, j.Timeout)
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/janitor?/interval?"
+	AddOpDefinition(&ops, "replace", path, j.Interval)
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/janitor?/script?"
+	AddOpDefinition(&ops, "replace", path, j.Script)
 
 	return ops
 }

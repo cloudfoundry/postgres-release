@@ -1,6 +1,7 @@
 package deploy_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -204,7 +205,18 @@ var _ = Describe("Deploy single instance", func() {
 			pre_stop_value := fmt.Sprintf(psql_command, pre_stop_role_name)
 			post_stop_value := fmt.Sprintf("echo %s", post_stop_uuid)
 
-			err = createOrUpdateDeployment(version, manifestPath, envName, variables, helpers.DefineHooks("0", pre_start_value, post_start_value, pre_stop_value, post_stop_value))
+			jan := helpers.Janitor{
+				Script: `${PACKAGE_DIR}/bin/psql -U vcap -p ${PORT} -d postgres << EOF
+CREATE TABLE IF NOT EXISTS test_hook(name VARCHAR(10) NOT NULL UNIQUE,total INTEGER NOT NULL);
+INSERT INTO test_hook (name, total) VALUES ('test', 1) ON CONFLICT (name) DO NOTHING;
+UPDATE test_hook SET total = total + 1 WHERE name = 'test';
+EOF
+`,
+				Timeout:  60,
+				Interval: 1,
+			}
+
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables, append(jan.GetOpDefinitions(), helpers.DefineHooks("0", pre_start_value, post_start_value, pre_stop_value, post_stop_value)...))
 			Expect(err).NotTo(HaveOccurred())
 
 			sshKeyFile, err := writeSSHKey(envName)
@@ -235,6 +247,52 @@ var _ = Describe("Deploy single instance", func() {
 			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, post_stop_uuid))
 			err = cmd.Run()
 			Expect(err).NotTo(HaveOccurred())
+			err = os.Remove(sshKeyFile)
+
+			By("Testing the frequency-based hook")
+			conn, err := DB.GetSuperUserConnection()
+			Eventually(func() int {
+				rows, err := conn.Run("select total from test_hook where name = 'test'")
+				var counter struct {
+					Total int `json:"total"`
+				}
+				Expect(err).NotTo(HaveOccurred())
+				err = json.Unmarshal([]byte(rows[0]), &counter)
+				Expect(err).NotTo(HaveOccurred())
+				return counter.Total
+			}, "15s", "2s").Should(BeNumerically(">", 10))
+
+			By("Verifying that janitor script failure causes monit to restart janitor")
+			jan = helpers.Janitor{
+				Script: `#!/bin/bash
+STATEFILE=/tmp/statefile
+if [ -f $STATEFILE ]; then
+  echo second start >> $STATEFILE
+else
+  touch $STATEFILE
+  chmod 777 $STATEFILE
+  exit 1
+fi`,
+				Timeout:  60,
+				Interval: 86400,
+			}
+
+			err = createOrUpdateDeployment(version, manifestPath, envName, variables, jan.GetOpDefinitions())
+			Expect(err).NotTo(HaveOccurred())
+
+			sshKeyFile, err = writeSSHKey(envName)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() string {
+				bosh_ssh_command = "grep second /tmp/statefile"
+				cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), bosh_ssh_command)
+				err = cmd.Run()
+				if err != nil {
+					return err.Error()
+				}
+				return ""
+			}, "10s", "2s").Should(BeEmpty())
+			err = os.Remove(sshKeyFile)
 
 			By("Verifying that hooks failure does not prevent postgres to start")
 			pre_start_uuid = helpers.GetUUID()
@@ -248,6 +306,7 @@ var _ = Describe("Deploy single instance", func() {
 			Expect(err).NotTo(HaveOccurred())
 			_, err = DB.GetPostgreSQLVersion()
 			Expect(err).NotTo(HaveOccurred())
+			err = os.Remove(sshKeyFile)
 		})
 
 		It("Successfully deploys a fresh env", func() {
@@ -457,6 +516,7 @@ var _ = Describe("Deploy single instance", func() {
 				variables = make(map[string]interface{})
 				variables["defuser_name"] = "pgadmin"
 				variables["defuser_password"] = "admin"
+				opDefs = nil
 			})
 			It("Successfully upgrades from older", AssertUpgradeSuccessful())
 		})
@@ -467,6 +527,7 @@ var _ = Describe("Deploy single instance", func() {
 				variables = make(map[string]interface{})
 				variables["defuser_name"] = "pgadmin"
 				variables["defuser_password"] = "admin"
+				opDefs = nil
 			})
 			It("Successfully upgrades from old", AssertUpgradeSuccessful())
 		})
@@ -488,6 +549,7 @@ var _ = Describe("Deploy single instance", func() {
 				variables = make(map[string]interface{})
 				variables["defuser_name"] = "pgadmin"
 				variables["defuser_password"] = "admin"
+				opDefs = nil
 			})
 			It("Successfully upgrades from master", AssertUpgradeSuccessful())
 		})
