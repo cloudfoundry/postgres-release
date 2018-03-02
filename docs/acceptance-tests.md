@@ -9,36 +9,41 @@ The acceptance tests run several deployments of the postgres-release in order to
   - Properties (e.g. max_connections)
 - Test supported upgrade paths from previous versions
 
+## Get the code
+
+```bash
+$ go get github.com/cloudfoundry/postgres-release
+$ cd $GOPATH/src/github.com/cloudfoundry/postgres-release
+$ git submodule update --init --recursive
+```
+
 ## Environment setup
 
 * Upload to the BOSH director the latest stemcell and your dev postgres-release:
 
-```
-bosh upload-stemcell STEMCELL_URL_OR_PATH_TO_DOWNLOADED_STEMCELL
-bosh create-release --force
-bosh upload-release
-```
+  ```bash
+  $ bosh upload-stemcell STEMCELL_URL_OR_PATH_TO_DOWNLOADED_STEMCELL
+  $ bosh create-release --force
+  $ bosh upload-release
+  ```
 
 * The acceptance tests are written in Go. Make sure that:
- - Golang (>=1.7) is installed on the machine
- - the postgres-release is inside your $GOPATH
+  - Golang (>=1.7) is installed on the machine
+  - the postgres-release is inside your $GOPATH
 
 * PGATS must have access to the target BOSH director and to the postgres VM deployed from it.
 If you are testing using a bosh-lite, make sure you’ve run `bin/add-route` to setup routing rules.
 
-* Tests make use of BOSH v2 manifests.
-Make sure that the BOSH director is configured with the [cloud_config.yml](https://bosh.io/docs/cloud-config.html#update).
+* Tests make use of BOSH v2 manifests. Make sure that the BOSH director is configured with the [cloud_config.yml](https://bosh.io/docs/cloud-config.html#update).
 
-* PGATS use bosh-cli director package for programmatic access to the Director API.
-It requires the Director to be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html).
-
+* PGATS use bosh-cli director package for programmatic access to the Director API. It requires the Director to be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html).
 
 ## Configuration
 
-An example config yml for bosh-lite would look like:
+An example config file for bosh-lite would look like:
 
-```
-cat > pgats_config.yml << EOF
+```bash
+$ cat > $GOPATH/src/github.com/cloudfoundry/postgres-release/pgats_config.yml << EOF
 ---
 bosh:
   target: 192.168.50.4
@@ -74,7 +79,6 @@ cloud_configs:
   default_persistent_disk_type: 10GB
   default_vm_type: small
 EOF
-export PGATS_CONFIG=$PWD/pgats_config.yml
 ```
 
 The full set of config parameters is explained below.
@@ -103,14 +107,16 @@ If not specified, we expect that the one in the latest published postgres-releas
 
 Run all the tests with:
 
-```
-PGATS_CONFIG=[pgats_config.yml] <postgres-release>/src/acceptance-tests/scripts/test
+```bash
+$ export PGATS_CONFIG=$GOPATH/src/github.com/cloudfoundry/postgres-release/pgats_config.yml
+$ $GOPATH/src/github.com/cloudfoundry/postgres-release/src/acceptance-tests/scripts/test
 ```
 
 Run a specific set of tests with:
 
-```
-PGATS_CONFIG=[pgats_config.yml] <postgres-release>/src/acceptance-tests/scripts/test <some test packages>
+```bash
+$ export PGATS_CONFIG=$GOPATH/src/github.com/cloudfoundry/postgres-release/pgats_config.yml
+$ $GOPATH/src/github.com/cloudfoundry/postgres-release/src/acceptance-tests/scripts/test <some test packages>
 ```
 
-The `PGATS_CONFIG` environment variable must point to the absolute path of the [configuration file](#configuration)
+The `PGATS_CONFIG` environment variable must point to the absolute path of the [configuration file](#configuration).
