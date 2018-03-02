@@ -225,7 +225,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fail if no port provided", func() {
 				props := helpers.PGCommon{
-					Address: "bb",
+					Address: "bb.example.com",
 					DefUser: helpers.User{
 						Name:     "uu",
 						Password: "pp",
@@ -236,7 +236,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fail if no default user provided", func() {
 				props := helpers.PGCommon{
-					Address: "bb",
+					Address: "bb.example.com",
 					Port:    10,
 					DefUser: helpers.User{
 						Password: "pp",
@@ -247,7 +247,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fail if no default password provided", func() {
 				props := helpers.PGCommon{
-					Address: "bb",
+					Address: "bb.example.com",
 					Port:    10,
 					DefUser: helpers.User{
 						Name: "uu",
@@ -258,7 +258,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fail if incorrect data provided", func() {
 				props := helpers.PGCommon{
-					Address: "bb",
+					Address: "bb.example.com",
 					Port:    10,
 					DefUser: helpers.User{
 						Name:     "uu",
@@ -272,7 +272,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fail if getting super user connection and no super user provided", func() {
 				props := helpers.PGCommon{
-					Address: "bb",
+					Address: "bb.example.com",
 					Port:    10,
 					DefUser: helpers.User{
 						Name:     "uu",
