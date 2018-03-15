@@ -320,7 +320,7 @@ fi`,
 			// TEST THAT VCAP LOCAL CONNECTION IS  TRUSTED
 			sshKeyFile, err := writeSSHKey(envName)
 			Expect(err).NotTo(HaveOccurred())
-			bosh_ssh_command := "export PGPASSWORD='%s'; /var/vcap/packages/postgres-9.6.6/bin/psql -p 5524 -U %s postgres -c 'select now()'"
+			bosh_ssh_command := "export PGPASSWORD='%s'; /var/vcap/packages/postgres-9.6.8/bin/psql -p 5524 -U %s postgres -c 'select now()'"
 			cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, "fake", "vcap"))
 			err = cmd.Run()
 			Expect(err).NotTo(HaveOccurred())
@@ -361,7 +361,7 @@ fi`,
 			// TEST THAT VCAP LOCAL CONNECTION IS  TRUSTED
 			sshKeyFile, err = writeSSHKey(envName)
 			Expect(err).NotTo(HaveOccurred())
-			bosh_ssh_command = "/var/vcap/packages/postgres-9.6.6/bin/psql -p 5524 -U %s postgres -c 'select now()'"
+			bosh_ssh_command = "/var/vcap/packages/postgres-9.6.8/bin/psql -p 5524 -U %s postgres -c 'select now()'"
 			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", variables["testuser_name"], pgHost), fmt.Sprintf(bosh_ssh_command, "vcap"))
 			err = cmd.Run()
 
