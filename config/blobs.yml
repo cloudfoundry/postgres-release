@@ -4,4 +4,5 @@ postgres/postgresql-9.6.6.tar.gz:
   sha: fff718c31685b7c2b6b99e97916260f8cf7f0083
 postgres/postgresql-9.6.8.tar.gz:
   size: 25580796
+  object_id: b23ff07d-14b4-42d5-68a7-8aff7237c05d
   sha: 0045f862882772815dec9f6b62481849490634e6
