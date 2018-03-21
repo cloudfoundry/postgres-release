@@ -53,12 +53,6 @@ function create_databases() {
       pgexec "<%= database["name"] %>" "CREATE EXTENSION IF NOT EXISTS pg_stat_statements"
     <% end %>
 
-    <% if database["run_on_every_startup"] %>
-      <% database["run_on_every_startup"].each do |query| %>
-        echo "WARNING: run_on_every_startup option is deprecated!!!"
-        pgexec "<%= database["name"] %>" "<%= query %>"
-      <% end %>
-    <% end %>
   <% end %>
 }
 

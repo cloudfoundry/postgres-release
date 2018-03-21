@@ -79,7 +79,6 @@ databases.port | The database port. Default: 5432
 databases.databases | A list of databases and associated properties to create when Postgres starts
 databases.databases[n].name | Database name
 databases.databases[n].citext | If `true` the citext extension is created for the db
-databases.databases[n].run\_on\_every_startup | A list of SQL commands run at each postgres start against the given database as `vcap` (DEPRECATED!)
 databases.roles | A list of database roles and associated properties to create
 databases.roles[n].name | Role name
 databases.roles[n].password | Login password for the role. If not provided, TLS certificate authentication is assumed for the user.
@@ -146,21 +145,8 @@ A script is provided that creates a client certificates:
 ```
 
 ### Hooks
-You can run custom code before or after PostgreSQL starts or stops by using the `databases.hooks` properties.
-If you plan to use this feature, you have to take into consideration that:
-- The return code of the hook script is not propagated to the monit control job
-- The output of the hook scripts is logged into `/var/vcap/sys/log/postgres/hooks.std{out,err}.log`
-- The time spent in the pre-start hook will delay the start of PostgreSQL. In the same way, the time spent in the pre-stop will delay the stop of PostgreSQL. This would influence an eventual deployment. For this reason we suggest to avoid long running actions in the hooks and to leverage the `databases.hooks.timeout` property to prevent unexpected delays.
-- The following environment variables will be available in the hooks:
-
-  - `DATA_DIR`: the PostgreSQL data directory (e.g. `/var/vcap/store/postgres/postgres-x.x.x`)
-  - `PORT`: the PostgreSQL port (e.g. `5432`)
-  - `PACKAGE_DIR`: the PostgreSQL binaries directory (e.g. `/var/vcap/packages/postgres-x.x.x`)
-
-  If for example you want to use psql in your hook, you can specify:
-  `${PACKAGE_DIR}/bin/psql -p ${PORT} -U vcap postgres -c "\l"`
-
-If you are interested in running something periodically, see the `janitor` configuration.
+You can run custom code before or after PostgreSQL starts or stops or periodically.
+For details, see [hooks](docs/hooks.md) documentation.
 
 ## Contributing
 
