@@ -1,4 +1,7 @@
-#!/bin/bash -exu
+#!/bin/bash -eu
+
+exec > >(tee -a >(logger -p user.info -t vcap.$(basename $0).stdout) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")]"); print " " $0 }' >> /var/vcap/sys/log/postgres/pre-start.stdout.log)
+exec 2> >(tee -a >(logger -p user.error -t vcap.$(basename $0).stderr) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")]"); print " " $0 }' >> /var/vcap/sys/log/postgres/pre-start.stderr.log)
 
 set +u
 source /var/vcap/packages/postgres-common/utils.sh

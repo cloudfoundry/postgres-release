@@ -1,4 +1,4 @@
-#!/bin/bash -exu
+#!/bin/bash -eu
 
 exec > >(tee -a >(logger -p user.info -t vcap.$(basename $0).stdout) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")]"); print " " $0 }' >> /var/vcap/sys/log/postgres/$(basename $0).log)
 exec 2> >(tee -a >(logger -p user.error -t vcap.$(basename $0).stderr) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")]"); print " " $0 }' >> /var/vcap/sys/log/postgres/$(basename $0).err.log)
@@ -20,7 +20,7 @@ function main() {
       echo $$ > ${CONTROL_JOB_PIDFILE}
 
       if [ -d $DATA_DIR -a -f $POSTGRES_UPGRADE_LOCK ]; then
-        echo "FAIL: DB upgrade stopped in the middle, manual intervention required, quitting..."
+        echo "FAIL: DB upgrade to ${pgversion_current} stopped in the middle, manual intervention required, quitting..."
         exit 1
       fi
 
@@ -32,14 +32,6 @@ function main() {
       fi
 
       pid_guard "${PIDFILE}" "PostgreSQL"
-
-      # TODO: This script is responsible for both
-      # starting PostgreSQL and running some queries
-      # (create DBs, roles, applying grants). One problem
-      # that needs to be addressed in the future is that
-      # if some queries fail job is still considered running.
-      # Later we'll change it to use a more involved approach
-      # (i.e. script that brings DB to sync)
 
       echo "" > "${PIDFILE}"
 

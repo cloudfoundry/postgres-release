@@ -1,4 +1,4 @@
-#!/bin/bash -exu
+#!/bin/bash -eu
 
 source /var/vcap/jobs/postgres/bin/pgconfig.sh
 
@@ -63,6 +63,7 @@ function is_major() {
 function init_data_dir(){
   if [ ! -f "${DATA_DIR}/postgresql.conf" ]; then
     # initdb creates data directories
+    echo "Initializing data directory ${DATA_DIR}"
     su - vcap -c "${PACKAGE_DIR}/bin/initdb -E utf8 --locale en_US.UTF-8 -D ${DATA_DIR}"
   fi
 }
