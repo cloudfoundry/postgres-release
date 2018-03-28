@@ -114,6 +114,9 @@ properties:
   databases.hooks.post_stop:
     description: "Script to run after PostgreSQL has stopped"
     default: ''
+  databases.enable_trace:
+    description: "Print additional traces in control scripts"
+    default: false
   janitor.script:
     description: "If specified, janitor would periodically run this script"
     default: ''

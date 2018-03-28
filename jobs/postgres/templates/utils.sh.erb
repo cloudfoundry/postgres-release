@@ -78,6 +78,9 @@ function run_major_upgrade(){
     # Move to a directory writeable by vcap user
     su - vcap <<EOF
     set -e
+    if [ "$ENABLE_TRACE" != "0" ]; then
+      set -x
+    fi
     mkdir -p "${PG_STORE_DIR}/pg_upgrade_tmp"
     pushd "${PG_STORE_DIR}/pg_upgrade_tmp"
       ${PACKAGE_DIR}/bin/pg_upgrade \
@@ -104,6 +107,9 @@ function run_minor_upgrade(){
 
     su - vcap <<EOF
     set -e
+    if [ "$ENABLE_TRACE" != "0" ]; then
+      set -x
+    fi
     pushd "${DATA_DIR_OLD}" > /dev/null
       cp -r * ${DATA_DIR}
     popd > /dev/null
