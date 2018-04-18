@@ -18,9 +18,9 @@ function main() {
       -race \
       -failFast \
       -succinct \
-      -randomizeAllSpecs \
       -randomizeSuites \
       --skip="Upgrading from (master|older|minor-no-copy) version" \
+      --skip="Fails to update with a bad role" \
       -slowSpecThreshold 300 \
       "$@"
   popd > /dev/null

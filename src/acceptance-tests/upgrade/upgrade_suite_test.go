@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	deployHelper helpers.DeployHelper
 	configParams helpers.PgatsConfig
 	versions     helpers.PostgresReleaseVersions
 )
@@ -27,12 +26,12 @@ var _ = BeforeSuite(func() {
 	configParams, err = helpers.LoadConfig(configPath)
 	Expect(err).NotTo(HaveOccurred())
 
-	deployHelper.Initialize(configParams, "upgrade", helpers.DeployLatestVersion)
-	Expect(err).NotTo(HaveOccurred())
-	
 	versions, err = helpers.NewPostgresReleaseVersions(configParams.VersionsFile)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = deployHelper.UploadLatestReleaseFromURL("cloudfoundry", "os-conf-release")
+	directorHelper, err := helpers.NewDeployHelper(configParams, "", 0)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = directorHelper.UploadLatestReleaseFromURL("cloudfoundry", "os-conf-release")
 	Expect(err).NotTo(HaveOccurred())
 })

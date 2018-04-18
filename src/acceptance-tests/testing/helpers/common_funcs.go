@@ -15,22 +15,24 @@ type DeployHelper struct {
 	opDefs       []OpDefinition
 }
 
-func (d *DeployHelper) Initialize(params PgatsConfig, prefix string, pgVersion int) error {
+func NewDeployHelper(params PgatsConfig, prefix string, pgVersion int) (DeployHelper, error) {
+	var deployHelper DeployHelper
 	var err error
+
 	releases := make(map[string]string)
 	releases["postgres"] = params.PGReleaseVersion
 
-	d.director, err = NewBOSHDirector(params.Bosh, params.BoshCC, releases)
+	deployHelper.director, err = NewBOSHDirector(params.Bosh, params.BoshCC, releases)
 	if err != nil {
-		return err
+		return DeployHelper{}, err
 	}
 
-	d.manifestPath = "../testing/templates/postgres_simple.yml"
-	d.SetDeploymentName(prefix)
-	d.SetPGVersion(pgVersion)
-	d.InitializeVariables()
-	d.opDefs = nil
-	return nil
+	deployHelper.manifestPath = "../testing/templates/postgres_simple.yml"
+	deployHelper.SetDeploymentName(prefix)
+	deployHelper.SetPGVersion(pgVersion)
+	deployHelper.InitializeVariables()
+	deployHelper.opDefs = nil
+	return deployHelper, nil
 }
 
 func (d *DeployHelper) SetDeploymentName(prefix string) {
@@ -143,6 +145,7 @@ func (d DeployHelper) Deploy() error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func (d DeployHelper) GetPostgresJobProps() (Properties, error) {

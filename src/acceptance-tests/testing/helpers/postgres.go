@@ -213,19 +213,32 @@ func (pg *PGData) SetCertUserCertificates(user string, certs map[interface{}]int
 }
 
 func (pg *PGData) UseCertAuthentication(useCert bool) error {
-	if err := pg.checkCertUser(); err != nil {
-		return err
+	if useCert {
+		if err := pg.checkCertUser(); err != nil {
+			return err
+		}
 	}
 	pg.Data.UseCert = useCert
 	pg.CloseConnections()
 	return nil
 }
 func (pg *PGData) ChangeSSLMode(sslmode string, sslrootcert string) error {
+	var err error
+	rootCertpath := ""
 	if err := checkSSLMode(sslmode, sslrootcert); err != nil {
 		return err
 	}
+	if sslrootcert != "" {
+		rootCertpath, err = WriteFile(sslrootcert)
+		if err != nil {
+			return err
+		}
+	}
+	if pg.Data.SSLRootCert != "" {
+		os.Remove(pg.Data.SSLRootCert)
+	}
 	pg.Data.SSLMode = sslmode
-	pg.Data.SSLRootCert = sslrootcert
+	pg.Data.SSLRootCert = rootCertpath
 	pg.CloseConnections()
 	return nil
 }
