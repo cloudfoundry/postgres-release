@@ -23,8 +23,8 @@ If you plan to use these scripts to run custom code, you have to take into consi
   If for example you want to use psql in your hook, you can specify:
   `${PACKAGE_DIR}/bin/psql -p ${PORT} -U vcap postgres -c "\l"`
 
-- In relation to the start up sequence, `databases.hooks.post-start` and `pg_janitor` may run concurrently. It implies that `databases.hooks.post-start` may or may not run before `pg_janitor` actually creates the roles and databases; if you need a database or a role there, wait that it has been actually created before using it. 
-
+- In relation to the start up sequence, `databases.hooks.post-start` and `pg_janitor` may run concurrently. It implies that `databases.hooks.post-start` may or may not run before `pg_janitor` actually creates the roles and databases; if you need a database or a role there, wait that it has been actually created before using it.
+- Since monit starts and stops postgres based on the PostgreSQL process id, the `databases.hooks.post-stop` script may run concurrently with the restart of PostgreSQL. Likewise, the `databases.hooks.post-start` script may run concurrently with the stop of PostgreSQL.
 
 ## Using hooks to replace `run_on_every_startup` property
 
