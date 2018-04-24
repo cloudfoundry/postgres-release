@@ -32,7 +32,8 @@ preflight_check() {
 
 function main() {
   preflight_check
-  source ${root}/postgres-release/jobs/postgres/templates/pgconfig.sh.erb
+  cat ${root}/postgres-release/jobs/postgres/templates/pgconfig.sh.erb | grep current_version > ${root}/pgconfig.sh
+  source ${root}/pgconfig.sh
   config_file="${root}/pgats_config.yml"
   create_config_file > $config_file
   to_dir=${GOPATH}/src/github.com/cloudfoundry/postgres-release
