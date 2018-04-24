@@ -1,6 +1,8 @@
 package patch
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type FindOp struct {
 	Path Pointer
