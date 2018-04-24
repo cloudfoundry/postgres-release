@@ -185,7 +185,7 @@ func (bd BOSHDirector) UploadLatestReleaseFromURL(organization string, repo stri
 }
 
 func (dd DeploymentData) ContainsVariables() bool {
-	return dd.ManifestData != nil && dd.ManifestData["variables"] != nil
+	return dd.ManifestData != nil && dd.ManifestData["variables"] != nil && len(dd.ManifestData["variables"].([]interface{})) != 0
 }
 
 func (dd DeploymentData) GetVariable(key string) interface{} {
@@ -259,6 +259,11 @@ func (dd *DeploymentData) EvaluateTemplate(vars map[string]interface{}, opDefs [
 	}
 	dd.ManifestBytes = result
 	if err := yaml.Unmarshal(dd.ManifestBytes, &dd.ManifestData); err != nil {
+		return err
+	}
+	dd.ManifestData["variables"] = []boshtempl.Variables{}
+	dd.ManifestBytes, err = yaml.Marshal(&dd.ManifestData)
+	if err != nil {
 		return err
 	}
 	dd.Variables = multiVars

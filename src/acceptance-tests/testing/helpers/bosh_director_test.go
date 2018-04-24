@@ -135,6 +135,7 @@ properties:
 releases:
 - name: postgres
   version: %s
+variables: []
 `
 				input := fmt.Sprintf(data, "xx", "xx", "xx", "xx", "xx", "((key))", "((value))", "((sshkey.public_key))", "xx")
 				manifestFilePath, err = helpers.WriteFile(input)
