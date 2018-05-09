@@ -148,6 +148,15 @@ A script is provided that creates a client certificates:
 You can run custom code before or after PostgreSQL starts or stops or periodically.
 For details, see [hooks](docs/hooks.md) documentation.
 
+### Backup and Restore
+You can enable backup and restore through bbr by colocating the `bbr-postgres-db` job with the `postgres` job and by setting its `release_level_backup` option to `true`. If enabled, a backup is collected using `pg_dump` for each database specified in the `databases.databases` property.
+
+Caveats:
+
+- Restore does not drop the database, the extensions, or the schema; therefore the schema of the restored and existing databases must be the same.
+- If a backup is not present for one of the configured databases in the `databases.databases` property, the restore issues a message and continues.
+- The `bbr-postgres-db` job must be co-located with `postgres` job because it backups the database connecting locally as the database superuser `vcap`.
+
 ## Contributing
 
 ### Contributor License Agreement

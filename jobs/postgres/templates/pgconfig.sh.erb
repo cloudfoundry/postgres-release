@@ -54,3 +54,4 @@ if [[ -n "${LD_LIBRARY_PATH:-}" ]]; then
 else
   LD_LIBRARY_PATH="${PACKAGE_DIR}/lib"
 fi
+DATABASES=(<%= p("databases.databases", []).map{|d| d["name"]}.join(' ')%>)

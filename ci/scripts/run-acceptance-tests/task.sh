@@ -20,6 +20,12 @@ postgresql_version: "PostgreSQL ${current_version}"
 EOF
 }
 
+function install_bbr() {
+  wget -O bbr.tar "https://github.com/cloudfoundry-incubator/bosh-backup-and-restore/releases/download/v${BBR_VERSION}/bbr-${BBR_VERSION}.tar"
+  tar xvf bbr.tar releases/bbr --strip-components=1
+  mv bbr /usr/local/bin
+}
+
 preflight_check() {
   set +x
   test -n "${BOSH_DIRECTOR}"
@@ -27,11 +33,13 @@ preflight_check() {
   test -n "${BOSH_CLIENT_SECRET}"
   test -n "${BOSH_CA_CERT}"
   test -n "${REL_VERSION}"
+  test -n "${BBR_VERSION}"
   set -x
 }
 
 function main() {
   preflight_check
+  install_bbr
   cat ${root}/postgres-release/jobs/postgres/templates/pgconfig.sh.erb | grep current_version > ${root}/pgconfig.sh
   source ${root}/pgconfig.sh
   config_file="${root}/pgats_config.yml"

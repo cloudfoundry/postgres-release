@@ -38,6 +38,8 @@ If you are testing using a bosh-lite, make sure you’ve run `bin/add-route` to 
 
 * PGATS use bosh-cli director package for programmatic access to the Director API. It requires the Director to be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html).
 
+* Some test cases make use of [bbr](https://docs.cloudfoundry.org/bbr/installing.html). Make sure that it is available in your $PATH.
+
 ## Configuration
 
 An example config file for bosh-lite would look like:

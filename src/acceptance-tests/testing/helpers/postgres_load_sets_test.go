@@ -10,7 +10,7 @@ import (
 var _ = Describe("Postgres load sets", func() {
 	Context("Generate valid tables lists", func() {
 		It("Correctly creates a table list", func() {
-			tables := helpers.GetSampleLoad(helpers.Test2Load)
+			tables := helpers.GetSampleLoadWithPrefix(helpers.Test2Load, "pgats_table")
 			expected := []helpers.PGLoadTable{
 				helpers.PGLoadTable{
 					Name: "pgats_table_0",

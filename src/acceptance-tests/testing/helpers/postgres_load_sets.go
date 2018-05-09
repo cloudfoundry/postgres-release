@@ -34,7 +34,7 @@ var SmallLoad = LoadType{NumTables: 2, NumColumns: 10, NumRows: 50}
 var MediumLoad = LoadType{NumTables: 10, NumColumns: 10, NumRows: 100}
 var LargeLoad = LoadType{NumTables: 100, NumColumns: 10, NumRows: 20000}
 
-func GetSampleLoad(loadType LoadType) []PGLoadTable {
+func GetSampleLoadWithPrefix(loadType LoadType, prefix string) []PGLoadTable {
 	if loadType.NumTables <= 0 {
 		return nil
 	}
@@ -42,7 +42,7 @@ func GetSampleLoad(loadType LoadType) []PGLoadTable {
 	rowTypesNum := len(RowSamples)
 	for i := 0; i < loadType.NumTables; i++ {
 		var table = PGLoadTable{
-			Name:        fmt.Sprintf("pgats_table_%d", i),
+			Name:        fmt.Sprintf("%s_%d", prefix, i),
 			ColumnNames: make([]string, loadType.NumColumns),
 			ColumnTypes: make([]string, loadType.NumColumns),
 			SampleRow:   make([]interface{}, loadType.NumColumns),

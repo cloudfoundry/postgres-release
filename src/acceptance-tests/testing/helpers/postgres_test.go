@@ -96,6 +96,23 @@ func mockRoles(expected map[string]helpers.PGRole, mocks map[string]sqlmock.Sqlm
 	}
 	return nil
 }
+func mockGetTable(expected map[string]helpers.PGTable, mocks map[string]sqlmock.Sqlmock, table_name string) error {
+	if expected == nil {
+		mocks["dbsuper"].ExpectQuery(convertQuery(fmt.Sprintf(helpers.GetTableQuery, table_name))).WillReturnError(genericError)
+	} else {
+		rows := sqlmock.NewRows(expectedcolumns)
+		for _, elem := range expected {
+			row, err := json.Marshal(elem)
+			if err != nil {
+				return err
+			}
+			rows = rows.AddRow(row)
+		}
+		mocks["dbsuper"].ExpectQuery(convertQuery(fmt.Sprintf(helpers.GetTableQuery, table_name))).WillReturnRows(rows)
+		fmt.Println(convertQuery(fmt.Sprintf(helpers.GetTableQuery, table_name)))
+	}
+	return nil
+}
 func mockGetRole(expected map[string]helpers.PGRole, mocks map[string]sqlmock.Sqlmock, role_name string) error {
 	if expected == nil {
 		mocks[helpers.DefaultDB].ExpectQuery(convertQuery(fmt.Sprintf(helpers.GetRoleQuery, role_name))).WillReturnError(genericError)
@@ -518,6 +535,17 @@ var _ = Describe("Postgres", func() {
 				}
 				Expect(result).To(BeFalse())
 			})
+			It("Fails to check that table exist", func() {
+				expected := map[string]helpers.PGTable{}
+				err := mockGetTable(expected, mocks, "table1")
+				Expect(err).NotTo(HaveOccurred())
+				result, err := pg.CheckTableExist("table1", helpers.DefaultDB)
+				Expect(err).NotTo(HaveOccurred())
+				if err = mocks["dbsuper"].ExpectationsWereMet(); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+				Expect(result).To(BeFalse())
+			})
 		})
 		Context("Correctly retrieve env info", func() {
 			It("Correctly get postgresql version", func() {
@@ -682,7 +710,7 @@ var _ = Describe("Postgres", func() {
 				}
 				Expect(result).To(Equal(expected))
 			})
-			It("Correctly checks that role exist", func() {
+			It("Correctly checks that role exists", func() {
 				expected := map[string]helpers.PGRole{
 					"role1": helpers.PGRole{
 						Name: "role1",
@@ -693,6 +721,21 @@ var _ = Describe("Postgres", func() {
 				result, err := pg.CheckRoleExist("role1")
 				Expect(err).NotTo(HaveOccurred())
 				if err = mocks[helpers.DefaultDB].ExpectationsWereMet(); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
+				Expect(result).To(BeTrue())
+			})
+			It("Correctly checks that table exists", func() {
+				var table1 helpers.PGTable
+				table1.TableName = "table1"
+				expected := map[string]helpers.PGTable{
+					"table1": table1,
+				}
+				err := mockGetTable(expected, mocks, "table1")
+				Expect(err).NotTo(HaveOccurred())
+				result, err := pg.CheckTableExist("table1", helpers.DefaultDB)
+				Expect(err).NotTo(HaveOccurred())
+				if err = mocks["dbsuper"].ExpectationsWereMet(); err != nil {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				Expect(result).To(BeTrue())
@@ -785,15 +828,18 @@ var _ = Describe("Postgres", func() {
 					conn.DB.Close()
 				}
 			})
-			It("Correctly create the table", func() {
+			It("Correctly create and drop the table", func() {
 				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectBegin()
 				mock.ExpectPrepare(prepared)
 				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectExec("").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectCommit()
+				mock.ExpectExec("DROP TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
 
-				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				err := pg.CreateAndPopulateTablesWithPrefix("db1", helpers.Test1Load, "pgats_table")
+				Expect(err).NotTo(HaveOccurred())
+				err = pg.DropTable("db1", "pgats_table_0")
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())

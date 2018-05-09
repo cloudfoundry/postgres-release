@@ -96,6 +96,7 @@ type PGOutputData struct {
 const GetSettingsQuery = "SELECT * FROM pg_settings"
 const ListRolesQuery = "SELECT * from pg_roles"
 const GetRoleQuery = "SELECT * from pg_roles where rolname='%s'"
+const GetTableQuery = "SELECT * from pg_catalog.pg_tables where tablename='%s'"
 const ListDatabasesQuery = "SELECT datname from pg_database where datistemplate=false"
 const ListDBExtensionsQuery = "SELECT extname from pg_extension"
 const ConvertToDateCommand = "SELECT '%s'::timestamptz"
@@ -104,6 +105,7 @@ const ListTableColumnsQuery = "SELECT column_name, data_type, ordinal_position F
 const CountTableRowsQuery = "SELECT COUNT(*) FROM %s"
 const GetPostgreSQLVersionQuery = "SELECT version()"
 const QueryResultAsJson = "SELECT row_to_json(t) from (%s) as t;"
+const DropTable = "DROP TABLE %s"
 
 const NoConnectionAvailableErr = "No connections available"
 const MissingDBAddressErr = "Database address not specified"
@@ -361,13 +363,30 @@ func (pg PGConn) Exec(query string) error {
 	return nil
 }
 
-func (pg PGData) CreateAndPopulateTables(dbName string, loadType LoadType) error {
+func (pg PGData) DropTable(dbName string, tableName string) error {
 
 	conn, err := pg.GetDBConnection(dbName)
 	if err != nil {
 		return err
 	}
-	tables := GetSampleLoad(loadType)
+	err = conn.Exec(fmt.Sprintf(DropTable, tableName))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pg PGData) CreateAndPopulateTables(dbName string, loadType LoadType) error {
+	return pg.CreateAndPopulateTablesWithPrefix(dbName, loadType, "pgats_table")
+}
+
+func (pg PGData) CreateAndPopulateTablesWithPrefix(dbName string, loadType LoadType, prefix string) error {
+
+	conn, err := pg.GetDBConnection(dbName)
+	if err != nil {
+		return err
+	}
+	tables := GetSampleLoadWithPrefix(loadType, prefix)
 
 	for _, table := range tables {
 		err = conn.Exec(table.PrepareCreate())
@@ -540,6 +559,20 @@ func (pg PGData) ListDatabaseTables(dbName string) ([]PGTable, error) {
 		tableList = append(tableList, tableData)
 	}
 	return tableList, nil
+}
+func (pg PGData) CheckTableExist(table_name string, dbName string) (bool, error) {
+	conn, err := pg.GetDBSuperUserConnection(dbName)
+	if err != nil {
+		return false, err
+	}
+	rows, err := conn.Run(fmt.Sprintf(GetTableQuery, table_name))
+	if err != nil {
+		return false, err
+	}
+	if rows != nil && len(rows) != 0 {
+		return true, nil
+	}
+	return false, nil
 }
 func (pg PGData) ListRoles() (map[string]PGRole, error) {
 	result := make(map[string]PGRole)

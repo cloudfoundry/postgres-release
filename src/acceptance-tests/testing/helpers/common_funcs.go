@@ -81,6 +81,10 @@ func (d DeployHelper) GetDeployment() *DeploymentData {
 	return d.director.GetEnv(d.name)
 }
 
+func (d DeployHelper) GetDeploymentName() string {
+	return d.name
+}
+
 func (d DeployHelper) UploadLatestReleaseFromURL(organization string, project string) error {
 	return d.director.UploadLatestReleaseFromURL(organization, project)
 }

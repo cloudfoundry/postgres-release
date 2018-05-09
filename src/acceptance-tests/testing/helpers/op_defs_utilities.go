@@ -15,6 +15,28 @@ func AddOpDefinition(ods *[]OpDefinition, defType string, defPath string, defVal
 	*ods = append(*ods, od)
 }
 
+func Define_bbr_ops() []OpDefinition {
+	var ops []OpDefinition
+	var value interface{}
+	var path string
+
+	path = "/instance_groups/name=postgres/jobs/-"
+	value = map[interface{}]interface{}{
+		"name":    "bbr-postgres-db",
+		"release": "postgres",
+		"consumes": map[interface{}]interface{}{
+			"database": map[interface{}]interface{}{
+				"from": "postgres-database",
+			},
+		},
+		"properties": map[interface{}]interface{}{
+			"release_level_backup": true,
+		},
+	}
+	AddOpDefinition(&ops, "replace", path, value)
+	return ops
+}
+
 func Define_upgrade_no_copy_ops() []OpDefinition {
 	var ops []OpDefinition
 	var value interface{}

@@ -1,0 +1,20 @@
+---
+name: bbr-postgres-db
+
+description: "This sample job must be collocated with the postgres job since leverages local db connections."
+
+templates:
+  config.sh.erb: config/config.sh
+  backup.sh.erb: bin/bbr/backup
+  restore.sh.erb: bin/bbr/restore
+
+packages: []
+
+consumes:
+- name: database
+  type: database
+
+properties:
+  release_level_backup:
+    default: false
+    description: "Include postgres in backup and restore operations"

@@ -49,9 +49,7 @@ databases:
   hooks:
     post_start: |
       #!/bin/bash
-      wait_time=10
-      for ((i=wait_time; i>=1; i--))
-      do
+      for i in {10..0}; do
         result=$(${PACKAGE_DIR}/bin/psql -p ${PORT} -U vcap postgres -t -P format=unaligned -c "SELECT 1 from pg_database WHERE datname='sandbox'")
         if [ "$result" == "1" ]; then
           break

@@ -21,6 +21,14 @@ func WriteFile(data string) (string, error) {
 	return tempFile.Name(), nil
 }
 
+func CreateTempDir() (string, error) {
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", err
+	}
+	return dir, nil
+}
+
 func SetPermissions(pathToFile string, mode os.FileMode) error {
 	if err := os.Chmod(pathToFile, mode); err != nil {
 		return err
