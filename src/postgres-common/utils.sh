@@ -38,7 +38,7 @@ wait_pidfile() {
     if [ -e /proc/$pid ]; then
       if [ "$try_kill" = "1" ]; then
         echo "Killing $pidfile: $pid "
-        kill $pid
+        killProcessTree $pid
       fi
       while [ -e /proc/$pid ]; do
         sleep 0.1
@@ -116,6 +116,19 @@ check_pidfile() {
     echo "Pidfile $pidfile doesn't exist"
   fi
 }
+
 running_in_container() {
   grep -q -E '/instance|/docker/' /proc/self/cgroup
+}
+
+listProcessTree() {
+  for child in $(ps --no-headers --format pid --ppid $1); do
+    echo $child
+    listProcessTree $child
+  done
+}
+
+killProcessTree() {
+  listProcessTree $1 | xargs kill
+  kill $1
 }

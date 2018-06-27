@@ -319,6 +319,21 @@ name: test
 				Expect(err).NotTo(HaveOccurred())
 			})
 
+			It("Fails to stop the VM", func() {
+				var err error
+				deploymentFake.StopReturns(errors.New("fake-error"))
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.GetEnv(envName).Stop("postgres")
+				Expect(err).To(Equal(errors.New("fake-error")))
+			})
+
+			It("Can stop the VM", func() {
+				var err error
+				deploymentFake.StopReturns(nil)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.GetEnv(envName).Stop("postgres")
+				Expect(err).NotTo(HaveOccurred())
+			})
 			It("Fail to pause resurrection", func() {
 				var err error
 				deploymentFake.EnableResurrectionReturns(errors.New("fake-error"))

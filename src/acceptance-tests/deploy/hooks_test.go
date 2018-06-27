@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
 
@@ -147,6 +148,31 @@ EOF
 				Expect(err).NotTo(HaveOccurred())
 				return counter.Total
 			}, "15s", "2s").Should(BeNumerically(">", 10))
+		})
+	})
+
+	Context("Janitor script runs correctly", func() {
+		BeforeEach(func() {
+			deployHelper.SetOpDefs(nil)
+		})
+		It("Successfully stops janitor", func() {
+			var err error
+			var bosh_ssh_command string
+			var cmd *exec.Cmd
+
+			By("Stopping the postgres node")
+			err = deployHelper.GetDeployment().Stop("postgres")
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Checking that janitor childs are stopped")
+			// We expected two processes to exist because of our ssh command:
+			// sshuser    10787   10786  bash -c ps -ef | grep janitor
+			// sshuser    10789   10787  grep janitor
+			bosh_ssh_command = "ps -ef | grep -c janitor"
+			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), bosh_ssh_command)
+			output, err := cmd.Output()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(strings.Trim(string(output), " \n\t\r")).To(Equal("2"))
 		})
 	})
 

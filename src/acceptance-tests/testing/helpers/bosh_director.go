@@ -283,6 +283,11 @@ func (dd DeploymentData) Restart(instanceGroupName string) error {
 	restartOptions := boshdir.RestartOpts{}
 	return dd.Deployment.Restart(slug, restartOptions)
 }
+func (dd DeploymentData) Stop(instanceGroupName string) error {
+	slug := boshdir.NewAllOrInstanceGroupOrInstanceSlug(instanceGroupName, "")
+	stopOptions := boshdir.StopOpts{}
+	return dd.Deployment.Stop(slug, stopOptions)
+}
 func (dd DeploymentData) IsVmRunning(vmid string) (bool, error) {
 	return dd.IsVmProcessRunning(vmid, "")
 }
