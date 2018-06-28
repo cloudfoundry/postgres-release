@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -13,6 +14,7 @@ type DeployHelper struct {
 	pgVersion    int
 	variables    map[string]interface{}
 	opDefs       []OpDefinition
+	printDiffs   bool
 }
 
 func NewDeployHelper(params PgatsConfig, prefix string, pgVersion int) (DeployHelper, error) {
@@ -32,11 +34,16 @@ func NewDeployHelper(params PgatsConfig, prefix string, pgVersion int) (DeployHe
 	deployHelper.SetPGVersion(pgVersion)
 	deployHelper.InitializeVariables()
 	deployHelper.opDefs = nil
+	deployHelper.printDiffs = false
 	return deployHelper, nil
 }
 
 func (d *DeployHelper) SetDeploymentName(prefix string) {
 	d.name = GenerateEnvName(prefix)
+}
+
+func (d *DeployHelper) EnablePrintDiffs() {
+	d.printDiffs = true
 }
 
 func (d *DeployHelper) SetPGVersion(version int) {
@@ -89,6 +96,21 @@ func (d DeployHelper) UploadLatestReleaseFromURL(organization string, project st
 	return d.director.UploadLatestReleaseFromURL(organization, project)
 }
 
+func (d DeployHelper) runDeploy() error {
+	var err error
+	if d.printDiffs {
+		err := d.GetDeployment().PrintDeploymentDiffs()
+		if err != nil {
+			return fmt.Errorf("%v%v", "error printing diffs:", err.Error())
+		}
+	}
+	err = d.GetDeployment().CreateOrUpdateDeployment()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (d DeployHelper) Deploy() error {
 	var err error
 	var vars map[string]interface{}
@@ -120,7 +142,7 @@ func (d DeployHelper) Deploy() error {
 				if err != nil {
 					return err
 				}
-				err = d.GetDeployment().CreateOrUpdateDeployment()
+				err = d.runDeploy()
 				if err != nil {
 					return err
 				}
@@ -145,7 +167,7 @@ func (d DeployHelper) Deploy() error {
 			return err
 		}
 	}
-	err = d.GetDeployment().CreateOrUpdateDeployment()
+	err = d.runDeploy()
 	if err != nil {
 		return err
 	}

@@ -274,6 +274,23 @@ func (dd DeploymentData) CreateOrUpdateDeployment() error {
 	return dd.Deployment.Update(dd.ManifestBytes, updateOpts)
 }
 
+func (dd DeploymentData) PrintDeploymentDiffs() error {
+	diff, err := dd.Deployment.Diff(dd.ManifestBytes, false)
+	fmt.Println("Deployment differences:")
+	for _, line := range diff.Diff {
+		lineMod, _ := line[1].(string)
+
+		if lineMod == "added" {
+			fmt.Printf("+ %s\n", line[0])
+		} else if lineMod == "removed" {
+			fmt.Printf("- %s\n", line[0])
+		} else {
+			fmt.Printf("  %s\n", line[0])
+		}
+	}
+	return err
+}
+
 func (dd DeploymentData) DeleteDeployment() error {
 	return dd.Deployment.Delete(true)
 }

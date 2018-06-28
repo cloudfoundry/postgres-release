@@ -45,6 +45,7 @@ var _ = BeforeSuite(func() {
 	By("Deploying a single postgres instance")
 	err = deployHelper.Deploy()
 	Expect(err).NotTo(HaveOccurred())
+	deployHelper.EnablePrintDiffs()
 
 	By("Populating the database")
 	pgprops, pgHost, err := deployHelper.GetPGPropsAndHost()

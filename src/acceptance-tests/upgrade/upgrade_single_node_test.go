@@ -40,6 +40,7 @@ var _ = Describe("Upgrading postgres-release", func() {
 		By("Deploying a single postgres instance")
 		err = deployHelper.Deploy()
 		Expect(err).NotTo(HaveOccurred())
+		deployHelper.EnablePrintDiffs()
 
 		By("Initializing a postgres client connection")
 		pgprops, pgHost, err = deployHelper.GetPGPropsAndHost()

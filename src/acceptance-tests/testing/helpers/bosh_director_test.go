@@ -346,6 +346,25 @@ name: test
 				err = director.GetEnv(envName).UpdateResurrection(false)
 				Expect(err).NotTo(HaveOccurred())
 			})
+			It("Fail to print deployment diffs", func() {
+				var err error
+				expected := boshdir.DeploymentDiff{
+					Diff: [][]interface{}{[]interface{}{"name: simple manifest", nil}},
+				}
+				deploymentFake.DiffReturns(expected, errors.New("fake-error"))
+				err = director.GetEnv(envName).PrintDeploymentDiffs()
+				Expect(err).To(Equal(errors.New("fake-error")))
+			})
+			It("Prints the deployment diffs", func() {
+				var err error
+				expected := boshdir.DeploymentDiff{
+					Diff: [][]interface{}{[]interface{}{"name: simple manifest", nil}},
+				}
+				deploymentFake.DiffReturns(expected, nil)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.GetEnv(envName).PrintDeploymentDiffs()
+				Expect(err).NotTo(HaveOccurred())
+			})
 		})
 
 		Context("Getting VM information", func() {

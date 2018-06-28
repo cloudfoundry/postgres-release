@@ -151,7 +151,7 @@ EOF
 		})
 	})
 
-	Context("Janitor script runs correctly", func() {
+	Context("Janitor job starts correctly", func() {
 		BeforeEach(func() {
 			deployHelper.SetOpDefs(nil)
 		})
