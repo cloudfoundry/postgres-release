@@ -334,6 +334,21 @@ name: test
 				err = director.GetEnv(envName).Stop("postgres")
 				Expect(err).NotTo(HaveOccurred())
 			})
+			It("Fails to start the VM", func() {
+				var err error
+				deploymentFake.StartReturns(errors.New("fake-error"))
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.GetEnv(envName).Start("postgres")
+				Expect(err).To(Equal(errors.New("fake-error")))
+			})
+
+			It("Can start the VM", func() {
+				var err error
+				deploymentFake.StartReturns(nil)
+				fakeDirector.FindDeploymentReturns(deploymentFake, nil)
+				err = director.GetEnv(envName).Start("postgres")
+				Expect(err).NotTo(HaveOccurred())
+			})
 			It("Fail to pause resurrection", func() {
 				var err error
 				deploymentFake.EnableResurrectionReturns(errors.New("fake-error"))

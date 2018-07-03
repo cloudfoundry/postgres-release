@@ -49,7 +49,7 @@ var _ = Describe("SSL enabled", func() {
 		It("Successfully trust vcap local connections", func() {
 			var cmd *exec.Cmd
 			var err error
-			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), fmt.Sprintf(bosh_ssh_command, "vcap"))
+			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), fmt.Sprintf(bosh_ssh_command, "vcap"))
 			err = cmd.Run()
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -57,7 +57,7 @@ var _ = Describe("SSL enabled", func() {
 		It("Fails to trust non-vcap local connections", func() {
 			var cmd *exec.Cmd
 			var err error
-			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, deployHelper.GetVariable("defuser_name")))
+			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, deployHelper.GetVariable("defuser_name")))
 			err = cmd.Run()
 			Expect(err).To(HaveOccurred())
 		})
@@ -106,7 +106,7 @@ var _ = Describe("SSL enabled", func() {
 		It("Fails to trust secure non-vcap local connections", func() {
 			var err error
 			var cmd *exec.Cmd
-			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, deployHelper.GetVariable("certs_matching_name")))
+			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, deployHelper.GetVariable("certs_matching_name")))
 			err = cmd.Run()
 			Expect(err).To(HaveOccurred())
 		})

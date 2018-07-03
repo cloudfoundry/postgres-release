@@ -88,7 +88,7 @@ var _ = Describe("Upgrading postgres-release", func() {
 				if !versions.IsMajor(latestPostgreSQLVersion, versions.GetOldVersion()) {
 					sshKeyFile, err := deployHelper.WriteSSHKey()
 					Expect(err).NotTo(HaveOccurred())
-					cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
+					cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
 					err = cmd.Run()
 					Expect(err).To(HaveOccurred())
 					err = os.Remove(sshKeyFile)
@@ -98,7 +98,7 @@ var _ = Describe("Upgrading postgres-release", func() {
 				By("Validating the postgres-previous is created")
 				sshKeyFile, err := deployHelper.WriteSSHKey()
 				Expect(err).NotTo(HaveOccurred())
-				cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
+				cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
 				err = cmd.Run()
 				Expect(err).NotTo(HaveOccurred())
 				err = os.Remove(sshKeyFile)
