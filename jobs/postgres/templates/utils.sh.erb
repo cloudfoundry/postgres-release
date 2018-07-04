@@ -90,6 +90,7 @@ function run_major_upgrade(){
         --new-bindir ${PACKAGE_DIR}/bin
     popd
     mv "${DATA_DIR_OLD}" "${DATA_DIR_PREVIOUS}"
+    echo ${pgversion_current} > ${VERSION_FILE}
 EOF
     rm -f "${POSTGRES_UPGRADE_LOCK}"
   fi
