@@ -22,9 +22,12 @@ function main(){
 
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
 
-  EXTRA_OPS="-o \"${root}/postgres-release/ci/templates/use-latest-postgres-release.yml\""
-  if [ "$USE_LATEST_PGREL" == "false" ]; then
-    EXTRA_OPS=" "
+  EXTRA_OPS=()
+  if [ "$USE_LATEST_PGREL" == "true" ]; then
+    EXTRA_OPS+=("-o \"${root}/postgres-release/ci/templates/use-latest-postgres-release.yml\"")
+  fi
+  if [ -f "${root}/cf-deployment/operations/use-external-blobstore.yml" ]; then
+    EXTRA_OPS+=("-o \"${root}/cf-deployment/operations/use-external-blobstore.yml\"")
   fi
 
   sed -i -e "s/region: ((aws_region))/host: ((blobstore_s3_host))/g" "${root}/cf-deployment/operations/use-s3-blobstore.yml"
@@ -35,14 +38,13 @@ function main(){
     -v deployment_name="${CF_DEPLOYMENT}" \
     -v system_domain="apps.${CF_DEPLOYMENT}.microbosh" \
     -v cf_admin_password="${API_PASSWORD}" \
+    ${EXTRA_OPS[@]} \
     -o "${root}/cf-deployment/operations/use-postgres.yml" \
     -o "${root}/cf-deployment/operations/scale-to-one-az.yml" \
     -o "${root}/cf-deployment/operations/use-latest-stemcell.yml" \
-    $EXTRA_OPS \
     -v blobstore_access_key_id="${S3_ACCESS_KEY}" \
     -v blobstore_secret_access_key="${S3_SECRET_KEY}" \
     -v blobstore_s3_host="${S3_HOST}" \
-    -o "${root}/cf-deployment/operations/use-external-blobstore.yml" \
     -o "${root}/cf-deployment/operations/use-s3-blobstore.yml" \
     -v buildpack_directory_key="${CF_DEPLOYMENT}-cc-buildpacks" \
     -v droplet_directory_key="${CF_DEPLOYMENT}-cc-droplets" \
