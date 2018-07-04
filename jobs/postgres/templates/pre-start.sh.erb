@@ -18,11 +18,13 @@ function upgrade(){
   fi
 
   if [ -d "${DATA_DIR_OLD}" -a -f "${DATA_DIR_OLD}/postgresql.conf" ]; then
-    # UPGRADING
-    if is_major; then
-      run_major_upgrade
-    else
-      run_minor_upgrade
+    if [ ${pgversion_upgrade_from} != ${pgversion_current} ]; then
+      # UPGRADING
+      if is_major; then
+        run_major_upgrade
+      else
+        run_minor_upgrade
+      fi
     fi
   else
     init_data_dir
