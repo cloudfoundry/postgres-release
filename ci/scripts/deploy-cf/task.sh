@@ -42,6 +42,7 @@ function main(){
     -v blobstore_access_key_id="${S3_ACCESS_KEY}" \
     -v blobstore_secret_access_key="${S3_SECRET_KEY}" \
     -v blobstore_s3_host="${S3_HOST}" \
+    -o "${root}/cf-deployment/operations/use-external-blobstore.yml" \
     -o "${root}/cf-deployment/operations/use-s3-blobstore.yml" \
     -v buildpack_directory_key="${CF_DEPLOYMENT}-cc-buildpacks" \
     -v droplet_directory_key="${CF_DEPLOYMENT}-cc-droplets" \
