@@ -11,12 +11,6 @@ resources:
     uri: https://github.com/cloudfoundry/cf-deployment.git
     branch: {{cf-deployment-old-tag}}
 
-- name: cf-deployment-older
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/cf-deployment.git
-    branch: {{cf-deployment-older-tag}}
-
 - name: postgres-release-develop
   type: git
   source:
@@ -44,7 +38,7 @@ resources:
 
 jobs:
 - name: upload-stemcells-releases
-  serial_groups: [cf-fresh,cf-old,cf-older]
+  serial_groups: [cf-fresh,cf-old]
   plan:
   - aggregate:
     - get: postgres-release
@@ -78,21 +72,6 @@ jobs:
       S3_ACCESS_KEY: {{s3_access_key}}
       S3_SECRET_KEY: {{s3_secret_key}}
       S3_HOST: {{s3_host}}
-  - task: upload-stemcell-older
-    file: postgres-release/ci/scripts/upload-stemcell/task.yml
-    params: &older_params
-      BOSH_DIRECTOR: {{older_bosh_director}}
-      BOSH_CLIENT: {{older_bosh_user}}
-      BOSH_CLIENT_SECRET: {{older_bosh_password}}
-      BOSH_CA_CERT: {{older_ca_cert}}
-      BOSH_PUBLIC_IP: {{older_bosh_public_ip}}
-      STEMCELL_VERSION: {{stemcell_version}}
-      CF_DEPLOYMENT: {{older_cf_deployment}}
-      API_USER: {{cf_api_user}}
-      API_PASSWORD: {{cf_api_password}}
-      S3_ACCESS_KEY: {{s3_access_key}}
-      S3_SECRET_KEY: {{s3_secret_key}}
-      S3_HOST: {{s3_host}}
   - task: create-postgres-dev-release-tarball
     file: postgres-release/ci/scripts/create-dev-release-tarball/task.yml
     input_mapping: {dev-release: postgres-release}
@@ -111,11 +90,6 @@ jobs:
     input_mapping: {dev-release-tarball: postgres-tarball}
     params:
       <<: *old_params
-  - task: upload-postgres-dev-release-older
-    file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
-    input_mapping: {dev-release-tarball: postgres-tarball}
-    params:
-      <<: *older_params
 
 - name: test-fresh-deployment
   serial_groups: [cf-fresh]
@@ -182,36 +156,6 @@ jobs:
     params:
       <<: *old_params
 
-- name: test-older-deployment
-  serial_groups: [cf-older]
-  plan:
-  - aggregate:
-    - get: cf-deployment-older
-    - get: cf-deployment-rc
-    - get: postgres-release
-      resource: postgres-release-develop
-      passed: [upload-stemcells-releases]
-      trigger: true
-    - get: cf-acceptance-tests
-  - task: deploy-cf-older
-    input_mapping: {cf-deployment: cf-deployment-older}
-    file: postgres-release/ci/scripts/deploy-cf/task.yml
-    params:
-      <<: *older_params
-  - task: populate-db
-    file: postgres-release/ci/scripts/populate-db/task.yml
-    params:
-      <<: *older_params
-  - task: deploy-cf
-    file: postgres-release/ci/scripts/deploy-cf/task_upg.yml
-    input_mapping: {cf-deployment: cf-deployment-rc}
-    params:
-      <<: *older_params
-  - task: check-db
-    file: postgres-release/ci/scripts/check-db/task.yml
-    params:
-      <<: *older_params
-
 - name: delete-deployments-fresh
   serial_groups: [cf-fresh]
   plan:
@@ -240,27 +184,13 @@ jobs:
       <<: *old_params
       DEPLOYMENT_NAME: {{old_cf_deployment}}
 
-- name: delete-deployments-older
-  serial_groups: [cf-older]
-  plan:
-  - aggregate:
-    - get: postgres-release
-      resource: postgres-release-develop
-      passed: [test-older-deployment]
-      trigger: true
-  - task: delete-cf-deployment
-    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
-    params:
-      <<: *older_params
-      DEPLOYMENT_NAME: {{older_cf_deployment}}
-
 - name: cleanup-releases
-  serial_groups: [cf-fresh,cf-old,cf-older]
+  serial_groups: [cf-fresh,cf-old]
   plan:
   - aggregate:
     - get: postgres-release
       resource: postgres-release-develop
-      passed: [delete-deployments-fresh, delete-deployments-old, delete-deployments-older]
+      passed: [delete-deployments-fresh, delete-deployments-old]
       trigger: true
   - task: cleanup-releases-fresh
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
@@ -270,7 +200,3 @@ jobs:
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
     params:
       <<: *old_params
-  - task: cleanup-releases-older
-    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
-    params:
-      <<: *older_params

@@ -89,8 +89,9 @@ var _ = Describe("Upgrading postgres-release", func() {
 					sshKeyFile, err := deployHelper.WriteSSHKey()
 					Expect(err).NotTo(HaveOccurred())
 					cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
-					err = cmd.Run()
-					Expect(err).To(HaveOccurred())
+
+					stdout, stderr, err := helpers.RunCommand(cmd)
+					Expect(err).To(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 					err = os.Remove(sshKeyFile)
 					Expect(err).NotTo(HaveOccurred())
 				}
@@ -99,8 +100,10 @@ var _ = Describe("Upgrading postgres-release", func() {
 				sshKeyFile, err := deployHelper.WriteSSHKey()
 				Expect(err).NotTo(HaveOccurred())
 				cmd := exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "sudo test -d /var/vcap/store/postgres/postgres-previous")
-				err = cmd.Run()
-				Expect(err).NotTo(HaveOccurred())
+
+				stdout, stderr, err := helpers.RunCommand(cmd)
+				Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
+
 				err = os.Remove(sshKeyFile)
 				Expect(err).NotTo(HaveOccurred())
 			}
@@ -116,16 +119,6 @@ var _ = Describe("Upgrading postgres-release", func() {
 		})
 
 		It("Successfully upgrades from old with no copy of the data directory", AssertUpgradeSuccessful())
-	})
-
-	Context("Upgrading from older version", func() {
-
-		BeforeEach(func() {
-			version = versions.GetOlderVersion()
-			deploymentPrefix = "upg-older"
-		})
-
-		It("Successfully upgrades from older", AssertUpgradeSuccessful())
 	})
 
 	Context("Upgrading from old version", func() {

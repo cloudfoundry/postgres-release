@@ -186,7 +186,15 @@ Even if you deploy more instances, no replication is configured.
 
 ## Upgrading
 
-Refer to [versions.yml](versions.yml) in order to assess if you are upgrading to a new PostgreSQL version.
+Refer to [versions.yml](versions.yml) in order to assess if a postgres-release version upgrades the PostgreSQL version.
+
+### Upgrade Test Policy
+
+The maintainers of the postgres-release test the following upgrade paths:
+
+* From the previous postgres-release
+* From the latest postgres-release that bumps the previous PostgreSQL version
+* From the latest cf-deployment that bumps the previous PostgreSQL version
 
 ### Considerations before deploying
 
@@ -215,4 +223,3 @@ If the upgrade fails:
   - `pg_upgrade` logs that may have details of why the migration failed can be found in `/var/vcap/sys/log/postgres/postgres_ctl.log`
 
 If you want to attempt the upgrade again or to roll back to the previous release, you should remove the new data directory and, if present, the marker file.
-
