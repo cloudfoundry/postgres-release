@@ -31,14 +31,15 @@ $ git submodule update --init --recursive
   - Golang (>=1.7) is installed on the machine
   - the postgres-release is inside your $GOPATH
 
-* PGATS must have access to the target BOSH director and to the postgres VM deployed from it.
-If you are testing using a bosh-lite, make sure you’ve run `bin/add-route` to setup routing rules.
-
-* Tests make use of BOSH v2 manifests. Make sure that the BOSH director is configured with the [cloud_config.yml](https://bosh.io/docs/cloud-config.html#update).
-
-* PGATS use bosh-cli director package for programmatic access to the Director API. It requires the Director to be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html).
-
 * Some test cases make use of [bbr](https://docs.cloudfoundry.org/bbr/installing.html). Make sure that it is available in your $PATH.
+
+If you are **not** using BOSH Lite according to the [quick start](http://bosh.io/docs/quick-start/) documentation, note that
+
+* PGATS must have access to the target BOSH director and to the postgres VM deployed from it
+
+* the BOSH director must be configured with the [cloud_config.yml](https://bosh.io/docs/cloud-config.html#update)
+
+* the director must be configured with verifiable [certificates](https://bosh.io/docs/director-certs.html) because PGATS use the `bosh-cli` director package for programmatic access to the Director API.
 
 ## Configuration
 
@@ -48,31 +49,15 @@ An example config file for bosh-lite would look like:
 $ cat > $GOPATH/src/github.com/cloudfoundry/postgres-release/pgats_config.yml << EOF
 ---
 bosh:
-  target: 192.168.50.4
+  target: 192.168.50.6
   username: admin
+  # bosh interpolate creds.yml --path /admin_password
   password: admin
+
+  # insert CA cert, e.g. from creds.yml
+  # bosh interpolate creds.yml --path /director_ssl/ca
   director_ca_cert: |+
     -----BEGIN CERTIFICATE-----
-    MIIDtzCCAp+gAwIBAgIJAMZ/qRdRamluMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV
-    BAYTAkFVMRMwEQYDVQQIEwpTb21lLVN0YXRlMSEwHwYDVQQKExhJbnRlcm5ldCBX
-    aWRnaXRzIFB0eSBMdGQwIBcNMTYwODI2MjIzMzE5WhgPMjI5MDA2MTAyMjMzMTla
-    MEUxCzAJBgNVBAYTAkFVMRMwEQYDVQQIEwpTb21lLVN0YXRlMSEwHwYDVQQKExhJ
-    bnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
-    ggEKAoIBAQDN/bv70wDn6APMqiJZV7ESZhUyGu8OzuaeEfb+64SNvQIIME0s9+i7
-    D9gKAZjtoC2Tr9bJBqsKdVhREd/X6ePTaopxL8shC9GxXmTqJ1+vKT6UxN4kHr3U
-    +Y+LK2SGYUAvE44nv7sBbiLxDl580P00ouYTf6RJgW6gOuKpIGcvsTGA4+u0UTc+
-    y4pj6sT0+e3xj//Y4wbLdeJ6cfcNTU63jiHpKc9Rgo4Tcy97WeEryXWz93rtRh8d
-    pvQKHVDU/26EkNsPSsn9AHNgaa+iOA2glZ2EzZ8xoaMPrHgQhcxoi8maFzfM2dX2
-    XB1BOswa/46yqfzc4xAwaW0MLZLg3NffAgMBAAGjgacwgaQwHQYDVR0OBBYEFNRJ
-    PYFebixALIR2Ee+yFoSqurxqMHUGA1UdIwRuMGyAFNRJPYFebixALIR2Ee+yFoSq
-    urxqoUmkRzBFMQswCQYDVQQGEwJBVTETMBEGA1UECBMKU29tZS1TdGF0ZTEhMB8G
-    A1UEChMYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkggkAxn+pF1FqaW4wDAYDVR0T
-    BAUwAwEB/zANBgkqhkiG9w0BAQUFAAOCAQEAoPTwU2rm0ca5b8xMni3vpjYmB9NW
-    oSpGcWENbvu/p7NpiPAe143c5EPCuEHue/AbHWWxBzNAZvhVZBeFirYNB3HYnCla
-    jP4WI3o2Q0MpGy3kMYigEYG76WeZAM5ovl0qDP6fKuikZofeiygb8lPs7Hv4/88x
-    pSsZYBm7UPTS3Pl044oZfRJdqTpyHVPDqwiYD5KQcI0yHUE9v5KC0CnqOrU/83PE
-    b0lpHA8bE9gQTQjmIa8MIpaP3UNTxvmKfEQnk5UAZ5xY2at5mmyj3t8woGdzoL98
-    yDd2GtrGsguQXM2op+4LqEdHef57g7vwolZejJqN776Xu/lZtCTp01+HTA==
     -----END CERTIFICATE-----
 cloud_configs:
   default_azs: [z1]
