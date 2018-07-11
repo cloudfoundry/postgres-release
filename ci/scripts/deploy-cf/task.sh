@@ -38,10 +38,10 @@ function main(){
     -v deployment_name="${CF_DEPLOYMENT}" \
     -v system_domain="apps.${CF_DEPLOYMENT}.microbosh" \
     -v cf_admin_password="${API_PASSWORD}" \
-    ${EXTRA_OPS[@]} \
     -o "${root}/cf-deployment/operations/use-postgres.yml" \
     -o "${root}/cf-deployment/operations/scale-to-one-az.yml" \
     -o "${root}/cf-deployment/operations/use-latest-stemcell.yml" \
+    ${EXTRA_OPS[@]} \
     -v blobstore_access_key_id="${S3_ACCESS_KEY}" \
     -v blobstore_secret_access_key="${S3_SECRET_KEY}" \
     -v blobstore_s3_host="${S3_HOST}" \
