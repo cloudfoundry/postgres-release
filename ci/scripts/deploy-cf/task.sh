@@ -21,8 +21,8 @@ function main(){
   preflight_check
 
   export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
+  EXTRA_OPS=("")
 
-  EXTRA_OPS=()
   if [ "$USE_LATEST_PGREL" == "true" ]; then
     EXTRA_OPS+=("-o \"${root}/postgres-release/ci/templates/use-latest-postgres-release.yml\"")
   fi
