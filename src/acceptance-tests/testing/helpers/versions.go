@@ -14,7 +14,6 @@ type PostgresReleaseVersions struct {
 	sortedKeys []int
 	Versions   map[int]string `yaml:"versions"`
 	Old        int            `yaml:"old"`
-	Older      int            `yaml:"older"`
 }
 
 func NewPostgresReleaseVersions(versionFile string) (PostgresReleaseVersions, error) {
@@ -43,15 +42,14 @@ func (v PostgresReleaseVersions) GetOldVersion() int {
 	return v.Old
 }
 
-func (v PostgresReleaseVersions) GetOlderVersion() int {
-	return v.Older
-}
 func (v PostgresReleaseVersions) GetLatestVersion() int {
 	return v.sortedKeys[len(v.sortedKeys)-1]
 }
+
 func (v PostgresReleaseVersions) GetPostgreSQLVersion(key int) string {
 	return v.Versions[key]
 }
+
 func (v PostgresReleaseVersions) IsMajor(current string, key int) bool {
 	value1 := strings.Split(v.Versions[key], ".")
 	value2 := strings.Split(current, ".")

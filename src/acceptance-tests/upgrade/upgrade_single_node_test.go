@@ -118,16 +118,6 @@ var _ = Describe("Upgrading postgres-release", func() {
 		It("Successfully upgrades from old with no copy of the data directory", AssertUpgradeSuccessful())
 	})
 
-	Context("Upgrading from older version", func() {
-
-		BeforeEach(func() {
-			version = versions.GetOlderVersion()
-			deploymentPrefix = "upg-older"
-		})
-
-		It("Successfully upgrades from older", AssertUpgradeSuccessful())
-	})
-
 	Context("Upgrading from old version", func() {
 
 		BeforeEach(func() {
