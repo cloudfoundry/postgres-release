@@ -19,7 +19,7 @@ function main() {
       -failFast \
       -succinct \
       -randomizeSuites \
-      --skip="Upgrading from (master|older|minor-no-copy) version" \
+      --skip="Upgrading from (master|minor-no-copy) version" \
       --skip="Fails to update with a bad role" \
       -slowSpecThreshold 300 \
       "$@"

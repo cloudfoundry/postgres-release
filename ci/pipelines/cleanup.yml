@@ -28,14 +28,6 @@ jobs:
       BOSH_CLIENT_SECRET: {{old_bosh_password}}
       BOSH_CA_CERT: {{old_ca_cert}}
       DEPLOYMENT_NAME: {{old_cf_deployment}}
-  - task: delete-cf-older-deployment
-    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
-    params: &base_params_older
-      BOSH_DIRECTOR: {{older_bosh_director}}
-      BOSH_CLIENT: {{older_bosh_user}}
-      BOSH_CLIENT_SECRET: {{older_bosh_password}}
-      BOSH_CA_CERT: {{older_ca_cert}}
-      DEPLOYMENT_NAME: {{older_cf_deployment}}
 
 - name: cleanup-resources
   serial_groups: [cleanup]
@@ -53,7 +45,3 @@ jobs:
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
     params:
       <<: *base_params_old
-  - task: cleanup-releases-older
-    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
-    params:
-      <<: *base_params_older

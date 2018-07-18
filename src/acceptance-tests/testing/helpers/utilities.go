@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 )
 
 func WriteFile(data string) (string, error) {
@@ -45,4 +46,19 @@ func GetUUID() string {
 		guid = fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 	}
 	return guid
+}
+
+func RunCommand(cmd *exec.Cmd) (string, string, error) {
+	var stdout, stderr string
+
+	out, err := cmd.Output()
+
+	if err != nil {
+		stdout = string(out)
+		if exitError, ok := err.(*exec.ExitError); ok {
+			stderr = string(exitError.Stderr)
+		}
+	}
+
+	return stdout, stderr, err
 }
