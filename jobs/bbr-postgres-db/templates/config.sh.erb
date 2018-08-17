@@ -1,5 +1,5 @@
 #!/bin/bash -e
-current_version="9.6.8"
+current_version="9.6.10"
 PACKAGE_DIR="/var/vcap/packages/postgres-${current_version}"
 PORT="<%= link("database").p("databases.port") %>"
 DATABASES=(<%= link("database").p("databases.databases", []).map{|d| d["name"]}.join(' ')%>)
