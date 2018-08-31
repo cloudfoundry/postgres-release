@@ -3,6 +3,7 @@
 preflight_check() {
   set +x
   test -n "${BOSH_DIRECTOR_IP}"
+  test -n "${CONFIG_FILE_NAME}"
   test -n "${API_USER}"
   test -n "${API_PASSWORD}"
   set -x
@@ -13,8 +14,9 @@ function main(){
   preflight_check
 
   local SYSTEM_DOMAIN=${BOSH_DIRECTOR_IP}.nip.io
+  local CONFIG_FILE="${root}/cats-config/${CONFIG_FILE_NAME}"
 
-  cat <<EOF > "cats-config/${CONFIG_FILE_PATH}"
+  cat <<EOF > "${CONFIG_FILE}"
 {
   "api": "api.${SYSTEM_DOMAIN}",
   "apps_domain": "${SYSTEM_DOMAIN}",

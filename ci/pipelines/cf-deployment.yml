@@ -109,12 +109,12 @@ jobs:
     output_mapping: {cats-config: integration-config}
     params:
       <<: *lite_params
-      CONFIG_FILE_PATH: deployments/cf/cats_config.json
+      CONFIG_FILE_NAME: cats_config.json
   - task: run-cats
     file: cf-concourse-task/run-cats/task.yml
     input_mapping: {integration-config: integration-config}
     params:
-      CONFIG_FILE_PATH: deployments/cf/cats_config.json
+      CONFIG_FILE_PATH: cats_config.json
       NODES: 4
       CAPTURE_LOGS: true
 
