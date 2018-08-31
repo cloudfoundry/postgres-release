@@ -25,7 +25,7 @@ function main(){
   fi
 
   bosh interpolate "${root}/cf-deployment/cf-deployment.yml" \
-    -o "${root}/cf-deployment/operations/bosh-lite.yml"
+    -o "${root}/cf-deployment/operations/bosh-lite.yml" \
     -v deployment_name="${CF_DEPLOYMENT}" \
     -v network_name="default" \
     -v system_domain="${BOSH_DIRECTOR_IP}.nip.io" \
