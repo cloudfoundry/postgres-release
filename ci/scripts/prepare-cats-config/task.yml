@@ -8,17 +8,16 @@ image_resource:
     repository: cfinfrastructure/deployment
 
 inputs:
-- name: cf-deployment
 - name: postgres-release
 
+outputs:
+- name: cats-config
+
 run:
-  path: postgres-release/ci/scripts/deploy-cf/task.sh
+  path: postgres-release/ci/scripts/prepare-cats-config/task.sh
 
 params:
   BOSH_DIRECTOR:
-  BOSH_CLIENT:
-  BOSH_CLIENT_SECRET:
-  BOSH_CA_CERT:
-  CF_DEPLOYMENT: cf
+  CONFIG_FILE_PATH: deployments/cf/cats_config.json
+  API_USER: admin
   API_PASSWORD:
-  USE_LATEST_PGREL: true

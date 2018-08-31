@@ -1,6 +1,7 @@
 #!/bin/bash -exu
 preflight_check() {
   set +x
+  test -n "${BOSH_DIRECTOR}"
   test -n "${CF_DEPLOYMENT}"
   test -n "${API_USER}"
   test -n "${API_PASSWORD}"
@@ -11,7 +12,7 @@ function main() {
 
   local root="${1}"
   preflight_check
-  local api_endpoint="api.apps.${CF_DEPLOYMENT}.microbosh"
+  local api_endpoint="api.${BOSH_DIRECTOR}.nip.io"
 
   cf api ${api_endpoint} --skip-ssl-validation
   set +x
@@ -20,7 +21,7 @@ function main() {
   cf target -o ${CF_DEPLOYMENT} -s ${CF_DEPLOYMENT}
 
   cf apps
-  curl --fail dora.apps.${CF_DEPLOYMENT}.microbosh
+  curl --fail dora.${BOSH_DIRECTOR}.nip.io
 
 }
 
