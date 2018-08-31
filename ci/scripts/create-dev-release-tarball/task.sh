@@ -15,7 +15,7 @@ preflight_check() {
 function main(){
   local root="${1}"
   preflight_check
-  source postgres-release/ci/configure_for_bosh.sh
+  source ${root}/postgres-release/ci/scripts/configure_for_bosh.sh
 
   pushd ${root}/dev-release
   bosh create-release --force --tarball=${root}/dev-release-tarball/${REL_NAME}-${REL_VERSION}.tgz --version "${REL_VERSION}" --name "${REL_NAME}"

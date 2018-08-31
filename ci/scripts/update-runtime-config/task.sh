@@ -13,7 +13,7 @@ preflight_check() {
 function main(){
   local root="${1}"
   preflight_check
-  source postgres-release/ci/configure_for_bosh.sh
+  source ${root}/postgres-release/ci/scripts/configure_for_bosh.sh
 
   bosh update-runtime-config bosh-deployment/runtime-configs/dns.yml
 }

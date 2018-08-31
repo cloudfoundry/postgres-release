@@ -12,7 +12,7 @@ preflight_check() {
 
 function main() {
   preflight_check
-  source postgres-release/ci/configure_for_bosh.sh
+  source ${root}/postgres-release/ci/scripts/configure_for_bosh.sh
 
   bosh -n clean-up --all
 }
