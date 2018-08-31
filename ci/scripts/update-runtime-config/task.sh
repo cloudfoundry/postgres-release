@@ -15,7 +15,7 @@ function main(){
   preflight_check
   source ${root}/postgres-release/ci/scripts/configure_for_bosh.sh
 
-  bosh update-runtime-config bosh-deployment/runtime-configs/dns.yml
+  bosh -n update-runtime-config bosh-deployment/runtime-configs/dns.yml
 }
 
 main "${PWD}"

@@ -15,7 +15,7 @@ function main(){
   preflight_check
   source ${root}/postgres-release/ci/scripts/configure_for_bosh.sh
 
-  bosh update-cloud-config cf-deployment/iaas-support/bosh-lite/cloud-config.yml
+  bosh -n update-cloud-config cf-deployment/iaas-support/bosh-lite/cloud-config.yml
 }
 
 main "${PWD}"
