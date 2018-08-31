@@ -28,7 +28,7 @@ function main(){
     -o "${root}/cf-deployment/operations/bosh-lite.yml"
     -v deployment_name="${CF_DEPLOYMENT}" \
     -v network_name="default" \
-    -v system_domain="${BOSH_DIRECTOR}.nip.io" \
+    -v system_domain="${BOSH_DIRECTOR_IP}.nip.io" \
     -v cf_admin_password="${API_PASSWORD}" \
     -o "${root}/cf-deployment/operations/use-compiled-releases.yml" \
     -o "${root}/postgres-release/ci/templates/add-system-domain-dns-alias.yml" \

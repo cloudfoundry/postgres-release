@@ -33,7 +33,7 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/cloudfoundry/cf-deployment-concourse-task.git
+    uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
 
 jobs:
 - name: upload-stemcells-releases
