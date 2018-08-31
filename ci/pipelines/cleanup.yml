@@ -16,7 +16,7 @@ jobs:
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
     params: &lite_params
       BOSH_DIRECTOR_IP: {{lite_bosh_director}}
-      BOSH_DIRECTOR_NAME: {{lite_bosh_director}}
+      BOSH_DIRECTOR_NAME: {{lite_bosh_director_name}}
       BOSH_CLIENT: {{lite_bosh_user}}
       BOSH_CLIENT_SECRET: {{lite_bosh_password}}
       BOSH_CA_CERT: {{lite_bosh_ca_cert}}
@@ -27,7 +27,7 @@ jobs:
   - aggregate:
     - get: postgres-release
       resource: postgres-release
-      passed: [delete-cf-deployments]
+      passed: [delete-cf-deployment]
       trigger: true
   - task: cleanup-releases
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml

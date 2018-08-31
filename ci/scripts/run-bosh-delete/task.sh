@@ -12,10 +12,11 @@ preflight_check() {
 }
 
 function main() {
+  local root="${1}"
   preflight_check
   source ${root}/postgres-release/ci/scripts/configure_for_bosh.sh
 
   bosh -n -d $DEPLOYMENT_NAME delete-deployment --force
 }
 
-main
+main "${PWD}"

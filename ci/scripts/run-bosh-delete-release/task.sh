@@ -13,10 +13,11 @@ preflight_check() {
 }
 
 function main() {
+  local root="${1}"
   preflight_check
   source ${root}/postgres-release/ci/scripts/configure_for_bosh.sh
 
   bosh -n delete-release $REL_NAME/$REL_VERSION
 }
 
-main
+main "${PWD}"
