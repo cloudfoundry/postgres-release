@@ -18,7 +18,8 @@ jobs:
     input_mapping: {dev-release: postgres-release}
     output_mapping: {dev-release-tarball: postgres-tarball}
     params: &bosh1_params
-      BOSH_DIRECTOR: {{bosh1_director}}
+      BOSH_DIRECTOR_IP: {{bosh1_director}}
+      BOSH_DIRECTOR_NAME: {{bosh1_director}}
       BOSH_CLIENT: {{bosh1_user}}
       BOSH_CLIENT_SECRET: {{bosh1_password}}
       BOSH_CA_CERT: {{bosh1_ca_cert}}
@@ -26,6 +27,7 @@ jobs:
       REL_VERSION: v99+dev.1
       BBR_VERSION: 1.2.2
       STEMCELL_VERSION: {{stemcell_version}}
+      STEMCELL_TYPE: bosh-softlayer-xen-ubuntu-trusty
   - task: upload-postgres-dev-release
     file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
     input_mapping: {dev-release-tarball: postgres-tarball}

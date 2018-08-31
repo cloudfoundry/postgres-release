@@ -11,24 +11,15 @@ inputs:
 - name: cf-deployment
 - name: postgres-release
 
-outputs:
-- name: cf-variables
-
-outputs:
-- name: cf-variables
-
 run:
   path: postgres-release/ci/scripts/deploy-cf/task.sh
 
 params:
-  BOSH_DIRECTOR:
-  BOSH_PUBLIC_IP:
+  BOSH_DIRECTOR_IP:
+  BOSH_DIRECTOR_NAME:
   BOSH_CLIENT:
   BOSH_CLIENT_SECRET:
   BOSH_CA_CERT:
-  CF_DEPLOYMENT:
+  CF_DEPLOYMENT: cf
   API_PASSWORD:
-  S3_ACCESS_KEY:
-  S3_SECRET_KEY:
-  S3_HOST:
-  USE_LATEST_PGREL: false
+  USE_LATEST_PGREL: true

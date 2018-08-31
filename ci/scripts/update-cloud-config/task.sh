@@ -7,8 +7,6 @@ preflight_check() {
   test -n "${BOSH_CLIENT}"
   test -n "${BOSH_CLIENT_SECRET}"
   test -n "${BOSH_CA_CERT}"
-  test -n "${REL_NAME}"
-  test -n "${REL_VERSION}"
   set -x
 }
 
@@ -17,9 +15,7 @@ function main(){
   preflight_check
   source ${root}/postgres-release/ci/scripts/configure_for_bosh.sh
 
-  pushd ${root}/dev-release
-  bosh create-release --force --tarball=${root}/dev-release-tarball/${REL_NAME}-${REL_VERSION}.tgz --version "${REL_VERSION}" --name "${REL_NAME}"
-  popd
+  bosh -n update-cloud-config cf-deployment/iaas-support/bosh-lite/cloud-config.yml
 }
 
 main "${PWD}"

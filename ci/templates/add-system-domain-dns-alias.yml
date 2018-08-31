@@ -1,0 +1,8 @@
+- type: replace
+  path: /addons/name=bosh-dns-aliases/jobs/name=bosh-dns-aliases/properties/aliases/domain=_.((system_domain))?/targets/-
+  value:
+    query: '*'
+    instance_group: router
+    deployment: cf
+    network: default
+    domain: bosh

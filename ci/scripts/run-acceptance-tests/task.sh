@@ -7,7 +7,7 @@ function create_config_file() {
   cat <<EOF
 ---
 bosh:
-  target: $BOSH_DIRECTOR
+  target: $BOSH_DIRECTOR_IP
   username: $BOSH_CLIENT
   password: $BOSH_CLIENT_SECRET
   director_ca_cert: |+
@@ -28,7 +28,7 @@ function install_bbr() {
 
 preflight_check() {
   set +x
-  test -n "${BOSH_DIRECTOR}"
+  test -n "${BOSH_DIRECTOR_IP}"
   test -n "${BOSH_CLIENT}"
   test -n "${BOSH_CLIENT_SECRET}"
   test -n "${BOSH_CA_CERT}"

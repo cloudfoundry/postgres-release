@@ -7,10 +7,11 @@ image_resource:
     repository: cfinfrastructure/deployment
 
 inputs:
-  - name: postgres-release
+- name: postgres-release
+- name: cf-deployment
 
 run:
-  path: postgres-release/ci/scripts/run-bosh-delete/task.sh
+  path: postgres-release/ci/scripts/update-cloud-config/task.sh
 
 params:
   BOSH_DIRECTOR_IP:
@@ -18,4 +19,3 @@ params:
   BOSH_CLIENT:
   BOSH_CLIENT_SECRET:
   BOSH_CA_CERT:
-  DEPLOYMENT_NAME: cf
