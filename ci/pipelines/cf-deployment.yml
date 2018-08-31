@@ -29,13 +29,6 @@ resources:
     uri: https://github.com/cloudfoundry/cf-acceptance-tests.git
     branch: master
 
-- name: postgres-ci-env
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry/postgres-ci-env
-    branch: master
-    private_key: {{postgres_ci_env_private_key}}
-
 - name: cf-concourse-task
   type: git
   source:
@@ -56,11 +49,11 @@ jobs:
   - task: upload-stemcell-lite
     file: postgres-release/ci/scripts/upload-stemcell/task.yml
     params: &lite_params
-      BOSH_DIRECTOR: {{lite_bosh_director}}
+      BOSH_DIRECTOR_IP: {{lite_bosh_director}}
+      BOSH_DIRECTOR_NAME: {{lite_bosh_director}}
       BOSH_CLIENT: {{lite_bosh_user}}
       BOSH_CLIENT_SECRET: {{lite_bosh_password}}
       BOSH_CA_CERT: {{lite_bosh_ca_cert}}
-      BOSH_PUBLIC_IP: {{lite_bosh_public_ip}}
       STEMCELL_VERSION: {{stemcell_version}}
       API_PASSWORD: {{cf_api_password}}
   - task: create-postgres-dev-release-tarball

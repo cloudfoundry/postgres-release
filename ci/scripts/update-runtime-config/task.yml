@@ -14,7 +14,8 @@ run:
   path: postgres-release/ci/scripts/update-runtime-config/task.sh
 
 params:
-  BOSH_DIRECTOR:
+  BOSH_DIRECTOR_IP:
+  BOSH_DIRECTOR_NAME:
   BOSH_CLIENT:
   BOSH_CLIENT_SECRET:
   BOSH_CA_CERT:

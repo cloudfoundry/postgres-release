@@ -14,7 +14,7 @@ run:
   path: postgres-release/ci/scripts/populate-db/task.sh
 
 params:
-  BOSH_DIRECTOR:
+  BOSH_DIRECTOR_IP:
   CF_DEPLOYMENT: cf
   API_USER: admin
   API_PASSWORD:

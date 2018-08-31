@@ -18,7 +18,8 @@ jobs:
     input_mapping: {dev-release: postgres-release}
     output_mapping: {dev-release-tarball: postgres-tarball}
     params: &bosh1_params
-      BOSH_DIRECTOR: {{bosh1_director}}
+      BOSH_DIRECTOR_IP: {{bosh1_director}}
+      BOSH_DIRECTOR_NAME: {{bosh1_director}}
       BOSH_CLIENT: {{bosh1_user}}
       BOSH_CLIENT_SECRET: {{bosh1_password}}
       BOSH_CA_CERT: {{bosh1_ca_cert}}

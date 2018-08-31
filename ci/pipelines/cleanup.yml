@@ -6,28 +6,20 @@ resources:
     branch: develop
 
 jobs:
-- name: delete-cf-deployments
+- name: delete-cf-deployment
   serial_groups: [cleanup]
   plan:
   - aggregate:
     - get: postgres-release
       resource: postgres-release
-  - task: delete-cf-fresh-deployment
+  - task: delete-cf-deployment
     file: postgres-release/ci/scripts/run-bosh-delete/task.yml
-    params: &base_params_fresh
-      BOSH_DIRECTOR: {{fresh_bosh_director}}
-      BOSH_CLIENT: {{fresh_bosh_user}}
-      BOSH_CLIENT_SECRET: {{fresh_bosh_password}}
-      BOSH_CA_CERT: {{fresh_ca_cert}}
-      DEPLOYMENT_NAME: {{fresh_cf_deployment}}
-  - task: delete-cf-old-deployment
-    file: postgres-release/ci/scripts/run-bosh-delete/task.yml
-    params: &base_params_old
-      BOSH_DIRECTOR: {{old_bosh_director}}
-      BOSH_CLIENT: {{old_bosh_user}}
-      BOSH_CLIENT_SECRET: {{old_bosh_password}}
-      BOSH_CA_CERT: {{old_ca_cert}}
-      DEPLOYMENT_NAME: {{old_cf_deployment}}
+    params: &lite_params
+      BOSH_DIRECTOR_IP: {{lite_bosh_director}}
+      BOSH_DIRECTOR_NAME: {{lite_bosh_director}}
+      BOSH_CLIENT: {{lite_bosh_user}}
+      BOSH_CLIENT_SECRET: {{lite_bosh_password}}
+      BOSH_CA_CERT: {{lite_bosh_ca_cert}}
 
 - name: cleanup-resources
   serial_groups: [cleanup]
@@ -37,11 +29,7 @@ jobs:
       resource: postgres-release
       passed: [delete-cf-deployments]
       trigger: true
-  - task: cleanup-releases-fresh
+  - task: cleanup-releases
     file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
     params:
-      <<: *base_params_fresh
-  - task: cleanup-releases-old
-    file: postgres-release/ci/scripts/run-bosh-cleanup/task.yml
-    params:
-      <<: *base_params_old
+      <<: *lite_params

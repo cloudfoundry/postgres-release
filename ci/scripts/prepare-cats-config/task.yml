@@ -17,7 +17,7 @@ run:
   path: postgres-release/ci/scripts/prepare-cats-config/task.sh
 
 params:
-  BOSH_DIRECTOR:
+  BOSH_DIRECTOR_IP:
   CONFIG_FILE_PATH: deployments/cf/cats_config.json
   API_USER: admin
   API_PASSWORD:

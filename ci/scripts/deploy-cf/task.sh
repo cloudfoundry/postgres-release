@@ -2,7 +2,8 @@
 
 preflight_check() {
   set +x
-  test -n "${BOSH_DIRECTOR}"
+  test -n "${BOSH_DIRECTOR_IP}"
+  test -n "${BOSH_DIRECTOR_NAME}"
   test -n "${BOSH_CLIENT}"
   test -n "${BOSH_CLIENT_SECRET}"
   test -n "${BOSH_CA_CERT}"
@@ -15,8 +16,8 @@ preflight_check() {
 function main(){
   local root="${1}"
   preflight_check
+  source postgres-release/ci/configure_for_bosh.sh
 
-  export BOSH_ENVIRONMENT="https://${BOSH_DIRECTOR}:25555"
   EXTRA_OPS=("")
 
   if [ "$USE_LATEST_PGREL" == "true" ]; then

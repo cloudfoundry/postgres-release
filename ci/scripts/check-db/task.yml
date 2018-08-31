@@ -13,7 +13,7 @@ run:
   path: postgres-release/ci/scripts/check-db/task.sh
 
 params:
-  BOSH_DIRECTOR:
+  BOSH_DIRECTOR_IP:
   CF_DEPLOYMENT: cf
   API_USER:
   API_PASSWORD:
