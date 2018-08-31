@@ -27,6 +27,7 @@ jobs:
       REL_VERSION: v99+dev.1
       BBR_VERSION: 1.2.2
       STEMCELL_VERSION: {{stemcell_version}}
+      STEMCELL_TYPE: bosh-softlayer-xen-ubuntu-trusty
   - task: upload-postgres-dev-release
     file: postgres-release/ci/scripts/upload-dev-release-tarball/task.yml
     input_mapping: {dev-release-tarball: postgres-tarball}

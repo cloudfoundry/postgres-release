@@ -20,3 +20,4 @@ params:
   BOSH_CLIENT_SECRET:
   BOSH_CA_CERT:
   STEMCELL_VERSION:
+  STEMCELL_TYPE: bosh-warden-boshlite-ubuntu-trusty
