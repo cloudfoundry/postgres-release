@@ -15,5 +15,5 @@ run:
 params:
   BOSH_DIRECTOR_IP:
   CF_DEPLOYMENT: cf
-  API_USER:
+  API_USER: admin
   API_PASSWORD:
