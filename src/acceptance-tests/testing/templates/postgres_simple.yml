@@ -55,6 +55,25 @@ instance_groups:
   env:
     bosh:
       keep_root_password: true
+- name: backup
+  instances: 0
+  azs: [YOUR_AZ_LIST]
+  networks:
+  - name: YOUR_NETWORK
+  jobs:
+  - name: bbr-postgres-db
+    release: postgres
+    consumes:
+      database: {from: postgres-database}
+    properties:
+      release_level_backup: true
+      dbuser: ((superuser_name))
+  persistent_disk_type: YOUR_DISK_TYPE
+  vm_type: YOUR_VM_TYPE
+  stemcell: linux
+  env:
+    bosh:
+      keep_root_password: true
 variables:
 - name: sshkey
   type: ssh

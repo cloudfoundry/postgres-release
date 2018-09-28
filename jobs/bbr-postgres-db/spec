@@ -18,3 +18,6 @@ properties:
   release_level_backup:
     default: false
     description: "Include postgres in backup and restore operations"
+  postgres.dbuser:
+    default: vcap
+    description: "Database user to run backup and restore"

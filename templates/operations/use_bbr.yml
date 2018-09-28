@@ -1,0 +1,10 @@
+- type: replace
+  path: /instance_groups/name=postgres/jobs/-
+  value:
+    name: bbr-postgres-db
+    releases: postgres
+    consumes:
+      database:
+        from: postgres-database
+    properties:
+      release_level_backup: true

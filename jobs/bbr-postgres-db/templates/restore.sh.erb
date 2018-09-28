@@ -21,7 +21,7 @@ for dbname in ${DATABASES[@]}; do
 	
 	${PACKAGE_DIR}/bin/pg_restore \
 		  --verbose \
-		  --username=vcap \
+		  --username="<%= p("postgres.dbuser") %>" \
 		  --host=localhost \
 		  --port="${PORT}" \
 		  --format=custom \
