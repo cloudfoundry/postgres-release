@@ -50,15 +50,6 @@ var _ = Describe("Backup and restore a deployment", func() {
 			deployHelper.SetOpDefs(nil)
 		})
 
-		It("Fails to run pre-backup-checks", func() {
-			var err error
-			var cmd *exec.Cmd
-			By("Running pre-backup-checks")
-			cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "pre-backup-check")
-			err = cmd.Run()
-			Expect(err).To(HaveOccurred())
-		})
-
 		It("Fails to backup the database", func() {
 			var err error
 			var cmd *exec.Cmd
