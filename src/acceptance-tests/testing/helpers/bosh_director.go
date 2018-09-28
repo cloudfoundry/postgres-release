@@ -42,6 +42,8 @@ type BOSHCloudConfig struct {
 	Networks           []BOSHJobNetwork `yaml:"default_networks"`
 	PersistentDiskType string           `yaml:"default_persistent_disk_type"`
 	VmType             string           `yaml:"default_vm_type"`
+	StemcellOs         string           `yaml:"default_stemcell_os"`
+	StemcellVersion    string           `yaml:"default_stemcell_version"`
 }
 type BOSHJobNetwork struct {
 	Name      string   `yaml:"name"`
@@ -63,6 +65,8 @@ var DefaultCloudConfig = BOSHCloudConfig{
 	},
 	PersistentDiskType: "10GB",
 	VmType:             "small",
+	StemcellOs:         "ubuntu-xenial",
+	StemcellVersion:    "latest",
 }
 
 type VarsCertLoader struct {
@@ -137,6 +141,17 @@ func (bd *BOSHDirector) SetDeploymentFromManifest(manifestFilePath string, relea
 			}
 		}
 	}
+
+	if dd.ManifestData["stemcells"] != nil {
+		for _, elem := range dd.ManifestData["stemcells"].([]interface{}) {
+			stemcellAlias := elem.(map[interface{}]interface{})["alias"]
+			if stemcellAlias.(string) == "linux" {
+				elem.(map[interface{}]interface{})["os"] = bd.CloudConfig.StemcellOs
+				elem.(map[interface{}]interface{})["version"] = bd.CloudConfig.StemcellVersion
+			}
+		}
+	}
+
 	if dd.ManifestData["instance_groups"] != nil {
 
 		netBytes, err := yaml.Marshal(&bd.CloudConfig.Networks)

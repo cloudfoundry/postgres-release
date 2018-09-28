@@ -33,7 +33,7 @@ boshcli=bosh
 while getopts "o:h:b:v:si" opt; do
   case $opt in
     o)
-      operations_file="--ops-file ${OPTARG}"
+      operations_file="${operations_file} --ops-file ${OPTARG}"
       ;;
     s)
       use_ssl="--ops-file ${manifest_dir}/operations/use_ssl.yml"

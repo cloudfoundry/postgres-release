@@ -68,7 +68,7 @@ var _ = Describe("Deployment", func() {
 director_uuid: <%= %x[bosh status --uuid] %>
 stemcells:
 - alias: linux
-  name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+  name: bosh-warden-boshlite-ubuntu-xenial-go_agent
   version: latest
 `
 				manifestFilePath, err = helpers.WriteFile(data)
@@ -82,7 +82,7 @@ stemcells:
 director_uuid: <%= %x[bosh status --uuid] %>
 stemcells:
 - alias: linux
-  name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+  name: bosh-warden-boshlite-ubuntu-xenial-go_agent
   version: latest
 `
 				manifestFilePath, err = helpers.WriteFile(data)

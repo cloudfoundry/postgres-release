@@ -26,7 +26,7 @@ In order to deploy the postgres-release you must follow the standard steps for d
 
    ```
    # Example for bosh-lite
-   bosh upload-stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent
+   bosh upload-stemcell https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-xenial-go_agent
    ```
 
 1. Upload the latest release from [bosh.io](http://bosh.io/releases/github.com/cloudfoundry/postgres-release?all=1):

@@ -58,6 +58,8 @@ cloud_configs:
     default: [some-default1, some-default2]
   default_persistent_disk_type: some-type
   default_vm_type: some-vm-type
+  default_stemcell_os: some-os
+  default_stemcell_version: some-version
 `
 				configFilePath, err = writeConfigFile(data)
 				Expect(err).NotTo(HaveOccurred())
@@ -66,7 +68,7 @@ cloud_configs:
 				Expect(config).To(Equal(helpers.PgatsConfig{
 					PGReleaseVersion:  "some-version",
 					PostgreSQLVersion: "some-version",
-					VersionsFile: "some-path",
+					VersionsFile:      "some-path",
 					Bosh: helpers.BOSHConfig{
 						Target:         "some-target",
 						Username:       "some-username",
@@ -87,6 +89,8 @@ cloud_configs:
 						},
 						PersistentDiskType: "some-type",
 						VmType:             "some-vm-type",
+						StemcellOs:         "some-os",
+						StemcellVersion:    "some-version",
 					},
 				}))
 			})

@@ -8,8 +8,8 @@ releases:
 
 stemcells:
 - alias: linux
-  os: ubuntu-trusty
-  version: latest
+  os: YOUR_STEMCELL_OS
+  version: YOUR_STEMCELL_VERSION
 
 instance_groups:
 - name: postgres
