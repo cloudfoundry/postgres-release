@@ -1,9 +1,13 @@
-#!/bin/bash -e
+#!/bin/bash
+set -euo pipefail
 source /var/vcap/jobs/bbr-postgres-db/config/config.sh
 
-TMP_LIST_FILE=$(mktemp restore.postgres.XXXX)
+readonly TMP_LIST_FILE=$(mktemp restore.postgres.XXXX)
+readonly PGPASSFILE=$(mktemp pgpass.XXXX)
+export PGPASSFILE
 
-function doCleanup() {
+doCleanup() {
+  rm ${PGPASSFILE}
   if [ -f "${TMP_LIST_FILE}" ]; then
     rm "${TMP_LIST_FILE}"
   fi
@@ -11,24 +15,27 @@ function doCleanup() {
 
 trap doCleanup EXIT
 
+cp $JOB_DIR/config/pgpass ${PGPASSFILE}
+chmod 0600 ${PGPASSFILE}
+
 for dbname in ${DATABASES[@]}; do
   BBR_ARTIFACT_FILE_PATH="${BBR_ARTIFACT_DIRECTORY}/postgres_${dbname}.sql"
   if [ -f "${BBR_ARTIFACT_FILE_PATH}" ]; then
-	
+
     ${PACKAGE_DIR}/bin/pg_restore \
-		--list "${BBR_ARTIFACT_FILE_PATH}" \
-		| grep -v SCHEMA | grep -v EXTENSION > ${TMP_LIST_FILE}
-	
-	${PACKAGE_DIR}/bin/pg_restore \
-		  --verbose \
-		  --username=vcap \
-		  --host=localhost \
-		  --port="${PORT}" \
-		  --format=custom \
-		  --dbname="${dbname}" \
-		  --use-list=${TMP_LIST_FILE} \
-		  --clean \
-		  "${BBR_ARTIFACT_FILE_PATH}"
+      --list "${BBR_ARTIFACT_FILE_PATH}" \
+      | grep -v SCHEMA | grep -v EXTENSION > ${TMP_LIST_FILE}
+
+    ${PACKAGE_DIR}/bin/pg_restore \
+      --verbose \
+      --username="<%= p("postgres.dbuser") %>" \
+      --host="${DBHOST}" \
+      --port="${PORT}" \
+      --format=custom \
+      --dbname="${dbname}" \
+      --use-list=${TMP_LIST_FILE} \
+      --clean \
+      "${BBR_ARTIFACT_FILE_PATH}"
   else
     echo "WARNING: Not restoring ${dbname} because backup file ${BBR_ARTIFACT_FILE_PATH} does not exist"
   fi

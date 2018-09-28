@@ -37,6 +37,17 @@ func Define_bbr_ops() []OpDefinition {
 	return ops
 }
 
+func Define_bbr_not_colocated_ops() []OpDefinition {
+	var ops []OpDefinition
+	var value interface{}
+	var path string
+
+	path = "/instance_groups/name=backup/instances"
+	value = 1
+	AddOpDefinition(&ops, "replace", path, value)
+	return ops
+}
+
 func Define_upgrade_no_copy_ops() []OpDefinition {
 	var ops []OpDefinition
 	var value interface{}
