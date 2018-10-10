@@ -67,7 +67,8 @@ instance_groups:
       database: {from: postgres-database}
     properties:
       release_level_backup: true
-      dbuser: ((superuser_name))
+      postgres:
+        dbuser: ((superuser_name))
   persistent_disk_type: YOUR_DISK_TYPE
   vm_type: YOUR_VM_TYPE
   stemcell: linux

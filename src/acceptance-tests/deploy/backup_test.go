@@ -88,8 +88,8 @@ var _ = Describe("Backup and restore a deployment", func() {
 				var cmd *exec.Cmd
 				By("Running pre-backup-checks")
 				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "pre-backup-check")
-				err = cmd.Run()
-				Expect(err).NotTo(HaveOccurred(), "Check the bbr logfile bbr-TIMESTAMP.err.log for why this has failed")
+				stdout, stderr, err := helpers.RunCommand(cmd)
+				Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 
 				By("Changing content")
 				err = db.CreateAndPopulateTablesWithPrefix(pgprops.Databases.Databases[0].Name, helpers.Test1Load, "restore")
@@ -100,9 +100,9 @@ var _ = Describe("Backup and restore a deployment", func() {
 
 				By("Running backup")
 				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "backup")
-				err = cmd.Run()
-				Expect(err).NotTo(HaveOccurred(), "Check the bbr logfile bbr-TIMESTAMP.err.log for why this has failed")
-				tarBackupFile := fmt.Sprintf("%s/%s*/postgres-0-bbr-postgres-db.tar", tempDir, deployHelper.GetDeploymentName())
+				stdout, stderr, err = helpers.RunCommand(cmd)
+				Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
+				tarBackupFile := fmt.Sprintf("%s/%s*/*-bbr-postgres-db.tar", tempDir, deployHelper.GetDeploymentName())
 				files, err := filepath.Glob(tarBackupFile)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).NotTo(BeEmpty())
@@ -113,13 +113,19 @@ var _ = Describe("Backup and restore a deployment", func() {
 
 				By("Restoring the database")
 				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", filepath.Dir(files[0]))
-				err = cmd.Run()
+				stdout, stderr, err = helpers.RunCommand(cmd)
 				Expect(err).To(HaveOccurred())
+				// we expect a warning for a single error because restore_0 was dropped
+				Expect(stderr).To(ContainSubstring("WARNING: errors ignored on restore: 1"))
 
 				By("Validating that the dropped table has been restored")
 				result, err = db.CheckTableExist("restore_0", pgprops.Databases.Databases[0].Name)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).To(BeTrue())
+
+				By("Dropping the table")
+				err = db.DropTable(pgprops.Databases.Databases[0].Name, "restore_0")
+				Expect(err).NotTo(HaveOccurred())
 			}
 		}
 
@@ -140,12 +146,21 @@ var _ = Describe("Backup and restore a deployment", func() {
 		})
 
 		Context("BBR job is not colocated", func() {
-			BeforeEach(func() {
-				deployHelper.SetOpDefs(helpers.Define_bbr_not_colocated_ops())
+			Context("With SSL disabled", func() {
+				BeforeEach(func() {
+					deployHelper.SetOpDefs(helpers.Define_bbr_not_colocated_ops())
+				})
+
+				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
 			})
 
-			It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
-		})
+			Context("With SSL allowed", func() {
+				BeforeEach(func() {
+					deployHelper.SetOpDefs(append(helpers.Define_bbr_not_colocated_ops(), helpers.Define_ssl_ops()...))
+				})
 
+				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
+			})
+		})
 	})
 })

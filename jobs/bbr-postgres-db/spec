@@ -7,8 +7,11 @@ templates:
   config.sh.erb: config/config.sh
   backup.sh.erb: bin/bbr/backup
   restore.sh.erb: bin/bbr/restore
+  pgpass.erb: config/pgpass
 
-packages: []
+packages:
+  - postgres-common
+  - postgres-9.6.10
 
 consumes:
 - name: database

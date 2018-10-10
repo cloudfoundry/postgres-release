@@ -1,5 +1,15 @@
-#!/bin/bash -e
+#!/bin/bash -eu
+<%
+dbhost = "localhost"
+if_link("database") do |data|
+  if p("postgres.dbuser") != "vcap"
+    dbhost = data.address
+  end
+end
+ %>
 current_version="9.6.10"
+JOB_DIR="/var/vcap/jobs/bbr-postgres-db"
 PACKAGE_DIR="/var/vcap/packages/postgres-${current_version}"
 PORT="<%= link("database").p("databases.port") %>"
 DATABASES=(<%= link("database").p("databases.databases", []).map{|d| d["name"]}.join(' ')%>)
+DBHOST=<%= dbhost %>
