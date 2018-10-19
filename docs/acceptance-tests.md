@@ -8,13 +8,13 @@ The acceptance tests run several deployments of the postgres-release in order to
   - Database extensions
   - Properties (e.g. max_connections)
 - Test supported upgrade paths from previous versions
+- Test ssl support, backup and restore, and hooks
 
 ## Get the code
 
 ```bash
 $ go get github.com/cloudfoundry/postgres-release
 $ cd $GOPATH/src/github.com/cloudfoundry/postgres-release
-$ git submodule update --init --recursive
 ```
 
 ## Environment setup
@@ -32,6 +32,8 @@ $ git submodule update --init --recursive
   - the postgres-release is inside your $GOPATH
 
 * Some test cases make use of [bbr](https://docs.cloudfoundry.org/bbr/installing.html). Make sure that it is available in your $PATH.
+
+* Go dependencies are managed using [dep](https://golang.github.io/dep/docs/installation.html). Make sure that it is installed.
 
 If you are **not** using BOSH Lite according to the [quick start](http://bosh.io/docs/quick-start/) documentation, note that
 

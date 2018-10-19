@@ -47,6 +47,7 @@ function main() {
   to_dir=${GOPATH}/src/github.com/cloudfoundry/postgres-release
   mkdir -p $to_dir
   cp -R ${root}/postgres-release/* $to_dir
+  go get -u github.com/golang/dep/cmd/dep
   PGATS_CONFIG="$config_file" "$to_dir/src/acceptance-tests/scripts/test-minimal"
 }
 

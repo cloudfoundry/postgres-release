@@ -23,5 +23,6 @@
 /releases/*.tgz
 /src/acceptance-tests/bin
 /src/acceptance-tests/pkg
+/src/acceptance-tests/vendor
 /tags
 pgats_config.yml
