@@ -50,15 +50,9 @@ func Define_bbr_not_colocated_ops() []OpDefinition {
 
 func Define_bbr_ssl_verify_full() []OpDefinition {
 	var ops []OpDefinition
-	var value interface{}
-	var path string
 
 	ops = Define_bbr_not_colocated_ops()
 	ops = append(ops, Define_ssl_ops()...)
-
-	path = "/instance_groups/name=backup/jobs/name=bbr-postgres-db/properties/postgres?/ca"
-	value = "((postgres_cert.ca))"
-	AddOpDefinition(&ops, "replace", path, value)
 
 	return ops
 }
@@ -72,6 +66,51 @@ func Define_bbr_ssl_verify_ca() []OpDefinition {
 
 	path = "/instance_groups/name=backup/jobs/name=bbr-postgres-db/properties/postgres?/ssl_verify_hostname"
 	value = false
+	AddOpDefinition(&ops, "replace", path, value)
+
+	return ops
+}
+
+func Define_bbr_client_certs() []OpDefinition {
+	var ops []OpDefinition
+	var value interface{}
+	var path string
+
+	bbruser := "bbruser"
+
+	ops = Define_bbr_not_colocated_ops()
+	ops = append(ops, Define_mutual_ssl_ops()...)
+
+	path = "/instance_groups/name=backup/jobs/name=bbr-postgres-db/properties/postgres?/client_certificate"
+	value = "((bbr_user_certs.certificate))"
+	AddOpDefinition(&ops, "replace", path, value)
+
+	path = "/instance_groups/name=backup/jobs/name=bbr-postgres-db/properties/postgres?/client_certificate_key"
+	value = "((bbr_user_certs.private_key))"
+	AddOpDefinition(&ops, "replace", path, value)
+
+	path = "/variables?/name=bbr_user_certs?"
+	value = map[interface{}]interface{}{
+		"name": "bbr_user_certs",
+		"type": "certificate",
+		"options": map[interface{}]interface{}{
+			"ca":                 "postgres_ca",
+			"common_name":        bbruser,
+			"alternative_names":  []interface{}{},
+			"extended_key_usage": []interface{}{"server_auth", "client_auth"},
+		},
+	}
+	AddOpDefinition(&ops, "replace", path, value)
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/properties/databases/roles?/name=bbruser?"
+	value = map[interface{}]interface{}{
+		"name":        bbruser,
+		"permissions": []interface{}{"SUPERUSER"},
+	}
+	AddOpDefinition(&ops, "replace", path, value)
+
+	path = "/instance_groups/name=backup/jobs/name=bbr-postgres-db/properties/postgres?/dbuser"
+	value = bbruser
 	AddOpDefinition(&ops, "replace", path, value)
 
 	return ops

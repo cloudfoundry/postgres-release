@@ -1,27 +1,11 @@
 #!/bin/bash
 set -euo pipefail
-source /var/vcap/jobs/bbr-postgres-db/config/config.sh
-<%
-sslmode = "prefer"
-if link("database").p("databases.tls.ca") != ''
-  if p("postgres.ssl_verify_hostname")
-    sslmode = "verify-full"
-  else
-    sslmode = "verify-ca"
-  end
-end
-%>
-
-readonly TMP_LIST_FILE="$(mktemp restore.postgres.XXXX)"
-readonly PGPASSFILE="$(mktemp pgpass.XXXX)"
-readonly PGSSLMODE="<%=sslmode%>"
-readonly PGSSLROOTCERT="${JOB_DIR}/config/ca_cert"
-export PGPASSFILE
-export PGSSLMODE
-export PGSSLROOTCERT
 
 doCleanup() {
   rm ${PGPASSFILE}
+<% if p("postgres.client_certificate") != "" %>
+  rm ${PGSSLKEY}
+<% end %>
   if [ -f "${TMP_LIST_FILE}" ]; then
     rm "${TMP_LIST_FILE}"
   fi
@@ -29,8 +13,15 @@ doCleanup() {
 
 trap doCleanup EXIT
 
-cp $JOB_DIR/config/pgpass ${PGPASSFILE}
-chmod 0600 ${PGPASSFILE}
+source /var/vcap/jobs/bbr-postgres-db/config/config.sh
+
+readonly TMP_LIST_FILE="$(mktemp restore.postgres.XXXX)"
+
+export_as_private_temp_file "$JOB_DIR/config/pgpass" PGPASSFILE
+
+<% if p("postgres.client_certificate") != "" %>
+export_as_private_temp_file "$JOB_DIR/config/client_certificate_key" PGSSLKEY
+<% end %>
 
 for dbname in ${DATABASES[@]}; do
   BBR_ARTIFACT_FILE_PATH="${BBR_ARTIFACT_DIRECTORY}/postgres_${dbname}.sql"
