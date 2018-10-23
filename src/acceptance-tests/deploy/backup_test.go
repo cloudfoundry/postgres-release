@@ -169,6 +169,14 @@ var _ = Describe("Backup and restore a deployment", func() {
 
 				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
 			})
+
+			Context("With SSL authentication", func() {
+				BeforeEach(func() {
+					deployHelper.SetOpDefs(helpers.Define_bbr_client_certs())
+				})
+
+				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
+			})
 		})
 	})
 })

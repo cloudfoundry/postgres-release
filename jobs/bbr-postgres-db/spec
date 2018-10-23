@@ -9,6 +9,8 @@ templates:
   restore.sh.erb: bin/bbr/restore
   pgpass.erb: config/pgpass
   ca_cert.erb: config/ca_cert
+  client_certificate.erb: config/client_certificate
+  client_certificate_key.erb: config/client_certificate_key
 
 packages:
   - postgres-common
@@ -28,3 +30,9 @@ properties:
   postgres.ssl_verify_hostname:
     default: true
     description: "If postgres is configured with a ca, setting this to 'true' changes sslmode to 'verify-full' rather than 'verify-ca'."
+  postgres.client_certificate:
+    default: ''
+    description: "Client certificate. Specify it if you want to auhtenticate using certificates."
+  postgres.client_certificate_key:
+    default: ''
+    description: "Secret key used for the client certificate. Specify it if you want to auhtenticate using certificates."

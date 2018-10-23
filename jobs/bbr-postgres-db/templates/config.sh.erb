@@ -6,6 +6,14 @@ if_link("database") do |data|
     dbhost = data.address
   end
 end
+sslmode = "prefer"
+if link("database").p("databases.tls.ca") != ''
+  if p("postgres.ssl_verify_hostname")
+    sslmode = "verify-full"
+  else
+    sslmode = "verify-ca"
+  end
+end
  %>
 current_version="9.6.10"
 JOB_DIR="/var/vcap/jobs/bbr-postgres-db"
@@ -13,3 +21,14 @@ PACKAGE_DIR="/var/vcap/packages/postgres-${current_version}"
 PORT="<%= link("database").p("databases.port") %>"
 DATABASES=(<%= link("database").p("databases.databases", []).map{|d| d["name"]}.join(' ')%>)
 DBHOST=<%= dbhost %>
+
+readonly PGSSLMODE="<%=sslmode%>"
+readonly PGSSLROOTCERT="${JOB_DIR}/config/ca_cert"
+export PGSSLMODE
+export PGSSLROOTCERT
+<% if p("postgres.client_certificate") != "" %>
+readonly PGSSLCERT="${JOB_DIR}/config/client_certificate"
+readonly PGSSLKEY="${JOB_DIR}/config/client_certificate_key"
+export PGSSLCERT
+export PGSSLKEY
+<% end %>

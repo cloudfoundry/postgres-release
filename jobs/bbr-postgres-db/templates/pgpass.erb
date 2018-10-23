@@ -4,8 +4,8 @@
   link("database").if_p("databases.roles") do |roles|
     roles.each do |role|
       if role["name"] == dbuser
-        if role["password"].to_s.empty?
-          raise "Password is required for postgres.dbuser '#{dbuser}'"
+        if role["password"].to_s.empty? and p("postgres.client_certificate") == ""
+          raise "Password or client certificate is required for postgres.dbuser '#{dbuser}'"
         end
         password = role["password"].to_s
       end
