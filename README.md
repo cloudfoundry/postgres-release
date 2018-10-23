@@ -153,6 +153,8 @@ You can enable backup and restore through bbr by adding the `bbr-postgres-db` jo
 
 If you don't colocate the `bbr-postgres-db` with `postgres` then you must specify in the `postgres.dbuser` property a database user with enough permissions to run backup and restore.
 
+If your PostgreSQL is configured with TLS, by default backup and restore are run with `sslmode=verify-full`. You can change it to `sslmode=verify-ca` by setting `postgres.ssl_verify_hostname` to `false`.
+
 Caveats:
 
 - Restore does not drop the database, the extensions, or the schema; therefore the schema of the restored and existing databases must be the same.

@@ -15,6 +15,7 @@ type DeployHelper struct {
 	variables    map[string]interface{}
 	opDefs       []OpDefinition
 	printDiffs   bool
+	networkName  string
 }
 
 func NewDeployHelper(params PgatsConfig, prefix string, pgVersion int) (DeployHelper, error) {
@@ -32,6 +33,7 @@ func NewDeployHelper(params PgatsConfig, prefix string, pgVersion int) (DeployHe
 	deployHelper.manifestPath = "../testing/templates/postgres_simple.yml"
 	deployHelper.SetDeploymentName(prefix)
 	deployHelper.SetPGVersion(pgVersion)
+	deployHelper.networkName = params.BoshCC.Networks[0].Name
 	deployHelper.InitializeVariables()
 	deployHelper.opDefs = nil
 	deployHelper.printDiffs = false
@@ -70,6 +72,7 @@ func (d *DeployHelper) InitializeVariables() {
 	d.variables["superuser_name"] = "superuser"
 	d.variables["superuser_password"] = "superpsw"
 	d.variables["testuser_name"] = "sshuser"
+	d.variables["postgres_dns"] = fmt.Sprintf("q-s0.postgres.%s.%s.bosh", d.networkName, d.name)
 }
 
 func (d *DeployHelper) SetVariable(name string, value interface{}) {

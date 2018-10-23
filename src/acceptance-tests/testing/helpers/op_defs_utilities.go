@@ -48,6 +48,35 @@ func Define_bbr_not_colocated_ops() []OpDefinition {
 	return ops
 }
 
+func Define_bbr_ssl_verify_full() []OpDefinition {
+	var ops []OpDefinition
+	var value interface{}
+	var path string
+
+	ops = Define_bbr_not_colocated_ops()
+	ops = append(ops, Define_ssl_ops()...)
+
+	path = "/instance_groups/name=backup/jobs/name=bbr-postgres-db/properties/postgres?/ca"
+	value = "((postgres_cert.ca))"
+	AddOpDefinition(&ops, "replace", path, value)
+
+	return ops
+}
+
+func Define_bbr_ssl_verify_ca() []OpDefinition {
+	var ops []OpDefinition
+	var value interface{}
+	var path string
+
+	ops = Define_bbr_ssl_verify_full()
+
+	path = "/instance_groups/name=backup/jobs/name=bbr-postgres-db/properties/postgres?/ssl_verify_hostname"
+	value = false
+	AddOpDefinition(&ops, "replace", path, value)
+
+	return ops
+}
+
 func Define_upgrade_no_copy_ops() []OpDefinition {
 	var ops []OpDefinition
 	var value interface{}
@@ -90,7 +119,7 @@ func Define_ssl_ops() []OpDefinition {
 		"options": map[interface{}]interface{}{
 			"ca":                 "postgres_ca",
 			"common_name":        "((postgres_host))",
-			"alternative_names":  []interface{}{"((postgres_host))"},
+			"alternative_names":  []interface{}{"((postgres_host))", "((postgres_dns))"},
 			"extended_key_usage": []interface{}{"server_auth"},
 		},
 	}

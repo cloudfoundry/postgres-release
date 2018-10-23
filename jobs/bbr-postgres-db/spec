@@ -8,6 +8,7 @@ templates:
   backup.sh.erb: bin/bbr/backup
   restore.sh.erb: bin/bbr/restore
   pgpass.erb: config/pgpass
+  ca_cert.erb: config/ca_cert
 
 packages:
   - postgres-common
@@ -24,3 +25,6 @@ properties:
   postgres.dbuser:
     default: vcap
     description: "Database user to run backup and restore"
+  postgres.ssl_verify_hostname:
+    default: true
+    description: "If postgres is configured with a ca, setting this to 'true' changes sslmode to 'verify-full' rather than 'verify-ca'."

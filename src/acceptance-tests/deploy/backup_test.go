@@ -154,9 +154,17 @@ var _ = Describe("Backup and restore a deployment", func() {
 				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
 			})
 
-			Context("With SSL allowed", func() {
+			Context("With SSL", func() {
 				BeforeEach(func() {
-					deployHelper.SetOpDefs(append(helpers.Define_bbr_not_colocated_ops(), helpers.Define_ssl_ops()...))
+					deployHelper.SetOpDefs(helpers.Define_bbr_ssl_verify_ca())
+				})
+
+				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
+			})
+
+			Context("With SSL enforced with hostname validation", func() {
+				BeforeEach(func() {
+					deployHelper.SetOpDefs(helpers.Define_bbr_ssl_verify_full())
 				})
 
 				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())

@@ -1,10 +1,24 @@
 #!/bin/bash
 set -euo pipefail
 source /var/vcap/jobs/bbr-postgres-db/config/config.sh
+<%
+sslmode = "prefer"
+if link("database").p("databases.tls.ca") != ''
+  if p("postgres.ssl_verify_hostname")
+    sslmode = "verify-full"
+  else
+    sslmode = "verify-ca"
+  end
+end
+%>
 
-readonly TMP_LIST_FILE=$(mktemp restore.postgres.XXXX)
-readonly PGPASSFILE=$(mktemp pgpass.XXXX)
+readonly TMP_LIST_FILE="$(mktemp restore.postgres.XXXX)"
+readonly PGPASSFILE="$(mktemp pgpass.XXXX)"
+readonly PGSSLMODE="<%=sslmode%>"
+readonly PGSSLROOTCERT="${JOB_DIR}/config/ca_cert"
 export PGPASSFILE
+export PGSSLMODE
+export PGSSLROOTCERT
 
 doCleanup() {
   rm ${PGPASSFILE}
