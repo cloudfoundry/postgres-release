@@ -28,7 +28,15 @@ export PGSSLMODE
 export PGSSLROOTCERT
 <% if p("postgres.client_certificate") != "" %>
 readonly PGSSLCERT="${JOB_DIR}/config/client_certificate"
-readonly PGSSLKEY="${JOB_DIR}/config/client_certificate_key"
 export PGSSLCERT
-export PGSSLKEY
 <% end %>
+
+export_as_private_temp_file() {
+  local source=$1
+  local target=$2
+
+  local readonly PGENVVAR="$(mktemp pgenv.XXXX)"
+  cp $source ${PGENVVAR}
+  chmod 0600 ${PGENVVAR}
+  eval "export $target=$PGENVVAR"
+}

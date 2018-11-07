@@ -1,18 +1,22 @@
 #!/bin/bash
 set -euo pipefail
-source /var/vcap/jobs/bbr-postgres-db/config/config.sh
-
-readonly PGPASSFILE="$(mktemp pgpass.XXXX)"
-export PGPASSFILE
 
 doCleanup() {
   rm ${PGPASSFILE}
+<% if p("postgres.client_certificate") != "" %>
+  rm ${PGSSLKEY}
+<% end %>
 }
 
 trap doCleanup EXIT
 
-cp $JOB_DIR/config/pgpass ${PGPASSFILE}
-chmod 0600 ${PGPASSFILE}
+source /var/vcap/jobs/bbr-postgres-db/config/config.sh
+
+export_as_private_temp_file "$JOB_DIR/config/pgpass" PGPASSFILE
+
+<% if p("postgres.client_certificate") != "" %>
+export_as_private_temp_file "$JOB_DIR/config/client_certificate_key" PGSSLKEY
+<% end %>
 
 for dbname in ${DATABASES[@]}; do
   BBR_ARTIFACT_FILE_PATH="${BBR_ARTIFACT_DIRECTORY}/postgres_${dbname}.sql"
