@@ -42,6 +42,24 @@ properties:
   databases.port:
     description: "The database port"
     default: 5432
+  databases.override_memory_settings:
+    description: "text block of postgresql.conf memory settings that override defaults, please use the yaml pipe text block"
+    default: false
+    example: |
+      max_connections = 150
+      shared_buffers = 32GB
+      effective_cache_size = 96GB
+      maintenance_work_mem = 2GB
+      checkpoint_completion_target = 0.9
+      wal_buffers = 16MB
+      default_statistics_target = 100
+      random_page_cost = 1.1
+      effective_io_concurrency = 200
+      work_mem = 13981kB
+      min_wal_size = 2GB
+      max_wal_size = 4GB
+      max_worker_processes = 32
+      max_parallel_workers_per_gather = 16
   databases.databases:
     description: "A list of databases and associated properties to create"
     example: |
