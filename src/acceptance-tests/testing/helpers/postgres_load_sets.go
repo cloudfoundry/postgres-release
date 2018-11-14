@@ -73,6 +73,10 @@ func (table PGLoadTable) PrepareCreate() string {
 	return fmt.Sprintf("CREATE TABLE %s (%s);", table.Name, strings.Join(columns, ",\n"))
 }
 
+func (table PGLoadTable) PrepareCreateIndex() string {
+	return fmt.Sprintf("CREATE INDEX %s_index ON %s USING hash (%s) ;", table.Name, table.Name, table.ColumnNames[0])
+}
+
 func (table PGLoadTable) PrepareStatement() string {
 	var result string
 	if len(table.ColumnNames) > 0 && table.Name != "" {

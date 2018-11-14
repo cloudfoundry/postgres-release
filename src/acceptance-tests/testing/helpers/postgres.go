@@ -393,6 +393,10 @@ func (pg PGData) CreateAndPopulateTablesWithPrefix(dbName string, loadType LoadT
 		if err != nil {
 			return err
 		}
+		err = conn.Exec(table.PrepareCreateIndex())
+		if err != nil {
+			return err
+		}
 		txn, err := conn.DB.Begin()
 		if err != nil {
 			return err

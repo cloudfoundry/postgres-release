@@ -90,7 +90,7 @@ databases.tls.ca | PEM-encoded certification authority for secure TLS communicat
 databases.max_connections | Maximum number of database connections
 databases.log_line\_prefix | The postgres `printf` style string that is output at the beginning of each log line. Default: `%m:`
 databases.collect_statement\_statistics | Enable the `pg_stat_statements` extension and collect statement execution statistics. Default: `false`
-databases.additional_config | A map of additional key/value pairs to include as extra configuration properties
+databases.additional_config | A map of additional key/value pairs to include as extra configuration properties in `postgresql.conf`
 databases.monit_timeout | Monit timout in seconds for the postgres job start. Default: `90`.
 databases.trust_local_connection | Whether or not postgres must trust local connections. `vcap` is always trusted. It defaults to `true`.
 databases.skip_data_copy_in_minor | Whether or not a copy of the data directory is created during PostgreSQL minor upgrades. A copy is created by default.
@@ -210,6 +210,8 @@ The maintainers of the postgres-release test the following upgrade paths:
 1. Postgres will be unavailable during this upgrade.
 
 ### Considerations after a successful deployment
+
+PostgreSQL upgrade may require some post-upgrade processing. The administrator should check the `/var/vcap/store/postgres/pg_upgrade_tmp` directory for the generated script files and eventually run them. See [pg_upgrade post-upgrade processing](https://www.postgresql.org/docs/11/pgupgrade.html) for more details.
 
 In case a copy of the old database is kept (see considerations above), the old database is moved to `/var/vcap/store/postgres/postgres-previous`. The postgres-previous directory will be kept until the next postgres upgrade is performed in the future. You are free to remove this if you have verified the new database works and you want to reclaim the space.
 
