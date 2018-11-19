@@ -830,6 +830,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Correctly create and drop the table", func() {
 				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("CREATE INDEX pgats_table_0_index ON pgats_table_0 USING hash").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectBegin()
 				mock.ExpectPrepare(prepared)
 				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnResult(sqlmock.NewResult(1, 1))
@@ -851,8 +852,17 @@ var _ = Describe("Postgres", func() {
 				Expect(err).To(MatchError(genericError))
 				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
 			})
+			It("Fails to create the index", func() {
+				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("CREATE INDEX pgats_table_0_index ON pgats_table_0 USING hash").WillReturnError(genericError)
+
+				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
+				Expect(err).To(MatchError(genericError))
+				Expect(mock.ExpectationsWereMet()).NotTo(HaveOccurred())
+			})
 			It("Fails to begin the connection", func() {
 				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("CREATE INDEX pgats_table_0_index ON pgats_table_0 USING hash").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectBegin().WillReturnError(genericError)
 
 				err := pg.CreateAndPopulateTables("db1", helpers.Test1Load)
@@ -861,6 +871,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fails to prepare the statement", func() {
 				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("CREATE INDEX pgats_table_0_index ON pgats_table_0 USING hash").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectBegin()
 				mock.ExpectPrepare(prepared).WillReturnError(genericError)
 
@@ -870,6 +881,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fails to populate row", func() {
 				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("CREATE INDEX pgats_table_0_index ON pgats_table_0 USING hash").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectBegin()
 				mock.ExpectPrepare(prepared)
 				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnError(genericError)
@@ -880,6 +892,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fails to flush buffered data", func() {
 				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("CREATE INDEX pgats_table_0_index ON pgats_table_0 USING hash").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectBegin()
 				mock.ExpectPrepare(prepared)
 				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnResult(sqlmock.NewResult(1, 1))
@@ -891,6 +904,7 @@ var _ = Describe("Postgres", func() {
 			})
 			It("Fails to commit", func() {
 				mock.ExpectExec("CREATE TABLE pgats_table_0").WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec("CREATE INDEX pgats_table_0_index ON pgats_table_0 USING hash").WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectBegin()
 				mock.ExpectPrepare(prepared)
 				mock.ExpectExec(prepared).WithArgs("short_string0").WillReturnResult(sqlmock.NewResult(1, 1))
