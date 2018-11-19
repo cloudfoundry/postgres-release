@@ -50,8 +50,8 @@ var _ = Describe("SSL enabled", func() {
 			var cmd *exec.Cmd
 			var err error
 			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), fmt.Sprintf(bosh_ssh_command, "vcap"))
-			err = cmd.Run()
-			Expect(err).NotTo(HaveOccurred())
+			stdout, stderr, err := helpers.RunCommand(cmd)
+			Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 		})
 
 		It("Fails to trust non-vcap local connections", func() {

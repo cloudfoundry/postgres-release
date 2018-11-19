@@ -53,8 +53,8 @@ func RunCommand(cmd *exec.Cmd) (string, string, error) {
 
 	out, err := cmd.Output()
 
+	stdout = string(out)
 	if err != nil {
-		stdout = string(out)
 		if exitError, ok := err.(*exec.ExitError); ok {
 			stderr = string(exitError.Stderr)
 		}

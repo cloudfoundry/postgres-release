@@ -115,8 +115,9 @@ var _ = Describe("Backup and restore a deployment", func() {
 				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", filepath.Dir(files[0]))
 				stdout, stderr, err = helpers.RunCommand(cmd)
 				Expect(err).To(HaveOccurred())
-				// we expect a warning for a single error because restore_0 was dropped
-				Expect(stderr).To(ContainSubstring("WARNING: errors ignored on restore: 1"))
+				// we expect a warning for a single error because restore_0 table
+				// and restore_0_index index were dropped
+				Expect(stderr).To(ContainSubstring("WARNING: errors ignored on restore: 2"))
 
 				By("Validating that the dropped table has been restored")
 				result, err = db.CheckTableExist("restore_0", pgprops.Databases.Databases[0].Name)

@@ -71,8 +71,8 @@ var _ = Describe("Test hooks", func() {
 			By("Testing the pre-start hook")
 			bosh_ssh_command = "source /var/vcap/jobs/postgres/bin/pgconfig.sh; grep %s ${HOOK_LOG_OUT}"
 			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), fmt.Sprintf(bosh_ssh_command, pre_start_uuid))
-			err = cmd.Run()
-			Expect(err).NotTo(HaveOccurred())
+			stdout, stderr, err := helpers.RunCommand(cmd)
+			Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 
 			By("Testing the post-start hook")
 			role_exist, err := db.CheckRoleExist(post_start_role_name)
@@ -91,8 +91,8 @@ var _ = Describe("Test hooks", func() {
 			By("Testing the post-stop hook")
 			bosh_ssh_command = "source /var/vcap/jobs/postgres/bin/pgconfig.sh; grep %s ${HOOK_LOG_OUT}"
 			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), fmt.Sprintf(bosh_ssh_command, post_stop_uuid))
-			err = cmd.Run()
-			Expect(err).NotTo(HaveOccurred())
+			stdout, stderr, err = helpers.RunCommand(cmd)
+			Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 		})
 	})
 
@@ -112,8 +112,8 @@ var _ = Describe("Test hooks", func() {
 
 			bosh_ssh_command = "source /var/vcap/jobs/postgres/bin/pgconfig.sh; if ! grep %s-10 ${HOOK_LOG_OUT}; then exit 0; else exit 1; fi"
 			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), fmt.Sprintf(bosh_ssh_command, pre_start_uuid))
-			err = cmd.Run()
-			Expect(err).NotTo(HaveOccurred())
+			stdout, stderr, err := helpers.RunCommand(cmd)
+			Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 			_, err = db.GetPostgreSQLVersion()
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -170,9 +170,9 @@ EOF
 			// sshuser    10789   10787  grep janitor
 			bosh_ssh_command = "ps -ef | grep -c janitor"
 			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), bosh_ssh_command)
-			output, err := cmd.Output()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(strings.Trim(string(output), " \n\t\r")).To(Equal("2"))
+			stdout, stderr, err := helpers.RunCommand(cmd)
+			Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
+			Expect(strings.Trim(stdout, " \n\t\r")).To(Equal("2"))
 
 			By("Restarting the stopped postgres node")
 			err = deployHelper.GetDeployment().Start("postgres")

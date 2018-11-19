@@ -58,8 +58,8 @@ var _ = Describe("Create a fresh deployment", func() {
 			var cmd *exec.Cmd
 
 			cmd = exec.Command("ssh", "-i", sshKeyFile, "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), fmt.Sprintf(bosh_ssh_command, "fake", "vcap"))
-			err = cmd.Run()
-			Expect(err).NotTo(HaveOccurred())
+			stdout, stderr, err := helpers.RunCommand(cmd)
+			Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 		})
 
 		It("Fails to use non vcap local connections", func() {
@@ -67,8 +67,8 @@ var _ = Describe("Create a fresh deployment", func() {
 			var cmd *exec.Cmd
 
 			cmd = exec.Command("ssh", "-i", sshKeyFile, fmt.Sprintf("%s@%s", deployHelper.GetVariable("testuser_name"), pgHost), "-o", "BatchMode=yes", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no", fmt.Sprintf(bosh_ssh_command, deployHelper.GetVariable("defuser_password"), deployHelper.GetVariable("defuser_name")))
-			err = cmd.Run()
-			Expect(err).NotTo(HaveOccurred())
+			stdout, stderr, err := helpers.RunCommand(cmd)
+			Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 		})
 
 	})
