@@ -10,6 +10,7 @@ This is a [BOSH](https://www.bosh.io) release for [PostgreSQL](https://www.postg
 * [Contributing](#contributing)
 * [Known Limitation](#known-limitation)
 * [Upgrading](#upgrading)
+* [CI](#ci)
 
 ## Deploying
 
@@ -228,3 +229,11 @@ If the upgrade fails:
   - `pg_upgrade` logs that may have details of why the migration failed can be found in `/var/vcap/sys/log/postgres/postgres_ctl.log`
 
 If you want to attempt the upgrade again or to roll back to the previous release, you should remove the new data directory and, if present, the marker file.
+
+
+## CI
+
+The [CI pipeline](https://postgres.ci.cf-app.com/) runs:
+
+- the postgres-release [acceptance tests](docs/acceptance-tests.md)
+- the supported [upgrade paths](#upgrade-test-policy)
