@@ -28,6 +28,12 @@ properties:
   postgres.dbuser:
     default: vcap
     description: "Database user to run backup and restore"
+  postgres.port:
+    default: 5432
+    description: "The database port (not used when using links)"
+  postgres.databases:
+    default: []
+    description: "Databases to backup and restore (not used when using links)"
   postgres.ssl_verify_hostname:
     default: true
     description: "If postgres is configured with a ca, setting this to 'true' changes sslmode to 'verify-full' rather than 'verify-ca'."
