@@ -149,7 +149,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 
 			Context("When not using BOSH links", func() {
 				BeforeEach(func() {
-					deployHelper.SetOpDefs(helpers.Define_bbr_no_links_ops())
+					deployHelper.SetOpDefs(helpers.Define_bbr_no_link_ops())
 				})
 
 				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
