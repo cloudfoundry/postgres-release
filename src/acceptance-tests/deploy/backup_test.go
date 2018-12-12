@@ -131,19 +131,29 @@ var _ = Describe("Backup and restore a deployment", func() {
 		}
 
 		Context("BBR job is colocated", func() {
-			BeforeEach(func() {
-				deployHelper.SetOpDefs(helpers.Define_bbr_ops())
+			Context("When using BOSH links", func() {
+				BeforeEach(func() {
+					deployHelper.SetOpDefs(helpers.Define_bbr_ops())
+				})
+
+				It("Fails to restore the database", func() {
+					var err error
+					var cmd *exec.Cmd
+					cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", fmt.Sprintf("%s/doesnotexist", tempDir))
+					err = cmd.Run()
+					Expect(err).To(HaveOccurred())
+				})
+
+				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
 			})
 
-			It("Fails to restore the database", func() {
-				var err error
-				var cmd *exec.Cmd
-				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", fmt.Sprintf("%s/doesnotexist", tempDir))
-				err = cmd.Run()
-				Expect(err).To(HaveOccurred())
-			})
+			Context("When not using BOSH links", func() {
+				BeforeEach(func() {
+					deployHelper.SetOpDefs(helpers.Define_bbr_no_links_ops())
+				})
 
-			It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
+				It("Successfully backup and restore the database", AssertBackupRestoreSuccessful())
+			})
 		})
 
 		Context("BBR job is not colocated", func() {
