@@ -37,6 +37,29 @@ func Define_bbr_ops() []OpDefinition {
 	return ops
 }
 
+func Define_bbr_no_link_ops() []OpDefinition {
+	var ops []OpDefinition
+	var value interface{}
+	var path string
+
+	path = "/instance_groups/name=postgres/jobs/-"
+	value = map[interface{}]interface{}{
+		"name":    "bbr-postgres-db",
+		"release": "postgres",
+		"properties": map[interface{}]interface{}{
+			"release_level_backup": true,
+			"postgres": map[interface{}]interface{}{
+				"databases": []interface{}{
+					"sandbox",
+					"sandbox-2",
+				},
+			},
+		},
+	}
+	AddOpDefinition(&ops, "replace", path, value)
+	return ops
+}
+
 func Define_bbr_not_colocated_ops() []OpDefinition {
 	var ops []OpDefinition
 	var value interface{}
