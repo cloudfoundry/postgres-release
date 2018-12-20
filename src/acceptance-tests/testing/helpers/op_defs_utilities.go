@@ -42,6 +42,15 @@ func Define_bbr_no_link_ops() []OpDefinition {
 	var value interface{}
 	var path string
 
+	p := "/instance_groups/name=backup"
+	ops = append(ops, OpDefinition{Type: "remove", Path: &p})
+
+	path = "/instance_groups/name=postgres/jobs/name=postgres/provides"
+	value = map[interface{}]interface{}{
+		"postgres": "nil",
+	}
+	AddOpDefinition(&ops, "replace", path, value)
+
 	path = "/instance_groups/name=postgres/jobs/-"
 	value = map[interface{}]interface{}{
 		"name":    "bbr-postgres-db",
@@ -49,9 +58,10 @@ func Define_bbr_no_link_ops() []OpDefinition {
 		"properties": map[interface{}]interface{}{
 			"release_level_backup": true,
 			"postgres": map[interface{}]interface{}{
-				"databases": []interface{}{
-					"sandbox",
-					"sandbox-2",
+				"port": "5524",
+				"databases": []map[interface{}]interface{}{
+					{"name": "sandbox"},
+					{"name": "sandbox-2"},
 				},
 			},
 		},

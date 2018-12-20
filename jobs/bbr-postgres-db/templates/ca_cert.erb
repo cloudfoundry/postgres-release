@@ -1,1 +1,1 @@
-<%=link("database").p("databases.tls.ca")%>
+<%= c = ""; if_link("database") {|d| c = d.p("databases.tls.ca") }; c %>
