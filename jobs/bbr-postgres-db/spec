@@ -20,6 +20,7 @@ packages:
 consumes:
 - name: database
   type: database
+  optional: true
 
 properties:
   release_level_backup:
