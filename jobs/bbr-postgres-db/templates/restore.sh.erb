@@ -39,6 +39,7 @@ for dbname in ${DATABASES[@]}; do
       --format=custom \
       --dbname="${dbname}" \
       --use-list=${TMP_LIST_FILE} \
+      --if-exists \
       --clean \
       "${BBR_ARTIFACT_FILE_PATH}"
   else
