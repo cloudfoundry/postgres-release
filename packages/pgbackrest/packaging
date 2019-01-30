@@ -1,0 +1,10 @@
+#!/bin/bash -exu
+
+apt-get -y install build-essential libssl-dev libxml2-dev libperl-dev zlib1g-dev
+
+echo "Extracting archive..."
+tar xzf postgres/pgbackrest-*
+
+make -s -C pgbackrest-release-2.08/src
+
+cp pgbackrest-release-2.08/src/pgbackrest ${BOSH_INSTALL_TARGET}

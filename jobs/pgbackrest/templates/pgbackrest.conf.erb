@@ -1,0 +1,22 @@
+[<%= p('pgbackrest.stanza') %>]
+pg1-path=/var/vcap/store/postgres/postgres-11.1
+recovery-option=recovery_target_action=promote
+
+[global]
+repo1-path=/var/vcap/store/pgbackrest
+repo1-retention-full=2
+repo1-retention-diff=2
+
+<% if p('pgbackrest.cipher_pass') != '' %>
+repo1-cipher-pass=<%= p('pgbackrest.cipher_pass') %>
+repo1-cipher-type=aes-256-cbc
+<% else %>
+repo1-cipher-type=none
+<% end %>
+
+#start-fast=n
+#stop-auto=y
+#process-max=4
+
+[global:archive-push]
+compress-level=3

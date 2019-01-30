@@ -1,0 +1,18 @@
+#!/bin/bash -eu
+<%
+dbhost = "localhost"
+sslmode = "prefer"
+port = p("postgres.port")
+if_link("database") do |data|
+  if p("postgres.dbuser") != "vcap"
+    dbhost = data.address
+  end
+
+  port = data.p("databases.port")
+end
+
+ %>
+PACKAGE_DIR="/var/vcap/packages/pgbackrest"
+STORE_DIR="/var/vcap/store/pgbackrest"
+PORT="<%= port %>"
+DBHOST=<%= dbhost %>

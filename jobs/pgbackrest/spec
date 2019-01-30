@@ -1,0 +1,30 @@
+---
+name: pgbackrest
+
+description: "Utility for PostgreSQL continuous archiving and point in time restore (PITR)"
+
+templates:
+  pre-start.sh.erb: bin/pre-start
+  backup.sh.erb: bin/backup.sh
+  config.sh.erb: config/config.sh
+  pgbackrest.conf.erb: config/pgbackrest.conf
+
+packages:
+  - pgbackrest
+
+consumes:
+- name: database
+  type: database
+  optional: true
+
+properties:
+  postgres.dbuser:
+    default: vcap
+    description: "Database user to run backup and restore"
+  postgres.port:
+    default: 5432
+    description: "The database port (not used when using links)"
+  pgbackrest.stanza:
+    default: "postgres1"
+  pgbackrest.cipher_pass:
+    default: ''
