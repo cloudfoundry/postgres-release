@@ -6,16 +6,10 @@ set +u
 source ~/.bashrc
 set -u
 
-preflight_check() {
-  set +x
-  test -n "${RELEASE_NAME}"
-  set -x
-}
-
 function main() {
   local root_dir
   root_dir="${PWD}"
-  preflight_check
+  RELEASE_NAME="${RELEASE_NAME:?"RELEASE_NAME required"}"
 
   local release_name
   release_name="${1}"
@@ -56,7 +50,7 @@ function create_and_commit() {
 
     local exit_status
     for i in {1..5}; do
-      /opt/rubies/ruby-2.2.4/bin/bosh -n create release --with-tarball --final
+      bosh -n create-release --final
       exit_status="${PIPESTATUS[0]}"
 
       if [[ "${exit_status}" == "0" ]]; then
