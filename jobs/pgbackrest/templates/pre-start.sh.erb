@@ -6,3 +6,8 @@ source /var/vcap/jobs/pgbackrest/config/config.sh
 
 mkdir -p ${STORE_DIR}
 chmod 755 ${STORE_DIR}
+chown vcap:vcap ${STORE_DIR}
+
+mkdir -p ${LOGDIR}
+chmod 755 ${LOGDIR}
+chown vcap:vcap ${LOGDIR}

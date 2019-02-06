@@ -1,3 +1,6 @@
+postgres/pgbackrest-2.08.tar.gz:
+  size: 6416361
+  sha: 10614d94f560040835e34412594b58704ff39332
 postgres/postgresql-9.6.10.tar.gz:
   size: 26212016
   object_id: 581f0bec-23b5-48a0-4cfc-b6bc36a023c6

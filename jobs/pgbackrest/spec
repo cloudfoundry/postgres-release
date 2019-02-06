@@ -5,7 +5,9 @@ description: "Utility for PostgreSQL continuous archiving and point in time rest
 
 templates:
   pre-start.sh.erb: bin/pre-start
+  post-start.sh.erb: bin/post-start
   backup.sh.erb: bin/backup.sh
+  create_stanza.sh.erb: bin/create_stanza.sh
   config.sh.erb: config/config.sh
   pgbackrest.conf.erb: config/pgbackrest.conf
 

@@ -12,7 +12,14 @@ if_link("database") do |data|
 end
 
  %>
+LOGDIR="/var/vcap/sys/log/pgbackrest"
 PACKAGE_DIR="/var/vcap/packages/pgbackrest"
+JOB_DIR="/var/vcap/jobs/pgbackrest"
 STORE_DIR="/var/vcap/store/pgbackrest"
 PORT="<%= port %>"
 DBHOST=<%= dbhost %>
+
+PATH=${PACKAGE_DIR}:${PATH}
+export LC_CTYPE="en_US.utf8"
+export PGBACKREST_CONFIG_PATH=${JOB_DIR}/config
+export PGBACKREST_STANZA="<%=p("pgbackrest.stanza")%>"
