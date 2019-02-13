@@ -72,6 +72,12 @@ ssl_key_file='/var/vcap/jobs/postgres/config/certificates/server.private_key'
 ssl_cert_file='/var/vcap/jobs/postgres/config/certificates/server.public_cert'
 <% end %>
 
+<% if p("pitr.enable") %>
+archive_command = '/var/vcap/jobs/pgbackrest/bin/archive_wal.sh "%p"'
+archive_mode = on
+wal_level = replica
+<% end %>
+
 <% if_p("databases.additional_config") do |db_config| %>
 # Additional configuration
 <% db_config.each do |key, value| %>

@@ -1,3 +1,3 @@
 #!/bin/bash -exu
 source /var/vcap/jobs/pgbackrest/config/config.sh
-pgbackrest backup
+pgbackrest archive-push "$1"

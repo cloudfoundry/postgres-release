@@ -1,13 +1,6 @@
 <%
-dbhost = "localhost"
-sslmode = "prefer"
-port = p("postgres.port")
-dbuser = p("postgres.dbuser")
+port = p("stanza.postgres.port")
 if_link("database") do |data|
-  if dbuser != "vcap"
-    dbhost = data.address
-  end
-
   port = data.p("databases.port")
 end
 
@@ -28,16 +21,13 @@ repo1-cipher-type=none
 #stop-auto=y
 #process-max=4
 log-path=/var/vcap/sys/log/pgbackrest
+log-level-console=info
 
 [global:archive-push]
 compress-level=3
 
-[<%= p('pgbackrest.stanza') %>]
+[<%= p('stanza.name') %>]
 pg1-path=/var/vcap/store/postgres/postgres-11.1
 pg1-port=<%= port %>
 pg1-socket-path=/tmp
-#pg1-host=<%= dbhost %>
-#pg1-host-port=<%= port %>
-#pg1-host-user=<%= dbuser %>
 recovery-option=recovery_target_action=promote
-

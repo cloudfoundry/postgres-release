@@ -1,1 +1,6 @@
-# This monit file is purposely left empty, as there are no processes for monit to run.
+check process pgbackrest
+  with pidfile /var/vcap/sys/run/pgbackrest/pgbackrest.pid
+  start program "/var/vcap/jobs/pgbackrest/bin/pgbackrest_ctl start"
+    as uid vcap and gid vcap
+  stop program "/var/vcap/jobs/pgbackrest/bin/pgbackrest_ctl stop"
+  group vcap

@@ -1,0 +1,34 @@
+#!/bin/bash -e
+
+export PIDNUM=$$
+
+exec > >(tee -a >(logger -p user.info -t vcap.$(basename $0).stdout) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")] $PIDNUM"); print " " $0 }' >> /var/vcap/sys/log/pgbackrest/pgbackrest.log)
+exec 2> >(tee -a >(logger -p user.error -t vcap.$(basename $0).stderr) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")] $PIDNUM"); print " " $0 }' >> /var/vcap/sys/log/pgbackrest/pgbackrest.err.log)
+
+source /var/vcap/jobs/pgbackrest/config/config.sh
+<% if p("backup.interval").zero? %>
+echo "Nothing to do. Going to sleep."
+sleep infinity
+<% else %>
+# wait for postgres to start for at most n seconds
+timeout 30 bash -c "while true; do
+  ${PG_PACKAGE_DIR}/bin/pg_isready -p ${PORT} -U vcap
+  if [ "$?" == "0" ]; then
+    exit 0
+  fi
+  sleep 1
+done"
+if [ "$?" != "0" ]; then
+  echo "Failed while waiting for postgres to start"
+  exit 1
+fi
+
+while :
+do
+  echo "Invoking pgbackrest"
+  ${JOB_DIR}/bin/backup.sh
+  retcode=$?
+  echo "pgbackrest invoked with return code $retcode"
+  sleep <%= p("backup.interval") %>
+done
+<% end %>

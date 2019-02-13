@@ -6,7 +6,10 @@ description: "Utility for PostgreSQL continuous archiving and point in time rest
 templates:
   pre-start.sh.erb: bin/pre-start
   post-start.sh.erb: bin/post-start
+  pgbackrest_ctl.sh.erb: bin/pgbackrest_ctl
+  backup_scheduler.sh.erb: bin/backup_scheduler.sh
   backup.sh.erb: bin/backup.sh
+  archive_wal.sh: bin/archive_wal.sh
   create_stanza.sh.erb: bin/create_stanza.sh
   config.sh.erb: config/config.sh
   pgbackrest.conf.erb: config/pgbackrest.conf
@@ -20,13 +23,13 @@ consumes:
   optional: true
 
 properties:
-  postgres.dbuser:
-    default: vcap
-    description: "Database user to run backup and restore"
-  postgres.port:
-    default: 5432
-    description: "The database port (not used when using links)"
-  pgbackrest.stanza:
-    default: "postgres1"
+  backup.interval:
+    description: "Interval between scheduled backups. Set to 0 not to run backup."
+    default: 86400
   pgbackrest.cipher_pass:
     default: ''
+  stanza.name:
+    default: "postgres1"
+  stanza.postgres.port:
+    default: 5432
+    description: "The database port (not used when using links)"

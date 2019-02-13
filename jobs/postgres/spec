@@ -131,3 +131,6 @@ properties:
   janitor.timeout:
     description: "Time limit in seconds for the janitor script. By default it's set to 0 that means no time limit"
     default: 0
+  pitr.enable:
+    description: "Enable continuous wal archiving for Point-in-Time recovery."
+    default: false
