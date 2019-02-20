@@ -22,6 +22,8 @@ if [ "$?" != "0" ]; then
   echo "Failed while waiting for postgres to start"
   exit 1
 fi
+echo "creating stanza"
+${JOB_DIR}/bin/create_stanza.sh
 
 while :
 do

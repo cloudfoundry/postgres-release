@@ -5,7 +5,6 @@ description: "Utility for PostgreSQL continuous archiving and point in time rest
 
 templates:
   pre-start.sh.erb: bin/pre-start
-  post-start.sh.erb: bin/post-start
   pgbackrest_ctl.sh.erb: bin/pgbackrest_ctl
   backup_scheduler.sh.erb: bin/backup_scheduler.sh
   backup.sh.erb: bin/backup.sh
