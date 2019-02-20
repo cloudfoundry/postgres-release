@@ -1,6 +1,6 @@
 #!/bin/bash -exu
 
-apt-get -y install build-essential libssl-dev libxml2-dev libperl-dev zlib1g-dev
+export PATH=/var/vcap/packages/perl-modules/bin:$PATH
 
 echo "Extracting archive..."
 tar xzf postgres/pgbackrest-*

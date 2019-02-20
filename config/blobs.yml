@@ -1,3 +1,33 @@
+perl-modules/DBD-Pg-3.7.4.tar.gz:
+  size: 261212
+  sha: 6f0598fef195203057bae7947859590e8b79e497
+perl-modules/DBI-1.642.tar.gz:
+  size: 604581
+  sha: 4838da411896707eb89acf63ae2d35c88ff841c7
+perl-modules/IO-Socket-SSL-2.060.tar.gz:
+  size: 233169
+  sha: d00985ca87425ab5860bc38e59bcb9d39b372508
+perl-modules/Net-LibIDN-0.12.tar.gz:
+  size: 14262
+  sha: ac446edf66ac523d5463b59ed9698e2ccb9b04ab
+perl-modules/Net-SSLeay-1.85.tar.gz:
+  size: 418349
+  sha: 5f1c7b6ccac81efd5b78b1e076c694f96ca5c439
+perl-modules/XML-LibXML-2.0134.tar.gz:
+  size: 470593
+  sha: 65786db3e8a72146934aac8cc448153f85a1f249
+perl-modules/XML-NamespaceSupport-1.12.tar.gz:
+  size: 18012
+  sha: f07cf650e0bd52714fc3da39d19a95bc6290e4ef
+perl-modules/XML-SAX-1.00.tar.gz:
+  size: 46808
+  sha: 1151e38f305dd1362372c6f9834fae2200d90dbc
+perl-modules/XML-SAX-Base-1.09.tar.gz:
+  size: 28215
+  sha: bf2c97ed35d5de09015d5a6f6ab8a8ee50aedd4a
+perl/perl-5.28.1.tar.gz:
+  size: 17705481
+  sha: 6f1ad40f1a40b5f33814b7afff315e813622590b
 postgres/pgbackrest-2.08.tar.gz:
   size: 6416361
   sha: 10614d94f560040835e34412594b58704ff39332

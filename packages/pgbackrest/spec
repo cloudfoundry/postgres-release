@@ -1,4 +1,6 @@
 ---
 name: pgbackrest
+dependencies:
+- perl-modules
 files:
   - postgres/pgbackrest-2.08.tar.gz

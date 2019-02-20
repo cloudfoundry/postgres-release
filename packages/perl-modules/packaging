@@ -1,0 +1,39 @@
+#!/bin/bash -exu
+
+function install_module() {
+  file="$1"
+  dir_name=$(basename "$file" .tar.gz)
+  tar -zxf $file
+  pushd $dir_name
+     perl Makefile.PL
+     make -j$(nproc)
+     make install
+  popd
+}
+
+
+export POSTGRES_LIB="/var/vcap/packages/postgres-11.1/lib -lssl -lcrypto"
+export POSTGRES_INCLUDE="/var/vcap/packages/postgres-11.1/include"
+export POSTGRES_HOME="/var/vcap/packages/postgres-11.1"
+export LC_CTYPE="en_US.utf8"
+
+apt-get -y install libidn11-dev
+mkdir tmp
+tar -xzf perl/perl-*.tar.gz -C tmp
+pushd tmp/perl-*
+  ./Configure -des -Dprefix=${BOSH_INSTALL_TARGET} -Dusethreads
+  make -j$(nproc)
+  make install
+popd
+export PATH=${BOSH_INSTALL_TARGET}/bin:$PATH
+# not cycling on modules since there is an order to respect
+# TODO it seems that perl exit with RC=0 even if the action fails
+install_module "perl-modules/DBI-*.tar.gz"
+install_module "perl-modules/DBD-Pg-*.tar.gz"
+install_module "perl-modules/XML-SAX-Base-*.tar.gz"
+install_module "perl-modules/XML-NamespaceSupport-*.tar.gz"
+install_module "perl-modules/XML-SAX-1*.tar.gz"
+install_module "perl-modules/XML-LibXML-*.tar.gz"
+install_module "perl-modules/Net-SSLeay-*.tar.gz"
+install_module "perl-modules/Net-LibIDN-*.tar.gz"
+install_module "perl-modules/IO-Socket-SSL-*.tar.gz"

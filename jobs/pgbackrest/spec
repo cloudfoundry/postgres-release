@@ -16,6 +16,7 @@ templates:
 
 packages:
   - pgbackrest
+  - perl-modules
 
 consumes:
 - name: database

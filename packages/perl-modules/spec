@@ -1,0 +1,15 @@
+---
+name: perl-modules
+dependencies:
+- postgres-11.1
+files:
+  - perl/perl-5.28.1.tar.gz
+  - perl-modules/DBI-1.642.tar.gz
+  - perl-modules/DBD-Pg-3.7.4.tar.gz
+  - perl-modules/Net-SSLeay-1.85.tar.gz
+  - perl-modules/Net-LibIDN-0.12.tar.gz
+  - perl-modules/IO-Socket-SSL-2.060.tar.gz
+  - perl-modules/XML-SAX-Base-1.09.tar.gz
+  - perl-modules/XML-NamespaceSupport-1.12.tar.gz
+  - perl-modules/XML-LibXML-2.0134.tar.gz
+  - perl-modules/XML-SAX-1.00.tar.gz

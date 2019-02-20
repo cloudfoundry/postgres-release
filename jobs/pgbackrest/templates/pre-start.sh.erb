@@ -1,7 +1,4 @@
 #!/bin/bash -exu
-apt-get -y install libdbd-pg-perl
-# pre-reqs for s3 support:
-apt-get -y install libio-socket-ssl-perl libxml-libxml-perl
 source /var/vcap/jobs/pgbackrest/config/config.sh
 
 mkdir -p ${STORE_DIR}
