@@ -1,4 +1,0 @@
----
-name: postgres-11.1
-files:
-  - postgres/postgresql-11.1.tar.gz
