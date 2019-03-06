@@ -1,3 +1,3 @@
 #!/bin/bash -exu
 source /var/vcap/jobs/pgbackrest/config/config.sh
-pgbackrest stanza-create --no-online
+su - vcap -c "${JOB_DIR}/bin/backup.sh"

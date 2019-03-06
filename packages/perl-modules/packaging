@@ -12,9 +12,9 @@ function install_module() {
 }
 
 
-export POSTGRES_LIB="/var/vcap/packages/postgres-11.1/lib -lssl -lcrypto"
-export POSTGRES_INCLUDE="/var/vcap/packages/postgres-11.1/include"
-export POSTGRES_HOME="/var/vcap/packages/postgres-11.1"
+export POSTGRES_LIB="/var/vcap/packages/postgres-11.2/lib -lssl -lcrypto"
+export POSTGRES_INCLUDE="/var/vcap/packages/postgres-11.2/include"
+export POSTGRES_HOME="/var/vcap/packages/postgres-11.2"
 export LC_CTYPE="en_US.utf8"
 
 apt-get -y install libidn11-dev

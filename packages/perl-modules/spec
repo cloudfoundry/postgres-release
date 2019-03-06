@@ -1,7 +1,7 @@
 ---
 name: perl-modules
 dependencies:
-- postgres-11.1
+- postgres-11.2
 files:
   - perl/perl-5.28.1.tar.gz
   - perl-modules/DBI-1.642.tar.gz

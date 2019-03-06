@@ -1,6 +1,17 @@
 #!/bin/bash -exu
 source /var/vcap/jobs/pgbackrest/config/config.sh
 
+function do_stanza_create {
+  for i in {1..10}; do
+    su - vcap -c "${JOB_DIR}/bin/create_stanza.sh"
+    if [ "$?" == "0" ]; then
+       return
+     fi
+       echo "Failed to create the stanza."
+    sleep 2
+  done
+}
+
 mkdir -p ${STORE_DIR}
 chmod 755 ${STORE_DIR}
 chown vcap:vcap ${STORE_DIR}
@@ -12,3 +23,7 @@ chown vcap:vcap ${LOG_DIR}
 mkdir -p ${RUN_DIR}
 chmod 755 ${RUN_DIR}
 chown vcap:vcap ${RUN_DIR}
+
+set +e
+do_stanza_create
+set -e

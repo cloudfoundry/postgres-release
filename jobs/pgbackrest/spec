@@ -5,8 +5,7 @@ description: "Utility for PostgreSQL continuous archiving and point in time rest
 
 templates:
   pre-start.sh.erb: bin/pre-start
-  pgbackrest_ctl.sh.erb: bin/pgbackrest_ctl
-  backup_scheduler.sh.erb: bin/backup_scheduler.sh
+  run.sh: bin/run
   backup.sh.erb: bin/backup.sh
   archive_wal.sh: bin/archive_wal.sh
   create_stanza.sh.erb: bin/create_stanza.sh
@@ -23,9 +22,6 @@ consumes:
   optional: true
 
 properties:
-  backup.interval:
-    description: "Interval between scheduled backups. Set to 0 not to run backup."
-    default: 86400
   pgbackrest.cipher_pass:
     default: ''
   stanza.name:
