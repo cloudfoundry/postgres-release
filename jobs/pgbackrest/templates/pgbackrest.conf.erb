@@ -7,21 +7,18 @@ end
  %>
 [global]
 repo1-path=/var/vcap/store/pgbackrest
-repo1-retention-full=2
-repo1-retention-diff=2
-
-<% if p('pgbackrest.cipher_pass') != '' %>
-repo1-cipher-pass=<%= p('pgbackrest.cipher_pass') %>
-repo1-cipher-type=aes-256-cbc
-<% else %>
-repo1-cipher-type=none
-<% end %>
-
-#start-fast=n
-#stop-auto=y
-#process-max=4
 log-path=/var/vcap/sys/log/pgbackrest
 log-level-console=info
+repo1-retention-full=1
+repo1-retention-diff=5
+
+<% if_p("pgbackrest.global_options_section") do |pgb_config| %>
+# Additional configuration
+<% pgb_config.each do |key, value| %>
+<%= key %>=<%= value %>
+<% end %>
+<% end %>
+
 
 [global:archive-push]
 compress-level=3

@@ -22,8 +22,11 @@ consumes:
   optional: true
 
 properties:
-  pgbackrest.cipher_pass:
-    default: ''
+  pgbackrest.global_options_section:
+    description: "A map of key/value pairs to include in the [global] section of the pgBackRest configuration file"
+    example: |
+      repo1-cipher-pass: "abcd"
+      repo1-cipher-type: aes-256-cbc
   stanza.name:
     default: "postgres1"
   stanza.postgres.port:
