@@ -1,4 +1,5 @@
 versions:
+  38: "PostgreSQL 11.4"
   37: "PostgreSQL 11.3"
   36: "PostgreSQL 11.2"
   35: "PostgreSQL 11.1"
