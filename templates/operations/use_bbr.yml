@@ -2,7 +2,7 @@
   path: /instance_groups/name=postgres/jobs/-
   value:
     name: bbr-postgres-db
-    releases: postgres
+    release: postgres
     consumes:
       database:
         from: postgres-database
