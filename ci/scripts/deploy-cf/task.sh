@@ -31,6 +31,7 @@ function main(){
     -v system_domain="${BOSH_DIRECTOR_IP}.nip.io" \
     -v cf_admin_password="${API_PASSWORD}" \
     -o "${root}/cf-deployment/operations/use-compiled-releases.yml" \
+    -o "${root}/postgres-release/ci/templates/change-router-props-for-boshlite.yml" \
     -o "${root}/postgres-release/ci/templates/add-system-domain-dns-alias.yml" \
     -o "${root}/cf-deployment/operations/use-postgres.yml" \
     -o "${root}/cf-deployment/operations/use-latest-stemcell.yml" \
