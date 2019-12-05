@@ -28,7 +28,7 @@ templates:
 packages:
   - postgres-common
   - postgres-9.6.10
-  - postgres-11.5
+  - postgres-11.6
 
 provides:
 - name: postgres
