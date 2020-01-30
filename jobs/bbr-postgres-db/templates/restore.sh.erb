@@ -41,6 +41,9 @@ for dbname in ${DATABASES[@]}; do
       --use-list=${TMP_LIST_FILE} \
       --if-exists \
       --clean \
+      <% if p("postgres.single-transaction") %>
+      --single-transaction \
+      <% end %>
       "${BBR_ARTIFACT_FILE_PATH}"
   else
     echo "WARNING: Not restoring ${dbname} because backup file ${BBR_ARTIFACT_FILE_PATH} does not exist"

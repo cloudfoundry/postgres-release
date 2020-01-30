@@ -44,3 +44,6 @@ properties:
   postgres.client_certificate_key:
     default: ''
     description: "Secret key used for the client certificate. Specify it if you want to auhtenticate using certificates."
+  postgres.single-transaction:
+    default: false
+    description: "uses singele transaction when restoring databases"
