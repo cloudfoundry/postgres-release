@@ -23,6 +23,11 @@ export_as_private_temp_file "$JOB_DIR/config/pgpass" PGPASSFILE
 export_as_private_temp_file "$JOB_DIR/config/client_certificate_key" PGSSLKEY
 <% end %>
 
+SINGLE_TRANSACTION=
+<% if p("postgres.single-transaction") %>
+SINGLE_TRANSACTION="--single-transaction"
+<% end %>
+
 for dbname in ${DATABASES[@]}; do
   BBR_ARTIFACT_FILE_PATH="${BBR_ARTIFACT_DIRECTORY}/postgres_${dbname}.sql"
   if [ -f "${BBR_ARTIFACT_FILE_PATH}" ]; then
@@ -41,6 +46,7 @@ for dbname in ${DATABASES[@]}; do
       --use-list=${TMP_LIST_FILE} \
       --if-exists \
       --clean \
+      ${SINGLE_TRANSACTION} \
       "${BBR_ARTIFACT_FILE_PATH}"
   else
     echo "WARNING: Not restoring ${dbname} because backup file ${BBR_ARTIFACT_FILE_PATH} does not exist"
