@@ -41,7 +41,7 @@ func LoadConfig(configFilePath string) (PgatsConfig, error) {
 		return PgatsConfig{}, err
 	}
 
-	if config.Bosh.DirectorCACert == "" {
+	if config.Bosh.Credentials.CACert == "" {
 		return PgatsConfig{}, errors.New(MissingCertificateMsg)
 	}
 	return config, nil

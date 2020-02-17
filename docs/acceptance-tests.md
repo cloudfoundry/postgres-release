@@ -52,15 +52,16 @@ $ cat > $GOPATH/src/github.com/cloudfoundry/postgres-release/pgats_config.yml <<
 ---
 bosh:
   target: 192.168.50.6
-  username: admin
-  # bosh interpolate creds.yml --path /admin_password
-  password: admin
-
-  # insert CA cert, e.g. from creds.yml
-  # bosh interpolate creds.yml --path /director_ssl/ca
-  director_ca_cert: |+
-    -----BEGIN CERTIFICATE-----
-    -----END CERTIFICATE-----
+  credentials:
+    client: admin
+    # bosh interpolate creds.yml --path /admin_password
+    client_secret: admin
+    # insert CA cert, e.g. from creds.yml
+    # bosh interpolate creds.yml --path /director_ssl/ca
+    ca_cert: |+
+      -----BEGIN CERTIFICATE-----
+      -----END CERTIFICATE-----
+  use_uaa: true
 cloud_configs:
   default_azs: [z1]
   default_networks:
@@ -75,9 +76,10 @@ The full set of config parameters is explained below.
 `bosh`parameters are used to connect to the BOSH director that would host the test environment:
 
 * `bosh.target` (required) Public BOSH director ip address
-* `bosh.username` (required) Username for the BOSH director login
-* `bosh.password` (required) Password for the BOSH director login
-* `bosh.director_ca_cert` (required) BOSH director CA Cert
+* `bosh.use_uaa` (required) Set to true if the BOSH director is configured to delegate user management to the UAA server.
+* `bosh.credentials.client` (required) Username for the BOSH director login
+* `bosh.credentials.client_secret` (required) Password for the BOSH director login
+* `bosh.credentials.ca_cert` (required) BOSH director CA Cert
 
 `cloud_config` parameters are used to generate a BOSH v2 manifest that matches your IaaS configuration:
 

@@ -36,17 +36,21 @@ var _ = Describe("Configuration", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			It("Load the yaml content from the provided path without defaults", func() {
-				var err error
-				var data = `
+			Context("With uaa authentication", func() {
+
+				It("Load the yaml content from the provided path without defaults", func() {
+					var err error
+					var data = `
 postgres_release_version: "some-version"
 postgresql_version: "some-version"
 versions_file: "some-path"
 bosh:
   target: some-target
-  username: some-username
-  password: some-password
-  director_ca_cert: some-ca-cert
+  use_uaa: true
+  credentials:
+    client: some-username-uaa
+    client_secret: some-password-uaa
+    ca_cert: some-ca-cert-uaa
 cloud_configs:
   default_azs: ["some-az1", "some-az2"]
   default_networks:
@@ -61,53 +65,125 @@ cloud_configs:
   default_stemcell_os: some-os
   default_stemcell_version: some-version
 `
-				configFilePath, err = writeConfigFile(data)
-				Expect(err).NotTo(HaveOccurred())
-				config, err := helpers.LoadConfig(configFilePath)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(config).To(Equal(helpers.PgatsConfig{
-					PGReleaseVersion:  "some-version",
-					PostgreSQLVersion: "some-version",
-					VersionsFile:      "some-path",
-					Bosh: helpers.BOSHConfig{
-						Target:         "some-target",
-						Username:       "some-username",
-						Password:       "some-password",
-						DirectorCACert: "some-ca-cert",
-					},
-					BoshCC: helpers.BOSHCloudConfig{
-						AZs: []string{"some-az1", "some-az2"},
-						Networks: []helpers.BOSHJobNetwork{
-							helpers.BOSHJobNetwork{
-								Name: "some-net1",
-							},
-							helpers.BOSHJobNetwork{
-								Name:      "some-net2",
-								StaticIPs: []string{"some-ip1", "some-ip2"},
-								Default:   []string{"some-default1", "some-default2"},
+					configFilePath, err = writeConfigFile(data)
+					Expect(err).NotTo(HaveOccurred())
+					config, err := helpers.LoadConfig(configFilePath)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(config).To(Equal(helpers.PgatsConfig{
+						PGReleaseVersion:  "some-version",
+						PostgreSQLVersion: "some-version",
+						VersionsFile:      "some-path",
+						Bosh: helpers.BOSHConfig{
+							Target: "some-target",
+							UseUaa: true,
+							Credentials: helpers.BOSHCredentials{
+								Client:       "some-username-uaa",
+								ClientSecret: "some-password-uaa",
+								CACert:       "some-ca-cert-uaa",
 							},
 						},
-						PersistentDiskType: "some-type",
-						VmType:             "some-vm-type",
-						StemcellOs:         "some-os",
-						StemcellVersion:    "some-version",
-					},
-				}))
+						BoshCC: helpers.BOSHCloudConfig{
+							AZs: []string{"some-az1", "some-az2"},
+							Networks: []helpers.BOSHJobNetwork{
+								helpers.BOSHJobNetwork{
+									Name: "some-net1",
+								},
+								helpers.BOSHJobNetwork{
+									Name:      "some-net2",
+									StaticIPs: []string{"some-ip1", "some-ip2"},
+									Default:   []string{"some-default1", "some-default2"},
+								},
+							},
+							PersistentDiskType: "some-type",
+							VmType:             "some-vm-type",
+							StemcellOs:         "some-os",
+							StemcellVersion:    "some-version",
+						},
+					}))
+				})
+
 			})
 
-			It("Load the yaml content from the provided path with defaults", func() {
-				var err error
-				var data = `
+			Context("Without uaa authentication", func() {
+
+				It("Load the yaml content from the provided path without defaults", func() {
+					var err error
+					var data = `
+postgres_release_version: "some-version"
+postgresql_version: "some-version"
+versions_file: "some-path"
 bosh:
-  director_ca_cert: some-ca-cert
+  target: some-target
+  credentials:
+    client: some-username
+    client_secret: some-password
+    ca_cert: some-ca-cert
+cloud_configs:
+  default_azs: ["some-az1", "some-az2"]
+  default_networks:
+  - name: some-net1
+  - name: some-net2
+    static_ips:
+    - some-ip1
+    - some-ip2
+    default: [some-default1, some-default2]
+  default_persistent_disk_type: some-type
+  default_vm_type: some-vm-type
+  default_stemcell_os: some-os
+  default_stemcell_version: some-version
 `
-				configFilePath, err = writeConfigFile(data)
-				Expect(err).NotTo(HaveOccurred())
-				config, err := helpers.LoadConfig(configFilePath)
-				Expect(err).NotTo(HaveOccurred())
-				result := helpers.DefaultPgatsConfig
-				result.Bosh.DirectorCACert = "some-ca-cert"
-				Expect(config).To(Equal(result))
+					configFilePath, err = writeConfigFile(data)
+					Expect(err).NotTo(HaveOccurred())
+					config, err := helpers.LoadConfig(configFilePath)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(config).To(Equal(helpers.PgatsConfig{
+						PGReleaseVersion:  "some-version",
+						PostgreSQLVersion: "some-version",
+						VersionsFile:      "some-path",
+						Bosh: helpers.BOSHConfig{
+							Target: "some-target",
+							Credentials: helpers.BOSHCredentials{
+								Client:       "some-username",
+								ClientSecret: "some-password",
+								CACert:       "some-ca-cert",
+							},
+							UseUaa: false,
+						},
+						BoshCC: helpers.BOSHCloudConfig{
+							AZs: []string{"some-az1", "some-az2"},
+							Networks: []helpers.BOSHJobNetwork{
+								helpers.BOSHJobNetwork{
+									Name: "some-net1",
+								},
+								helpers.BOSHJobNetwork{
+									Name:      "some-net2",
+									StaticIPs: []string{"some-ip1", "some-ip2"},
+									Default:   []string{"some-default1", "some-default2"},
+								},
+							},
+							PersistentDiskType: "some-type",
+							VmType:             "some-vm-type",
+							StemcellOs:         "some-os",
+							StemcellVersion:    "some-version",
+						},
+					}))
+				})
+
+				It("Load the yaml content from the provided path with defaults", func() {
+					var err error
+					var data = `
+bosh:
+  credentials:
+    ca_cert: some-ca-cert
+`
+					configFilePath, err = writeConfigFile(data)
+					Expect(err).NotTo(HaveOccurred())
+					config, err := helpers.LoadConfig(configFilePath)
+					Expect(err).NotTo(HaveOccurred())
+					result := helpers.DefaultPgatsConfig
+					result.Bosh.Credentials.CACert = "some-ca-cert"
+					Expect(config).To(Equal(result))
+				})
 			})
 		})
 

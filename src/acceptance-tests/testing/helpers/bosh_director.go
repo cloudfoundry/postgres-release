@@ -12,6 +12,7 @@ import (
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtempl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	cfgtypes "github.com/cloudfoundry/config-server/types"
@@ -19,6 +20,7 @@ import (
 )
 
 type BOSHDirector struct {
+	Uaa                    boshuaa.UAA
 	Director               boshdir.Director
 	DeploymentsInfo        map[string]*DeploymentData
 	DirectorConfig         BOSHConfig
@@ -32,11 +34,17 @@ type DeploymentData struct {
 	Variables     boshtempl.Variables
 }
 type BOSHConfig struct {
-	Target         string `yaml:"target"`
-	Username       string `yaml:"username"`
-	Password       string `yaml:"password"`
-	DirectorCACert string `yaml:"director_ca_cert"`
+	Target      string          `yaml:"target"`
+	Credentials BOSHCredentials `yaml:"credentials"`
+	UseUaa      bool            `yaml:"use_uaa"`
 }
+
+type BOSHCredentials struct {
+	Client       string `yaml:"client"`
+	ClientSecret string `yaml:"client_secret"`
+	CACert       string `yaml:"ca_cert"`
+}
+
 type BOSHCloudConfig struct {
 	AZs                []string         `yaml:"default_azs"`
 	Networks           []BOSHJobNetwork `yaml:"default_networks"`
@@ -52,9 +60,7 @@ type BOSHJobNetwork struct {
 }
 
 var DefaultBOSHConfig = BOSHConfig{
-	Target:   "192.168.50.4",
-	Username: "admin",
-	Password: "admin",
+	Target: "192.168.50.4",
 }
 var DefaultCloudConfig = BOSHCloudConfig{
 	AZs: []string{"z1"},
@@ -86,27 +92,47 @@ func GenerateEnvName(prefix string) string {
 
 func NewBOSHDirector(boshConfig BOSHConfig, cloudConfig BOSHCloudConfig, releasesVersions map[string]string) (BOSHDirector, error) {
 	var boshDirector BOSHDirector
+	var uaaURL, directorURL string
 
 	boshDirector.DirectorConfig = boshConfig
 	boshDirector.CloudConfig = cloudConfig
 	boshDirector.DefaultReleasesVersion = releasesVersions
 
-	directorURL := fmt.Sprintf("https://%s:25555", boshConfig.Target)
+	directorURL = fmt.Sprintf("https://%s:25555", boshConfig.Target)
 	logger := boshlog.NewLogger(boshlog.LevelError)
 	factory := boshdir.NewFactory(logger)
-	config, err := boshdir.NewConfigFromURL(directorURL)
+	directorConfig, err := boshdir.NewConfigFromURL(directorURL)
+	if err != nil {
+		return BOSHDirector{}, err
+	}
+	directorConfig.CACert = boshConfig.Credentials.CACert
+
+	if boshConfig.UseUaa {
+		uaaURL = fmt.Sprintf("https://%s:8443", boshConfig.Target)
+		uaaFactory := boshuaa.NewFactory(logger)
+		uaaConfig, err := boshuaa.NewConfigFromURL(uaaURL)
+		if err != nil {
+			return BOSHDirector{}, err
+		}
+		uaaConfig.Client = boshConfig.Credentials.Client
+		uaaConfig.ClientSecret = boshConfig.Credentials.ClientSecret
+		uaaConfig.CACert = boshConfig.Credentials.CACert
+		uaa, err := uaaFactory.New(uaaConfig)
+		if err != nil {
+			return BOSHDirector{}, err
+		}
+		boshDirector.Uaa = uaa
+
+		directorConfig.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
+	} else {
+		directorConfig.Client = boshConfig.Credentials.Client
+		directorConfig.ClientSecret = boshConfig.Credentials.ClientSecret
+	}
+	director, err := factory.New(directorConfig, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
 	if err != nil {
 		return BOSHDirector{}, err
 	}
 
-	config.Client = boshConfig.Username
-	config.ClientSecret = boshConfig.Password
-	config.CACert = boshConfig.DirectorCACert
-
-	director, err := factory.New(config, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
-	if err != nil {
-		return BOSHDirector{}, err
-	}
 	boshDirector.Director = director
 	boshDirector.DeploymentsInfo = make(map[string]*DeploymentData)
 
@@ -311,23 +337,24 @@ func (dd DeploymentData) DeleteDeployment() error {
 }
 
 func (dd DeploymentData) Restart(instanceGroupName string) error {
-	slug := boshdir.NewAllOrInstanceGroupOrInstanceSlug(instanceGroupName, "")
+	slug := boshdir.NewAllOrInstanceGroupOrInstanceSlug(instanceGroupName, "0")
 	restartOptions := boshdir.RestartOpts{}
 	return dd.Deployment.Restart(slug, restartOptions)
 }
 func (dd DeploymentData) Stop(instanceGroupName string) error {
-	slug := boshdir.NewAllOrInstanceGroupOrInstanceSlug(instanceGroupName, "")
+	slug := boshdir.NewAllOrInstanceGroupOrInstanceSlug(instanceGroupName, "0")
 	stopOptions := boshdir.StopOpts{}
 	return dd.Deployment.Stop(slug, stopOptions)
 }
 func (dd DeploymentData) Start(instanceGroupName string) error {
-	slug := boshdir.NewAllOrInstanceGroupOrInstanceSlug(instanceGroupName, "")
+	slug := boshdir.NewAllOrInstanceGroupOrInstanceSlug(instanceGroupName, "0")
 	startOptions := boshdir.StartOpts{}
 	return dd.Deployment.Start(slug, startOptions)
 }
-func (dd DeploymentData) IsVmRunning(vmid string) (bool, error) {
-	return dd.IsVmProcessRunning(vmid, "")
-}
+
+//func (dd DeploymentData) IsVmRunning(vmid string) (bool, error) {
+//	return dd.IsVmProcessRunning(vmid, "")
+//}
 func (dd DeploymentData) IsVmProcessRunning(vmid string, processName string) (bool, error) {
 	vms, err := dd.Deployment.VMInfos()
 	if err != nil {

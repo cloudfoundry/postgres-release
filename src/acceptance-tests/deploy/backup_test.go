@@ -23,7 +23,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 		err = deployHelper.Deploy()
 		Expect(err).NotTo(HaveOccurred())
 
-		caCertPath, err = helpers.WriteFile(configParams.Bosh.DirectorCACert)
+		caCertPath, err = helpers.WriteFile(configParams.Bosh.Credentials.CACert)
 		Expect(err).NotTo(HaveOccurred())
 
 		tempDir, err = helpers.CreateTempDir()
@@ -33,7 +33,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 		err = os.Chdir(tempDir)
 		Expect(err).NotTo(HaveOccurred())
 
-		os.Setenv("BOSH_CLIENT_SECRET", configParams.Bosh.Password)
+		os.Setenv("BOSH_CLIENT_SECRET", configParams.Bosh.Credentials.ClientSecret)
 		os.Setenv("CA_CERT", caCertPath)
 	})
 
@@ -53,7 +53,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 		It("Fails to backup the database", func() {
 			var err error
 			var cmd *exec.Cmd
-			cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "backup")
+			cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Credentials.Client, "--deployment", deployHelper.GetDeploymentName(), "backup")
 			err = cmd.Run()
 			Expect(err).To(HaveOccurred())
 		})
@@ -61,7 +61,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 		It("Fails to restore the database", func() {
 			var err error
 			var cmd *exec.Cmd
-			cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", fmt.Sprintf("%s/doesnotexist", tempDir))
+			cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Credentials.Client, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", fmt.Sprintf("%s/doesnotexist", tempDir))
 			err = cmd.Run()
 			Expect(err).To(HaveOccurred())
 		})
@@ -87,7 +87,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 				var err error
 				var cmd *exec.Cmd
 				By("Running pre-backup-checks")
-				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "pre-backup-check")
+				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Credentials.Client, "--deployment", deployHelper.GetDeploymentName(), "pre-backup-check")
 				stdout, stderr, err := helpers.RunCommand(cmd)
 				Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 
@@ -99,7 +99,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 				Expect(result).To(BeTrue())
 
 				By("Running backup")
-				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "backup")
+				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Credentials.Client, "--deployment", deployHelper.GetDeploymentName(), "backup")
 				stdout, stderr, err = helpers.RunCommand(cmd)
 				Expect(err).NotTo(HaveOccurred(), "stderr was: '%v', stdout was: '%v'", stderr, stdout)
 				tarBackupFile := fmt.Sprintf("%s/%s*/*-bbr-postgres-db.tar", tempDir, deployHelper.GetDeploymentName())
@@ -112,7 +112,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Restoring the database")
-				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", filepath.Dir(files[0]))
+				cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Credentials.Client, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", filepath.Dir(files[0]))
 				stdout, stderr, err = helpers.RunCommand(cmd)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -136,7 +136,7 @@ var _ = Describe("Backup and restore a deployment", func() {
 				It("Fails to restore the database", func() {
 					var err error
 					var cmd *exec.Cmd
-					cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Username, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", fmt.Sprintf("%s/doesnotexist", tempDir))
+					cmd = exec.Command("bbr", "deployment", "--target", configParams.Bosh.Target, "--username", configParams.Bosh.Credentials.Client, "--deployment", deployHelper.GetDeploymentName(), "restore", "--artifact-path", fmt.Sprintf("%s/doesnotexist", tempDir))
 					err = cmd.Run()
 					Expect(err).To(HaveOccurred())
 				})
