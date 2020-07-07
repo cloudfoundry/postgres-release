@@ -15,7 +15,7 @@ templates:
 packages:
   - postgres-common
   - postgres-9.6.10
-  - postgres-11.7
+  - postgres-11.8
 
 consumes:
 - name: database
