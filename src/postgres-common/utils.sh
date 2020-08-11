@@ -132,3 +132,31 @@ killProcessTree() {
   listProcessTree $1 | xargs kill
   kill $1
 }
+
+function tee_output_to_sys_log() {
+  local log_dir="$1"
+  local pname="$2"
+  local log_format="$3"
+  local log_out="$4"
+  local log_err="$5"
+  local pid_num="$6"
+
+  if [ "${log_format}" == "deprecated" ]; then
+    exec > >(tee -a >(logger -p user.info -t "vcap.${pname}.stdout") | prepend_datetime ${pid_num} >> "${log_dir}/${log_out}")
+    exec 2> >(tee -a >(logger -p user.error -t "vcap.${pname}.stderr") | prepend_datetime ${pid_num} >> "${log_dir}/${log_err}")
+  else
+    exec > >(tee -a >(logger -p user.info -t "vcap.${pname}.stdout") | prepend_rfc3339_datetime ${pid_num} >>"${log_dir}/${log_out}")
+    exec 2> >(tee -a >(logger -p user.error -t "vcap.${pname}.stderr") | prepend_rfc3339_datetime ${pid_num} >>"${log_dir}/${log_err}")
+  fi
+}
+
+function prepend_datetime() {
+  export pid_num="$1"
+  awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")] ${pid_num}"); print " " $0 }'
+}
+
+function prepend_rfc3339_datetime() {
+  export pid_num="$1"
+  perl -ne 'BEGIN { use Time::HiRes "time"; use POSIX "strftime"; STDOUT->autoflush(1) }; my $t = time; $process_pid =  $ENV{'pid_num'}, my $fsec = sprintf ".%09d", ($t-int($t))*1000000000; my $time = strftime("[%Y-%m-%dT%H:%M:%S".$fsec."Z]", localtime $t); print("$time $process_pid $_")'
+
+}

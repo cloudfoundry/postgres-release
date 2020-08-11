@@ -28,9 +28,14 @@ if [ -f "${VERSION_FILE}" ]; then
   DATA_DIR_OLD="${PG_STORE_DIR}/${pgversion_upgrade_from}"
   PACKAGE_DIR_OLD=/var/vcap/packages/${pgversion_upgrade_from}
 fi
-
+<%
+if !['rfc3339', 'deprecated'].include?(p('databases.logging.format.timestamp'))
+  raise "'#{p('databases.logging.format.timestamp')}' is not a valid timestamp format for the property 'databases.logging.format.timestamp'. Valid options are: 'rfc339' and 'deprecated'."
+end
+%>
 RUN_DIR=/var/vcap/sys/run/postgres
 LOG_DIR=/var/vcap/sys/log/postgres
+LOG_FORMAT=<%= p("databases.logging.format.timestamp") %>
 HOOK_LOG_OUT=${LOG_DIR}/hooks.stdout.log
 HOOK_LOG_ERR=${LOG_DIR}/hooks.stderr.log
 # external_pid_file in postgresql.conf takes care of

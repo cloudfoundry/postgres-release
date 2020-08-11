@@ -1,18 +1,18 @@
 #!/bin/bash -eu
 
-export PIDNUM=$$
+pidnum=$$
+pname=$(basename $0)
 
-exec > >(tee -a >(logger -p user.info -t vcap.$(basename $0).stdout) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")] $PIDNUM"); print " " $0 }' >> /var/vcap/sys/log/postgres/$(basename $0).log)
-exec 2> >(tee -a >(logger -p user.error -t vcap.$(basename $0).stderr) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")] $PIDNUM"); print " " $0 }' >> /var/vcap/sys/log/postgres/$(basename $0).err.log)
+set +u
+source /var/vcap/packages/postgres-common/utils.sh
+set -u
+source /var/vcap/jobs/postgres/bin/utils.sh
+
+tee_output_to_sys_log "${LOG_DIR}" "${pname}" "${LOG_FORMAT}" "${pname}.log" "${pname}.err.log" "${pidnum}"
 
 function main() {
   local action
   action="${1}"
-
-  source /var/vcap/jobs/postgres/bin/utils.sh
-  set +u
-  source /var/vcap/packages/postgres-common/utils.sh
-  set -u
 
   case "${action}" in
     "start")

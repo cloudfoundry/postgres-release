@@ -100,6 +100,7 @@ databases.hooks.pre-start | Script to run before starting PostgreSQL.
 databases.hooks.post-start | Script to run after PostgreSQL has started.
 databases.hooks.pre-stop | Script to run before stopping PostgreSQL.
 databases.hooks.post-stop | Script to run after PostgreSQL has stopped.
+databases.logging.format.timestamp | Format for timestamp in control jobs logs. By default it's set to `rfc3339`.
 janitor.script | If specified, this script would be run periodically. This would be useful for running house-keeping tasks.
 janitor.interval | Interval in seconds between two invocations of the janitor script. By default it's set to `1` day.
 janitor.timeout | Time limit in seconds for the janitor script. By default it's set to `0` that means no time limit.

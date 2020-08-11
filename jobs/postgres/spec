@@ -118,6 +118,14 @@ properties:
   databases.enable_trace:
     description: "Print additional traces in control scripts"
     default: false
+  databases.logging.format.timestamp:
+    description: |
+      Format for timestamp in component logs.
+      This includes pre-start, postgres_ctl, pg_janitor_ctl, janitor, and hooks; PostgreSQL logs are not included.
+      Valid values are 'rfc3339', and 'deprecated'."
+      'rfc3339' is the recommended format.ormat, which is human readable.
+      'deprecated' will result in all timestamps being in the format they were before the rfc3339 flag was introduced.
+    default: "rfc3339"
   janitor.script:
     description: "If specified, janitor would periodically run this script"
     default: ''

@@ -1,15 +1,15 @@
 #!/bin/bash -eu
 
-export PIDNUM=$$
-
-exec > >(tee -a >(logger -p user.info -t vcap.$(basename $0).stdout) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")] $PIDNUM"); print " " $0 }' >> /var/vcap/sys/log/postgres/pre-start.stdout.log)
-exec 2> >(tee -a >(logger -p user.error -t vcap.$(basename $0).stderr) | awk -W interactive '{ system("echo -n [$(date +\"%Y-%m-%d %H:%M:%S%z\")] $PIDNUM"); print " " $0 }' >> /var/vcap/sys/log/postgres/pre-start.stderr.log)
+pidnum=$$
+pname=$(basename $0)
 
 set +u
 source /var/vcap/packages/postgres-common/utils.sh
 set -u
 source /var/vcap/jobs/postgres/bin/pgconfig.sh
 source /var/vcap/jobs/postgres/bin/utils.sh
+
+tee_output_to_sys_log "${LOG_DIR}" "${pname}" "${LOG_FORMAT}" "${pname}.stdout.log" "${pname}.stderr.log" "${pidnum}"
 
 function upgrade(){
   if [ -d $DATA_DIR -a -f $POSTGRES_UPGRADE_LOCK ]; then
