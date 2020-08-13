@@ -3,14 +3,16 @@
 root="${PWD}"
 
 function create_config_file() {
-  indented_cert=$(echo "$BOSH_CA_CERT" | awk '$0="    "$0')
+  indented_cert=$(echo "$BOSH_CA_CERT" | awk '$0="      "$0')
   cat <<EOF
 ---
 bosh:
   target: $BOSH_DIRECTOR_IP
-  username: $BOSH_CLIENT
-  password: $BOSH_CLIENT_SECRET
-  director_ca_cert: |+
+  use_uaa: true
+  credentials:
+    client: $BOSH_CLIENT
+    client_secret: $BOSH_CLIENT_SECRET
+    ca_cert: |+
 $indented_cert
 cloud_configs:
   default_vm_type: "pgats"

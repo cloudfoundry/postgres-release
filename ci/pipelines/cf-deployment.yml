@@ -39,7 +39,7 @@ jobs:
 - name: upload-stemcells-releases
   serial_groups: [cf]
   plan:
-  - aggregate:
+  - in_parallel:
     - get: postgres-release
       resource: postgres-release-develop
     - get: cf-deployment
@@ -82,7 +82,7 @@ jobs:
 - name: deploy-fresh-cf
   serial_groups: [cf]
   plan:
-  - aggregate:
+  - in_parallel:
     - get: cf-deployment
       resource: cf-deployment-rc
     - get: postgres-release
@@ -98,7 +98,7 @@ jobs:
 - name: test-fresh-run-cats
   serial_groups: [cf]
   plan:
-  - aggregate:
+  - in_parallel:
     - get: cf-acceptance-tests
     - get: cf-deployment-concourse-tasks
     - get: postgres-release
@@ -122,7 +122,7 @@ jobs:
 - name: delete-deployment-fresh
   serial_groups: [cf]
   plan:
-  - aggregate:
+  - in_parallel:
     - get: postgres-release
       resource: postgres-release-develop
       passed: [test-fresh-run-cats]
@@ -135,7 +135,7 @@ jobs:
 - name: test-old-deployment
   serial_groups: [cf]
   plan:
-  - aggregate:
+  - in_parallel:
     - get: cf-deployment-old
     - get: cf-deployment-rc
     - get: postgres-release
@@ -167,7 +167,7 @@ jobs:
 - name: delete-deployment-old
   serial_groups: [cf]
   plan:
-  - aggregate:
+  - in_parallel:
     - get: postgres-release
       resource: postgres-release-develop
       passed: [test-old-deployment]
@@ -180,7 +180,7 @@ jobs:
 - name: cleanup-releases
   serial_groups: [cf]
   plan:
-  - aggregate:
+  - in_parallel:
     - get: postgres-release
       resource: postgres-release-develop
       passed: [delete-deployment-old]
