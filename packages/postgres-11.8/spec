@@ -1,4 +1,0 @@
----
-name: postgres-11.8
-files:
-  - postgres/postgresql-11.8.tar.gz
