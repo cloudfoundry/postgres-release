@@ -29,6 +29,7 @@ packages:
   - postgres-common
   - postgres-9.6.10
   - postgres-11.15
+  - postgres-13.10
 
 provides:
 - name: postgres
