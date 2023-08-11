@@ -1,4 +1,0 @@
----
-name: postgres-9.6.10
-files:
-  - postgres/postgresql-9.6.10.tar.gz
