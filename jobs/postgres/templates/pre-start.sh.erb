@@ -42,20 +42,12 @@ function main() {
   chmod 700 "${PG_STORE_DIR}"
 
   if [ ! -f ${VERSION_FILE} ]; then
-    for version in "postgres-9.6.8" "postgres-9.6.6" "postgres-9.6.4"; do
-      if [[ -d "${PG_STORE_DIR}/${version}" ]]; then
-        if [[ -f "${PG_STORE_DIR}/${version}/postgresql.conf" ]]; then
-          echo "Creating the PostgreSQL data version file at version ${version}"
-          echo ${version} > ${VERSION_FILE}
-          chown -R vcap:vcap "${VERSION_FILE}"
-          chmod 700 "${VERSION_FILE}"
-          pgversion_upgrade_from=${version}
-          DATA_DIR_OLD="${PG_STORE_DIR}/${version}"
-          PACKAGE_DIR_OLD=/var/vcap/packages/${version}
-          break
-        fi
-      fi
-    done
+    existing_data_dirs=$(compgen -G "${PG_STORE_DIR}/postgres-*" || echo "")
+
+    if [ -n "${existing_data_dirs}" ]; then
+      echo "Found existing data dirs that we cannot upgrade from in this release. Upgrade to and older version first."
+      exit 1
+    fi
   fi
 
   mkdir -p "${LOG_DIR}"
