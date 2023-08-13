@@ -52,6 +52,14 @@ function create_databases() {
       echo "Enabling pg_stat_statements extension..."
       pgexec "<%= database["name"] %>" "CREATE EXTENSION IF NOT EXISTS pg_stat_statements"
     <% end %>
+    <% p("databases.roles", []).each do |role| %>
+      echo "Granting public schema access to <%= role["name"] %> on <%= database["name"] %>"
+      "${PACKAGE_DIR}/bin/psql" \
+            -U "vcap" \
+            -p "${PORT}" \
+            -d "<%= database["name"] %>" \
+            -c "GRANT ALL ON schema public TO \"<%= role["name"] %>\""
+    <% end %>
 
   <% end %>
 }
