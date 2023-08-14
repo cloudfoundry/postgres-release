@@ -26,7 +26,11 @@ pgversion_upgrade_from=postgres-unknown
 if [ -f "${VERSION_FILE}" ]; then
   pgversion_upgrade_from=$(cat ${VERSION_FILE})
   DATA_DIR_OLD="${PG_STORE_DIR}/${pgversion_upgrade_from}"
-  PACKAGE_DIR_OLD=/var/vcap/packages/${pgversion_upgrade_from}
+  PACKAGE_DIR_OLD=(/var/vcap/packages/${pgversion_upgrade_from%.*}*)
+  if [ ! -d "${PACKAGE_DIR_OLD}" ]; then
+    echo "Unable to find older postgres package to use for major upgrade. Upgrade to and older version first."
+    exit 1
+  fi
 fi
 <%
 if !['rfc3339', 'deprecated'].include?(p('databases.logging.format.timestamp'))
