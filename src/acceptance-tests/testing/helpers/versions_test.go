@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/cloudfoundry/postgres-release/src/acceptance-tests/testing/helpers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -35,7 +35,6 @@ versions:
   1: "PostgreSQL 9.4.6"
   3: "PostgreSQL 9.4.9"
   2: "PostgreSQL 9.4.6"
-old: 3
 `
 			versionsFilePath, err = writeVersionsFile(data)
 			Expect(err).NotTo(HaveOccurred())
@@ -53,7 +52,7 @@ old: 3
 		})
 		It("Get the proper postgres-release old version", func() {
 			oldVersion := pgVersions.GetOldVersion()
-			Expect(oldVersion).To(Equal(3))
+			Expect(oldVersion).To(Equal(2))
 		})
 		It("Get the proper PostgreSQL version", func() {
 			pgVersion := pgVersions.GetPostgreSQLVersion(1)

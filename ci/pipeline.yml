@@ -1,0 +1,242 @@
+jobs:
+- name: bump-golang-dependencies
+  serial_groups:
+    - dependency-bumps
+  plan:
+    - in_parallel:
+        - get: postgres-release
+        - get: golang-release
+        - get: golang-release-registry-image
+        - get: weekly
+          trigger: true
+    - task: bump-deps
+      file: golang-release/ci/tasks/shared/bump-deps.yml
+      image: golang-release-registry-image
+      input_mapping:
+        input_repo: postgres-release
+      output_mapping:
+        output_repo: postgres-release
+      params:
+        SOURCE_PATH: src/acceptance-tests
+    - put: postgres-release
+      params:
+        repository: postgres-release
+        rebase: true
+
+- name: bump-packages
+  serial_groups:
+    - dependency-bumps
+  plan:
+    - in_parallel:
+        - get: bosh-cli-registry-image
+        - get: postgres-release
+        - get: postgres-11-src
+          trigger: true
+        - get: postgres-13-src
+          trigger: true
+        - get: postgres-15-src
+          trigger: true
+    - task: bump-postgres-11-package
+      file: postgres-release/ci/tasks/bump-postgres-packages.yml
+      image: bosh-cli-registry-image
+      input_mapping:
+        postgres-src: postgres-10-src
+      params:
+        MAJOR_VERSION: 11
+        PRIVATE_YML: |
+          blobstore:
+            options:
+              credentials_source: static
+              json_key: '((bosh_release_blobs_gcp_credentials_json))'
+    - task: bump-postgres-13-package
+      file: postgres-release/ci/tasks/bump-postgres-packages.yml
+      image: bosh-cli-registry-image
+      input_mapping:
+        postgres-src: postgres-13-src
+      params:
+        MAJOR_VERSION: 13
+        PRIVATE_YML: |
+          blobstore:
+            options:
+              credentials_source: static
+              json_key: '((bosh_release_blobs_gcp_credentials_json))'
+    - task: bump-postgres-15-package
+      file: postgres-release/ci/tasks/bump-postgres-packages.yml
+      image: bosh-cli-registry-image
+      input_mapping:
+        postgres-src: postgres-15-src
+      params:
+        MAJOR_VERSION: 15
+        PRIVATE_YML: |
+          blobstore:
+            options:
+              credentials_source: static
+              json_key: '((bosh_release_blobs_gcp_credentials_json))'
+    - put: postgres-release
+      params:
+        repository: postgres-release
+        rebase: true
+
+- name: run-acceptance-tests
+  serial: true
+  plan:
+    - in_parallel:
+        - get: bosh-warden-cpi-registry-image
+        - get: postgres-release
+          trigger: true
+        - get: stemcell
+          resource: warden-ubuntu-jammy-stemcell
+          trigger: true
+        - get: bbr-github-release
+          params:
+            globs:
+              - bbr-*.tar
+    - task: run-acceptance-tests
+      file: postgres-release/ci/tasks/run-acceptance-tests/task.yml
+      image: bosh-warden-cpi-registry-image
+      privileged: true
+
+- name: automatically-release-new-patch
+  plan:
+    - in_parallel:
+        - get: bosh-cli-registry-image
+        - get: postgres-release
+          trigger: true
+          passed:
+            - run-acceptance-tests
+    - try:
+        task: check-for-updated-blob
+        file: postgres-release/ci/tasks/check-for-updated-blob/task.yml
+        image: bosh-cli-registry-image
+        params:
+          BLOB: postgresql-15
+        on_success:
+          put: final-release-trigger
+
+- name: create-final-release
+  serial: true
+  plan:
+    - in_parallel:
+        - get: bosh-cli-registry-image
+        - get: postgres-release
+          passed:
+            - run-acceptance-tests
+        - get: final-release-trigger
+          passed:
+            - automatically-release-new-patch
+    - try:
+        task: check-for-updated-blob
+        file: postgres-release/ci/tasks/check-for-updated-blob/task.yml
+        image: bosh-cli-registry-image
+        params:
+          BLOB: postgresql-15
+    - task: create-final-release
+      file: release-repo/ci/tasks/create-final-release/task.yml
+      image: bosh-cli-registry-image
+      params:
+        RELEASE_NAME: postgres
+        RELEASE_PRIVATE_YML: |
+          blobstore:
+            options:
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
+    - put: postgres-release
+      params:
+        repository: postgres-release
+        tag: postgres-release/version_number
+    - put: postgres-github-release
+      params:
+        body: release-notes/release-notes.md
+        generate_release_notes: true
+        name: postgres-release/version_number
+        tag: postgres-release/version_number
+
+resources:
+  - name: bbr-github-release
+    type: github-release
+    source:
+      owner: cloudfoundry
+      repository: bosh-backup-and-restore
+
+  - name: bosh-cli-registry-image
+    type: registry-image
+    source:
+      repository: bosh/cli2
+      username: ((dockerhub_username))
+      password: ((dockerhub_password))
+
+  - name: bosh-warden-cpi-registry-image
+    type: registry-image
+    source:
+      repository: bosh/warden-cpi
+      username: ((dockerhub_username))
+      password: ((dockerhub_password))
+
+  - name: final-release-trigger
+    type: time
+
+  - name: golang-release
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
+
+  - name: golang-release-registry-image
+    type: registry-image
+    source:
+      repository: bosh/golang-release
+      username: ((dockerhub.username))
+      password: ((dockerhub.password))
+
+  - name: postgres-11-src
+    type: http-resource
+    source:
+      index: "https://ftp.postgresql.org/pub/source/"
+      regex: 'href="v(?P<version>11\.[0-9.]+)/"'
+      uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
+
+  - name: postgres-13-src
+    type: http-resource
+    source:
+      index: "https://ftp.postgresql.org/pub/source/"
+      regex: 'href="v(?P<version>13\.[0-9.]+)/"'
+      uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
+
+  - name: postgres-15-src
+    type: http-resource
+    source:
+      index: "https://ftp.postgresql.org/pub/source/"
+      regex: 'href="v(?P<version>15\.[0-9.]+)/"'
+      uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
+
+  - name: postgres-release
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/postgres-release.git
+      branch: main
+      private_key: ((github_deploy_key_postgres-release.private_key))
+
+  - name: postgres-github-release
+    type: github-release
+    source:
+      owner: cloudfoundry
+      repository: postgres-release
+      access_token: ((github_public_repo_token))
+
+  - name: warden-ubuntu-jammy-stemcell
+    type: bosh-io-stemcell
+    source:
+      name: bosh-warden-boshlite-ubuntu-jammy-go_agent
+
+  - name: weekly
+    type: time
+    source:
+      start: 3:00
+      stop: 4:30
+      days: [ Saturday ]
+
+resource_types:
+  - name: http-resource
+    type: docker-image
+    source:
+      repository: aequitas/http-resource
+

@@ -33,8 +33,6 @@ $ cd $GOPATH/src/github.com/cloudfoundry/postgres-release
 
 * Some test cases make use of [bbr](https://docs.cloudfoundry.org/bbr/installing.html). Make sure that it is available in your $PATH.
 
-* Go dependencies are managed using [dep](https://golang.github.io/dep/docs/installation.html). Make sure that it is installed.
-
 If you are **not** using BOSH Lite according to the [quick start](http://bosh.io/docs/quick-start/) documentation, note that
 
 * PGATS must have access to the target BOSH director and to the postgres VM deployed from it
