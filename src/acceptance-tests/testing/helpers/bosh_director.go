@@ -71,7 +71,7 @@ var DefaultCloudConfig = BOSHCloudConfig{
 	},
 	PersistentDiskType: "10GB",
 	VmType:             "small",
-	StemcellOs:         "ubuntu-xenial",
+	StemcellOs:         "ubuntu-jammy",
 	StemcellVersion:    "latest",
 }
 
@@ -352,9 +352,6 @@ func (dd DeploymentData) Start(instanceGroupName string) error {
 	return dd.Deployment.Start(slug, startOptions)
 }
 
-//func (dd DeploymentData) IsVmRunning(vmid string) (bool, error) {
-//	return dd.IsVmProcessRunning(vmid, "")
-//}
 func (dd DeploymentData) IsVmProcessRunning(vmid string, processName string) (bool, error) {
 	vms, err := dd.Deployment.VMInfos()
 	if err != nil {

@@ -7,19 +7,15 @@ function main() {
   local root_dir
   root_dir=$(cd "${scripts_dir}/.." && pwd)
   pushd "${root_dir}" > /dev/null
-    dep ensure
-    export GO15VENDOREXPERIMENT=1
-    go get github.com/onsi/ginkgo/ginkgo
-
-    ginkgo \
+    go run github.com/onsi/ginkgo/v2/ginkgo \
       -v \
       -r \
-      -race \
-      -failFast \
-      -succinct \
-      -randomizeAllSpecs \
-      -randomizeSuites \
-      -slowSpecThreshold 300 \
+      -procs=3 \
+      --race \
+      --fail-fast \
+      --randomize-all \
+      --randomize-suites \
+      --timeout=3h \
       "$@"
   popd > /dev/null
 }

@@ -13,7 +13,6 @@ var defaultVersionsFile string = "../versions.yml"
 type PostgresReleaseVersions struct {
 	sortedKeys []int
 	Versions   map[int]string `yaml:"versions"`
-	Old        int            `yaml:"old"`
 }
 
 func NewPostgresReleaseVersions(versionFile string) (PostgresReleaseVersions, error) {
@@ -39,7 +38,7 @@ func NewPostgresReleaseVersions(versionFile string) (PostgresReleaseVersions, er
 }
 
 func (v PostgresReleaseVersions) GetOldVersion() int {
-	return v.Old
+	return v.sortedKeys[len(v.sortedKeys)-2]
 }
 
 func (v PostgresReleaseVersions) GetLatestVersion() int {

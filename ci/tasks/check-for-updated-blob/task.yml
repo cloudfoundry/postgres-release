@@ -1,0 +1,14 @@
+---
+platform: linux
+
+inputs:
+- name: postgres-release
+
+outputs:
+- name: release-notes
+
+run:
+  path: postgres-release/ci/tasks/check-for-updated-blob/task.sh
+
+params:
+  BLOB:

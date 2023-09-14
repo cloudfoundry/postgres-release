@@ -1,0 +1,18 @@
+---
+platform: linux
+
+inputs:
+- name: postgres-release
+- name: postgres-src
+
+outputs:
+- name: postgres-release
+
+run:
+  path: bosh-src/ci/tasks/bump-postgres-packages.sh
+
+params:
+  PRIVATE_YML:
+  MAJOR_VERSION:
+  GIT_USER_NAME: CI Bot
+  GIT_USER_EMAIL: bots@cloudfoundry.org
