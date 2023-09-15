@@ -9,6 +9,7 @@ import (
 )
 
 var defaultVersionsFile string = "../versions.yml"
+var brokenVersions = []int{45}
 
 type PostgresReleaseVersions struct {
 	sortedKeys []int
@@ -28,6 +29,9 @@ func NewPostgresReleaseVersions(versionFile string) (PostgresReleaseVersions, er
 	}
 	if err := yaml.Unmarshal(data, &versions); err != nil {
 		return PostgresReleaseVersions{}, err
+	}
+	for brokenVersion := range brokenVersions {
+		delete(versions.Versions, brokenVersion)
 	}
 	for key := range versions.Versions {
 		versions.sortedKeys = append(versions.sortedKeys, key)
