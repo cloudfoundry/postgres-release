@@ -181,5 +181,6 @@ func (c Client) deploymentResourceInfos(deploymentName string, resourceType stri
 
 		resps = append(resps, resp)
 	}
+
 	return resps, nil
 }
