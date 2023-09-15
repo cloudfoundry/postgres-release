@@ -30,7 +30,7 @@ func NewPostgresReleaseVersions(versionFile string) (PostgresReleaseVersions, er
 	if err := yaml.Unmarshal(data, &versions); err != nil {
 		return PostgresReleaseVersions{}, err
 	}
-	for brokenVersion := range brokenVersions {
+	for _, brokenVersion := range brokenVersions {
 		delete(versions.Versions, brokenVersion)
 	}
 	for key := range versions.Versions {
