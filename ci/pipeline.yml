@@ -46,8 +46,8 @@ jobs:
         PRIVATE_YML: |
           blobstore:
             options:
-              credentials_source: static
-              json_key: '((bosh_release_blobs_gcp_credentials_json))'
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-13-package
       file: postgres-release/ci/tasks/bump-postgres-packages.yml
       image: bosh-cli-registry-image
@@ -58,8 +58,8 @@ jobs:
         PRIVATE_YML: |
           blobstore:
             options:
-              credentials_source: static
-              json_key: '((bosh_release_blobs_gcp_credentials_json))'
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-15-package
       file: postgres-release/ci/tasks/bump-postgres-packages.yml
       image: bosh-cli-registry-image
@@ -70,8 +70,8 @@ jobs:
         PRIVATE_YML: |
           blobstore:
             options:
-              credentials_source: static
-              json_key: '((bosh_release_blobs_gcp_credentials_json))'
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
     - put: postgres-release
       params:
         repository: postgres-release
