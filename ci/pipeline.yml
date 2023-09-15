@@ -184,8 +184,8 @@ resources:
     type: registry-image
     source:
       repository: bosh/golang-release
-      username: ((dockerhub.username))
-      password: ((dockerhub.password))
+      username: ((dockerhub_username))
+      password: ((dockerhub_password))
 
   - name: postgres-11-src
     type: http-resource
