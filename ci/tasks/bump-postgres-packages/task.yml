@@ -9,7 +9,7 @@ outputs:
 - name: postgres-release
 
 run:
-  path: bosh-src/ci/tasks/bump-postgres-packages.sh
+  path: postgres-release/ci/tasks/bump-postgres-packages/task.sh
 
 params:
   PRIVATE_YML:

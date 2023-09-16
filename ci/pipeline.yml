@@ -37,10 +37,10 @@ jobs:
         - get: postgres-15-src
           trigger: true
     - task: bump-postgres-11-package
-      file: postgres-release/ci/tasks/bump-postgres-packages.yml
+      file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
       image: bosh-cli-registry-image
       input_mapping:
-        postgres-src: postgres-10-src
+        postgres-src: postgres-11-src
       params:
         MAJOR_VERSION: 11
         PRIVATE_YML: |
@@ -49,7 +49,7 @@ jobs:
               access_key_id: ((postgres-release-blobstore-user.username))
               secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-13-package
-      file: postgres-release/ci/tasks/bump-postgres-packages.yml
+      file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
       image: bosh-cli-registry-image
       input_mapping:
         postgres-src: postgres-13-src
@@ -61,7 +61,7 @@ jobs:
               access_key_id: ((postgres-release-blobstore-user.username))
               secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-15-package
-      file: postgres-release/ci/tasks/bump-postgres-packages.yml
+      file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
       image: bosh-cli-registry-image
       input_mapping:
         postgres-src: postgres-15-src
