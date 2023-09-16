@@ -131,7 +131,7 @@ jobs:
         params:
           BLOB: postgresql-15
     - task: create-final-release
-      file: release-repo/ci/tasks/create-final-release/task.yml
+      file: postgres-release/ci/tasks/create-final-release/task.yml
       image: bosh-cli-registry-image
       params:
         RELEASE_NAME: postgres
