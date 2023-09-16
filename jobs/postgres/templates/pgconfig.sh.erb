@@ -10,7 +10,7 @@ current_version="15.3"
 pgversion_current="postgres-${current_version}"
 
 JOB_DIR=/var/vcap/jobs/postgres
-PACKAGE_DIR="/var/vcap/packages/${pgversion_current}"
+PACKAGE_DIR="/var/vcap/packages/postgres-${pgversion_current%.*}"
 STORE_DIR=/var/vcap/store
 PG_STORE_DIR=${STORE_DIR}/postgres
 VERSION_FILE=${PG_STORE_DIR}/POSTGRES_DATA_VERSION

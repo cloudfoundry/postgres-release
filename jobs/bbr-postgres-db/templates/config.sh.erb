@@ -24,7 +24,7 @@ end
  %>
 current_version="15.3"
 JOB_DIR="/var/vcap/jobs/bbr-postgres-db"
-PACKAGE_DIR="/var/vcap/packages/postgres-${current_version}"
+PACKAGE_DIR="/var/vcap/packages/postgres-${current_version%.*}"
 PORT="<%= port %>"
 DATABASES=(<%= databases.map{|d| d["name"]}.join(' ')%>)
 DBHOST=<%= dbhost %>

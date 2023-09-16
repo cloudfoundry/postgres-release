@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 NEED_COMMIT=false
 
-echo "${PRIVATE_YML}" > bosh-src/config/private.yml
+set -euo pipefail
 
-set -e
+echo "${PRIVATE_YML}" > postgres-src/config/private.yml
 
 pushd postgres-release
   CURRENT_BLOBS=$(bosh blobs)

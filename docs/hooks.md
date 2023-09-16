@@ -18,7 +18,7 @@ If you plan to use these scripts to run custom code, you have to take into consi
 
   - `DATA_DIR`: the PostgreSQL data directory (e.g. `/var/vcap/store/postgres/postgres-x.x.x`)
   - `PORT`: the PostgreSQL port (e.g. `5432`)
-  - `PACKAGE_DIR`: the PostgreSQL binaries directory (e.g. `/var/vcap/packages/postgres-x.x.x`)
+  - `PACKAGE_DIR`: the PostgreSQL binaries directory (e.g. `/var/vcap/packages/postgres-x`)
 
   If for example you want to use psql in your hook, you can specify:
   `${PACKAGE_DIR}/bin/psql -p ${PORT} -U vcap postgres -c "\l"`

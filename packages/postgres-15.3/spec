@@ -1,4 +1,0 @@
----
-name: postgres-15.3
-files:
-  - postgres/postgresql-15.3.tar.gz
