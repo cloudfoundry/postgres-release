@@ -10,7 +10,6 @@ function main() {
     go run github.com/onsi/ginkgo/v2/ginkgo \
       -v \
       -r \
-      -procs=3 \
       --race \
       --fail-fast \
       --randomize-all \
