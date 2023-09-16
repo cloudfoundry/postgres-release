@@ -3,7 +3,7 @@ NEED_COMMIT=false
 
 set -euo pipefail
 
-echo "${PRIVATE_YML}" > postgres-src/config/private.yml
+echo "${PRIVATE_YML}" > postgres-release/config/private.yml
 
 pushd postgres-release
   CURRENT_BLOBS=$(bosh blobs)
