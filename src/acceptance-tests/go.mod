@@ -5,11 +5,11 @@ go 1.21
 require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
-	github.com/cloudfoundry/bosh-utils v0.0.394
-	github.com/cloudfoundry/config-server v0.1.138
+	github.com/cloudfoundry/bosh-utils v0.0.397
+	github.com/cloudfoundry/config-server v0.1.139
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/lib/pq v1.10.9
-	github.com/onsi/ginkgo/v2 v2.12.0
+	github.com/onsi/ginkgo/v2 v2.12.1
 	github.com/onsi/gomega v1.27.10
 	gopkg.in/yaml.v2 v2.4.0
 )
