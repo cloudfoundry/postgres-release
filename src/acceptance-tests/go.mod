@@ -5,8 +5,8 @@ go 1.21
 require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
-	github.com/cloudfoundry/bosh-utils v0.0.408
-	github.com/cloudfoundry/config-server v0.1.144
+	github.com/cloudfoundry/bosh-utils v0.0.409
+	github.com/cloudfoundry/config-server v0.1.145
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/lib/pq v1.10.9
 	github.com/onsi/ginkgo/v2 v2.13.0
@@ -24,7 +24,7 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/pprof v0.0.0-20231023181126-ff6d637d2a7b // indirect
+	github.com/google/pprof v0.0.0-20231101202521-4ca4178f5c7a // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
