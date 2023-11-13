@@ -149,6 +149,7 @@ jobs:
     - put: postgres-github-release
       params:
         body: release-notes/release-notes.md
+        commitish: postgres-release/.git/HEAD
         generate_release_notes: true
         name: postgres-release/version_number
         tag: postgres-release/version_number
