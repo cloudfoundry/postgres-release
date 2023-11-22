@@ -22,9 +22,10 @@ if_link("database") do |data|
 end
 
  %>
-current_version="16.3"
+
+current_version=postgres-$(MAJOR_VERSION=<%=p('databases.version')%> ${JOB_DIR}/packages/yq-4/bin/yq '.postgresql.major_version[env(MAJOR_VERSION)].minor_version' /var/vcap/jobs/postgres/config/used_postgresql_versions.yml)
 JOB_DIR="/var/vcap/jobs/bbr-postgres-db"
-PACKAGE_DIR="/var/vcap/packages/postgres-${current_version%.*}"
+PACKAGE_DIR="/var/vcap/packages/${current_version%.*}"
 PORT="<%= port %>"
 DATABASES=(<%= databases.map{|d| d["name"]}.join(' ')%>)
 DBHOST=<%= dbhost %>

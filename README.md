@@ -76,6 +76,7 @@ The complete list of available properties can be found in the [spec](jobs/postgr
 
 Property | Description
 -------- | -------------
+databases.version | Define the used PostgreSQL major version. Default: 15
 databases.port | The database port. Default: 5432
 databases.databases | A list of databases and associated properties to create when Postgres starts
 databases.databases[n].name | Database name

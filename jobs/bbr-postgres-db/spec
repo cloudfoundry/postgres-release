@@ -18,6 +18,7 @@ packages:
   - postgres-13
   - postgres-15
   - postgres-16
+  - yq-4
 
 consumes:
 - name: database

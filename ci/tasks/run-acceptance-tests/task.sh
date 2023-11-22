@@ -2,6 +2,11 @@
 
 root="${PWD}"
 
+function setup_yq() {
+    latest_yq_version=$(curl -s -L https://api.github.com/repos/mikefarah/yq/releases/latest | grep "tag_name" | sed s/\"tag_name\":\//g | sed s/\"//g | sed s/\,//g | sed s/v//g | xargs)
+    curl -s -L https://github.com/mikefarah/yq/releases/download/v${latest_yq_version}/yq_linux_amd64 -o /tmp/yq && chmod +x /tmp/yq
+}
+
 function setup_bosh() {
   source start-bosh
   source /tmp/local-bosh/director/env
@@ -43,10 +48,13 @@ function upload_release() {
 
 function main() {
   setup_bosh
+  setup_yq
   install_bbr
   upload_release
   bosh upload-stemcell stemcell/stemcell.tgz
-  cat ${root}/postgres-release/jobs/postgres/templates/pgconfig.sh.erb | grep current_version > ${root}/pgconfig.sh
+  current_major_version=$(/tmp/yq '.postgresql.default' jobs/postgres/config/used_postgresql_versions.yml)
+  current_minor_version=$(CURRENT_MAJOR_VERSION=$current_major_version /tmp/yq '.postgresql.major_version[env(CURRENT_MAJOR_VERSION)].minor_version' jobs/postgres/config/used_postgresql_versions.yml)
+  echo "current_version=${current_minor_version}" > ${root}/pgconfig.sh
   source ${root}/pgconfig.sh
   config_file="${root}/pgats_config.yml"
   create_config_file > $config_file
