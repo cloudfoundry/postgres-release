@@ -42,8 +42,8 @@ provides:
 
 properties:
   databases.version:
-      description: "The database version e.g. 11.22, 13.13 or 15.5"
-      default: "15.5"
+      description: "The database version e.g. 11, 13 or 15"
+      default: "15"
   databases.port:
     description: "The database port"
     default: 5432
