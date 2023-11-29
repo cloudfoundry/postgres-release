@@ -7,10 +7,10 @@ ENABLE_TRACE=0
 # set -x # uncomment it if you want to enable tracing in all control scripts
 <% end %>
 current_version="<%=p('databases.version')%>"
-pgversion_current="postgres-${current_version}"
 
 JOB_DIR=/var/vcap/jobs/postgres
-PACKAGE_DIR="/var/vcap/packages/${pgversion_current%.*}"
+PACKAGE_DIR="/var/vcap/packages/postgres-${current_version}.*"
+pgversion_current="$(echo $PACKAGE_DIR | cut -d '/' -f 5 | sed s/://)"
 STORE_DIR=/var/vcap/store
 PG_STORE_DIR=${STORE_DIR}/postgres
 VERSION_FILE=${PG_STORE_DIR}/POSTGRES_DATA_VERSION

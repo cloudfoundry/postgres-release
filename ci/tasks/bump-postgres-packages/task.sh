@@ -19,8 +19,6 @@ pushd postgres-release
   fi
 
   if ${NEED_COMMIT}; then
-    # TODO Check the storage dir folder
-
     echo "-----> $(date): Creating git commit"
     git config user.name "$GIT_USER_NAME"
     git config user.email "$GIT_USER_EMAIL"
