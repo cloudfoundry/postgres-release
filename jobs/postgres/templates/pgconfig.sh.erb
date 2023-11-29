@@ -9,7 +9,7 @@ ENABLE_TRACE=0
 current_version="<%=p('databases.version')%>"
 
 JOB_DIR=/var/vcap/jobs/postgres
-PACKAGE_DIR="/var/vcap/packages/postgres-${current_version}.*"
+PACKAGE_DIR="/var/vcap/packages/postgres-${current_version%.*}"
 pgversion_current="$(echo $PACKAGE_DIR | cut -d '/' -f 5 | sed s/://)"
 STORE_DIR=/var/vcap/store
 PG_STORE_DIR=${STORE_DIR}/postgres
