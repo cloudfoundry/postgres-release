@@ -1,0 +1,48 @@
+name: postgres
+version: "49"
+commit_hash: 432ba23
+uncommitted_changes: false
+jobs:
+- name: bbr-postgres-db
+  version: 3820fe829fedeee66d5c8b4ed7a9c1ce3527f358685242fb91397920436c4d14
+  fingerprint: 3820fe829fedeee66d5c8b4ed7a9c1ce3527f358685242fb91397920436c4d14
+  sha1: sha256:f5aa8db240b1fbcdba5ac52ebb1ad9246d51f77f08b703ca7121e2fada6ce245
+  packages:
+  - postgres-common
+  - postgres-11
+  - postgres-13
+  - postgres-15
+- name: postgres
+  version: fcee89c2490a2c29b197fcabbd08c475bbce294c6866dc61eec04fafb12b0e98
+  fingerprint: fcee89c2490a2c29b197fcabbd08c475bbce294c6866dc61eec04fafb12b0e98
+  sha1: sha256:b8b98842e46f27d56a25ea231dce9ea584e5b73eafe58485fda14cf3d210980e
+  packages:
+  - postgres-common
+  - postgres-11
+  - postgres-13
+  - postgres-15
+packages:
+- name: postgres-11
+  version: 3dbe72238804c65abc2c5e2f1eea55670c8f2b9237d6b0066f13d21e796921bc
+  fingerprint: 3dbe72238804c65abc2c5e2f1eea55670c8f2b9237d6b0066f13d21e796921bc
+  sha1: sha256:8bb0a8af94bdfe4e6b8830cf209f7569eae8a86ffd85520732c2ae1ea52a3392
+  dependencies: []
+- name: postgres-13
+  version: 9d982bdc27a10e5ba5987b2501d32449b37503f73e55ccc45261053970133f1b
+  fingerprint: 9d982bdc27a10e5ba5987b2501d32449b37503f73e55ccc45261053970133f1b
+  sha1: sha256:46e08afdb6ea89485b40fecb7730d05fad7f260d3c9b8099246db1feeeaf2ddf
+  dependencies: []
+- name: postgres-15
+  version: 3c5305a17147fc3cd216f1261329d89bc18dba719ad457cd87dccd3db3629f0e
+  fingerprint: 3c5305a17147fc3cd216f1261329d89bc18dba719ad457cd87dccd3db3629f0e
+  sha1: sha256:6f76c0e618441e11aca97ad4cc1ef3eb88ee0b8776aee93010e15db99a0bfd0e
+  dependencies: []
+- name: postgres-common
+  version: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  fingerprint: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  sha1: sha256:83121808b04b876f44bc7d8938ab29154f23577790b7189e66219f101f01e63a
+  dependencies: []
+license:
+  version: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  fingerprint: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  sha1: sha256:5e119f04e78c965b423079ee762692010b129dd24b2973aba1b500459397844b
