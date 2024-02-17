@@ -1,14 +1,12 @@
 module github.com/cloudfoundry/postgres-release/src/acceptance-tests
 
-go 1.22
-
-toolchain go1.22.0
+go 1.21.0
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
-	github.com/cloudfoundry/bosh-utils v0.0.438
-	github.com/cloudfoundry/config-server v0.1.168
+	github.com/cloudfoundry/bosh-utils v0.0.444
+	github.com/cloudfoundry/config-server v0.1.169
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/lib/pq v1.10.9
 	github.com/onsi/ginkgo/v2 v2.15.0
@@ -17,11 +15,11 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/tlsconfig v0.0.0-20240209182105-bbe53504285f // indirect
+	code.cloudfoundry.org/tlsconfig v0.0.0-20240216143505-4f8d9b753d56 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
-	github.com/cloudfoundry/socks5-proxy v0.2.110 // indirect
+	github.com/cloudfoundry/socks5-proxy v0.2.113 // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
@@ -34,6 +32,6 @@ require (
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/tools v0.17.0 // indirect
+	golang.org/x/tools v0.18.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
