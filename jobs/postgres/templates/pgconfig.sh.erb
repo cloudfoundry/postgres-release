@@ -12,6 +12,13 @@ pgversion_current=$(ls /var/vcap/packages | grep postgres-${current_version}.* |
 JOB_DIR=/var/vcap/jobs/postgres
 PACKAGE_DIR="/var/vcap/packages/${pgversion_current}"
 STORE_DIR=/var/vcap/store
+
+//TODO Find a solution to handle the case
+
+//TODO Do you think it should be possible to specify the used minor version of PostgreSQL in this new feature?
+//TODO Do you think we still need the minor version update?
+//TODO Shouldn't this be done automatically by using a new blob/release version?
+
 PG_STORE_DIR=${STORE_DIR}/postgres
 VERSION_FILE=${PG_STORE_DIR}/POSTGRES_DATA_VERSION
 
