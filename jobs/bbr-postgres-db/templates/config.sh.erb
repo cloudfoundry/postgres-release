@@ -20,11 +20,10 @@ if_link("database") do |data|
   port = data.p("databases.port")
   databases = data.p("databases.databases")
 end
-
  %>
-current_version="15.6"
+current_version="<%=p('databases.version')%>"
 JOB_DIR="/var/vcap/jobs/bbr-postgres-db"
-PACKAGE_DIR="/var/vcap/packages/postgres-${current_version%.*}"
+PACKAGE_DIR="/var/vcap/packages/$(ls /var/vcap/packages | grep postgres-${current_version}.* | cut -d '/' -f 5 | sed s/://)"
 PORT="<%= port %>"
 DATABASES=(<%= databases.map{|d| d["name"]}.join(' ')%>)
 DBHOST=<%= dbhost %>

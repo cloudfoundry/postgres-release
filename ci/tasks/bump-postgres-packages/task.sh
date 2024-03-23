@@ -19,15 +19,6 @@ pushd postgres-release
   fi
 
   if ${NEED_COMMIT}; then
-    eval $(grep "^current_version=" jobs/postgres/templates/pgconfig.sh.erb)
-    new_version=$(echo "${FILENAME}" | egrep -o "[0-9.]+[0-9]")
-
-    # If new version is greater than current version, update the current_version variables
-    if printf '%s\n' "$current_version" "$new_version" | sort -V -C; then
-      sed -i "s/^current_version=.*/current_version=\"${new_version}\"/" jobs/postgres/templates/pgconfig.sh.erb
-      sed -i "s/^current_version=.*/current_version=\"${new_version}\"/" jobs/bbr-postgres-db/templates/config.sh.erb
-    fi
-
     echo "-----> $(date): Creating git commit"
     git config user.name "$GIT_USER_NAME"
     git config user.email "$GIT_USER_EMAIL"
