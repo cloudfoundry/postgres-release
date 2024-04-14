@@ -36,6 +36,8 @@ jobs:
           trigger: true
         - get: postgres-15-src
           trigger: true
+        - get: postgres-16-src
+          trigger: true
     - task: bump-postgres-11-package
       file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
       image: bosh-cli-registry-image
@@ -67,6 +69,18 @@ jobs:
         postgres-src: postgres-15-src
       params:
         MAJOR_VERSION: 15
+        PRIVATE_YML: |
+          blobstore:
+            options:
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
+    - task: bump-postgres-16-package
+      file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
+      image: bosh-cli-registry-image
+      input_mapping:
+        postgres-src: postgres-16-src
+      params:
+        MAJOR_VERSION: 16
         PRIVATE_YML: |
           blobstore:
             options:
@@ -109,7 +123,7 @@ jobs:
         file: postgres-release/ci/tasks/check-for-updated-blob/task.yml
         image: bosh-cli-registry-image
         params:
-          BLOB: postgresql-15
+          BLOB: postgresql-16
         on_success:
           put: final-release-trigger
 
@@ -130,7 +144,7 @@ jobs:
         file: postgres-release/ci/tasks/check-for-updated-blob/task.yml
         image: bosh-cli-registry-image
         params:
-          BLOB: postgresql-15
+          BLOB: postgresql-16
     - task: create-final-release
       file: postgres-release/ci/tasks/create-final-release/task.yml
       image: bosh-cli-registry-image
@@ -209,6 +223,13 @@ resources:
     source:
       index: "https://ftp.postgresql.org/pub/source/"
       regex: 'href="v(?P<version>15\.[0-9.]+)/"'
+      uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
+
+  - name: postgres-16-src
+    type: http-resource
+    source:
+      index: "https://ftp.postgresql.org/pub/source/"
+      regex: 'href="v(?P<version>16\.[0-9.]+)/"'
       uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
 
   - name: postgres-release
