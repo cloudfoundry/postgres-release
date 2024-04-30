@@ -1,9 +1,16 @@
 #!/bin/bash -exu
 
 function main() {
-
+  install_requirements
   extract_archive
   compile
+
+}
+
+function install_requirements() {
+
+  echo "Install the requirements..."
+  DEBIAN_FRONTEND=noninteractive apt update && DEBIAN_FRONTEND=noninteractive apt install libicu-dev pkg-config libreadline-dev zlib1g-dev libssl-dev -y
 
 }
 
