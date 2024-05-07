@@ -1,4 +1,5 @@
 versions:
+  50: "PostgreSQL 16.2"
   49: "PostgreSQL 15.6"
   48: "PostgreSQL 15.5"
   47: "PostgreSQL 15.4"
