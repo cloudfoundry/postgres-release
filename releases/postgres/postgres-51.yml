@@ -1,0 +1,55 @@
+name: postgres
+version: "51"
+commit_hash: f0ce4c9
+uncommitted_changes: false
+jobs:
+- name: bbr-postgres-db
+  version: 6b0ec045d554c3f904f760bf0279338c4c1505a1b0065fb8c614847a80b04717
+  fingerprint: 6b0ec045d554c3f904f760bf0279338c4c1505a1b0065fb8c614847a80b04717
+  sha1: sha256:d04040a16d4c4f94584823c1e504d48426131722c95622119369b154ec2d8885
+  packages:
+  - postgres-common
+  - postgres-11
+  - postgres-13
+  - postgres-15
+  - postgres-16
+- name: postgres
+  version: eeb554d5f7fa3d0a12b538c4a8a71ce2db7c863f6f4caf2e9a3c9cc354d1d7ab
+  fingerprint: eeb554d5f7fa3d0a12b538c4a8a71ce2db7c863f6f4caf2e9a3c9cc354d1d7ab
+  sha1: sha256:540d79ab4189261385d097c92ad8c734e95c9acc86255e7b0882ddeeecba0030
+  packages:
+  - postgres-common
+  - postgres-11
+  - postgres-13
+  - postgres-15
+  - postgres-16
+packages:
+- name: postgres-11
+  version: 3dbe72238804c65abc2c5e2f1eea55670c8f2b9237d6b0066f13d21e796921bc
+  fingerprint: 3dbe72238804c65abc2c5e2f1eea55670c8f2b9237d6b0066f13d21e796921bc
+  sha1: sha256:8bb0a8af94bdfe4e6b8830cf209f7569eae8a86ffd85520732c2ae1ea52a3392
+  dependencies: []
+- name: postgres-13
+  version: 4534645edb722f4f365c67e374063bdd59c210af9eba5f961b9ad55ab1db84d1
+  fingerprint: 4534645edb722f4f365c67e374063bdd59c210af9eba5f961b9ad55ab1db84d1
+  sha1: sha256:9a9354721450faadc0084227910db65e43be5688b938e95b7498145f37f6d0e8
+  dependencies: []
+- name: postgres-15
+  version: 3fe5c61e6b6779ce8a2c127047e2572c200f765afce0df76510aebce15aff61b
+  fingerprint: 3fe5c61e6b6779ce8a2c127047e2572c200f765afce0df76510aebce15aff61b
+  sha1: sha256:233c0a8f3c7a9fbe154175358748f3f66aff7d9b12dce9a63b668873a6357a7a
+  dependencies: []
+- name: postgres-16
+  version: eefdc0f0bb8341f74113e36ba4604b46ca67cf54a82e57cb901470be38ba46e1
+  fingerprint: eefdc0f0bb8341f74113e36ba4604b46ca67cf54a82e57cb901470be38ba46e1
+  sha1: sha256:35d0465c23b395f51fd502365983e737405c6320c841e28c9e44c1566423e0ca
+  dependencies: []
+- name: postgres-common
+  version: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  fingerprint: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  sha1: sha256:83121808b04b876f44bc7d8938ab29154f23577790b7189e66219f101f01e63a
+  dependencies: []
+license:
+  version: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  fingerprint: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  sha1: sha256:5e119f04e78c965b423079ee762692010b129dd24b2973aba1b500459397844b
