@@ -8,7 +8,7 @@ ENABLE_TRACE=0
 <% end %>
 JOB_DIR=/var/vcap/jobs/postgres
 current_version="<%=p('databases.version')%>"
-pgversion_current=postgres-$(MAJOR_VERSION=<%=p('databases.version')%> ${JOB_DIR}/packages/yq-4/bin/yq '.postgresql.major_version[env(MAJOR_VERSION)].minor_version' /var/vcap/jobs/postgres/config/used_postgresql_versions.yml)
+pgversion_current=postgres-$(MAJOR_VERSION=<%=p('databases.version')%> ${JOB_DIR}/packages/postgres-yq-4/bin/yq '.postgresql.major_version[env(MAJOR_VERSION)].minor_version' /var/vcap/jobs/postgres/config/used_postgresql_versions.yml)
 
 PACKAGE_DIR="/var/vcap/packages/${pgversion_current%.*}"
 STORE_DIR=/var/vcap/store

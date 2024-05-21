@@ -90,9 +90,9 @@ jobs:
       file: postgres-release/ci/tasks/bump-yq-packages/task.yml
       image: bosh-cli-registry-image
       input_mapping:
-        yq-src: yq-4-src
+        yq-src: postgres-yq-4-src
       params:
-        MAJOR_VERSION: 1
+        MAJOR_VERSION: 4
         PRIVATE_YML: |
           blobstore:
             options:
@@ -244,7 +244,7 @@ resources:
       regex: 'href="v(?P<version>16\.[0-9.]+)/"'
       uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
 
-  - name: yq-4-src
+  - name: postgres-yq-4-src
     type: http-resource
     source:
       index: "https://api.github.com/repos/mikefarah/yq/releases"

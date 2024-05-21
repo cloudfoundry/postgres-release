@@ -1,0 +1,4 @@
+---
+name: postgres-yq-4
+files:
+  - yq/postgres-yq-4.*
