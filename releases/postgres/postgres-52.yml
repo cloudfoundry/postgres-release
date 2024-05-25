@@ -1,0 +1,61 @@
+name: postgres
+version: "52"
+commit_hash: 5e330a7
+uncommitted_changes: false
+jobs:
+- name: bbr-postgres-db
+  version: d9572be7723f34aa2c7eed9eb1e00e1bed7416efb243fda5f01b7c116eae7a56
+  fingerprint: d9572be7723f34aa2c7eed9eb1e00e1bed7416efb243fda5f01b7c116eae7a56
+  sha1: sha256:a656a8ff310a4388e5f2ab5fb2cc33d3cd232853f3807ec65f513f5f904b2fca
+  packages:
+  - postgres-common
+  - postgres-11
+  - postgres-13
+  - postgres-15
+  - postgres-16
+- name: postgres
+  version: 2deb21d29da5399b063762c80a89891a8cc2cdb080a17376cc19ad1f97cdf911
+  fingerprint: 2deb21d29da5399b063762c80a89891a8cc2cdb080a17376cc19ad1f97cdf911
+  sha1: sha256:867080f102aa1509ec86779586c4abaeb02eb5d133451bfcd498684efbc38ac6
+  packages:
+  - postgres-common
+  - postgres-11
+  - postgres-13
+  - postgres-15
+  - postgres-16
+  - postgres-yq-4
+packages:
+- name: postgres-11
+  version: 3dbe72238804c65abc2c5e2f1eea55670c8f2b9237d6b0066f13d21e796921bc
+  fingerprint: 3dbe72238804c65abc2c5e2f1eea55670c8f2b9237d6b0066f13d21e796921bc
+  sha1: sha256:8bb0a8af94bdfe4e6b8830cf209f7569eae8a86ffd85520732c2ae1ea52a3392
+  dependencies: []
+- name: postgres-13
+  version: 4534645edb722f4f365c67e374063bdd59c210af9eba5f961b9ad55ab1db84d1
+  fingerprint: 4534645edb722f4f365c67e374063bdd59c210af9eba5f961b9ad55ab1db84d1
+  sha1: sha256:9a9354721450faadc0084227910db65e43be5688b938e95b7498145f37f6d0e8
+  dependencies: []
+- name: postgres-15
+  version: 3fe5c61e6b6779ce8a2c127047e2572c200f765afce0df76510aebce15aff61b
+  fingerprint: 3fe5c61e6b6779ce8a2c127047e2572c200f765afce0df76510aebce15aff61b
+  sha1: sha256:233c0a8f3c7a9fbe154175358748f3f66aff7d9b12dce9a63b668873a6357a7a
+  dependencies: []
+- name: postgres-16
+  version: eefdc0f0bb8341f74113e36ba4604b46ca67cf54a82e57cb901470be38ba46e1
+  fingerprint: eefdc0f0bb8341f74113e36ba4604b46ca67cf54a82e57cb901470be38ba46e1
+  sha1: sha256:35d0465c23b395f51fd502365983e737405c6320c841e28c9e44c1566423e0ca
+  dependencies: []
+- name: postgres-common
+  version: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  fingerprint: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  sha1: sha256:83121808b04b876f44bc7d8938ab29154f23577790b7189e66219f101f01e63a
+  dependencies: []
+- name: postgres-yq-4
+  version: dc26c48bc847408082bf497930f6ba6775935da6c143b2016bdfe3b8ba5b554c
+  fingerprint: dc26c48bc847408082bf497930f6ba6775935da6c143b2016bdfe3b8ba5b554c
+  sha1: sha256:874a7f9d67bc1912f63a3553298a9cd5b8d6eff5f92519cc4559a6cc4d06e960
+  dependencies: []
+license:
+  version: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  fingerprint: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  sha1: sha256:5e119f04e78c965b423079ee762692010b129dd24b2973aba1b500459397844b
