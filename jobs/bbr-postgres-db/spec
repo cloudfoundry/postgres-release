@@ -50,3 +50,6 @@ properties:
   postgres.single-transaction:
     default: false
     description: "uses singele transaction when restoring databases"
+  postgres.version:
+    description: "The database version e.g. 11, 13, 15 or 16"
+    default: 16
