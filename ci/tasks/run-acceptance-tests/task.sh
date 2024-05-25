@@ -52,8 +52,8 @@ function main() {
   install_bbr
   upload_release
   bosh upload-stemcell stemcell/stemcell.tgz
-  current_major_version=$(/tmp/yq '.postgresql.default' jobs/postgres/templates/used_postgresql_versions.yml)
-  current_minor_version=$(CURRENT_MAJOR_VERSION=$current_major_version /tmp/yq '.postgresql.major_version[env(CURRENT_MAJOR_VERSION)].minor_version' jobs/postgres/templates/used_postgresql_versions.yml)
+  current_major_version=$(/tmp/yq '.postgresql.default' postgres-release/jobs/postgres/templates/used_postgresql_versions.yml)
+  current_minor_version=$(CURRENT_MAJOR_VERSION=$current_major_version /tmp/yq '.postgresql.major_version[env(CURRENT_MAJOR_VERSION)].minor_version' postgres-release/jobs/postgres/templates/used_postgresql_versions.yml)
   echo "current_version=${current_minor_version}" > ${root}/pgconfig.sh
   source ${root}/pgconfig.sh
   config_file="${root}/pgats_config.yml"
