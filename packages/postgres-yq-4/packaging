@@ -1,0 +1,17 @@
+#!/bin/bash -exu
+
+function main() {
+  install
+
+}
+
+function install() {
+
+  echo "Install yq..."
+  mkdir -p "${BOSH_INSTALL_TARGET}/bin"
+  cp -a yq/postgres-yq-4.* "${BOSH_INSTALL_TARGET}/bin/yq"
+  chmod +x "${BOSH_INSTALL_TARGET}/bin/yq"
+
+}
+
+main

@@ -24,6 +24,7 @@ templates:
   hooks/postgres-pre-stop.sh.erb: bin/hooks/postgres-pre-stop.sh
   hooks/postgres-post-start.sh.erb: bin/hooks/postgres-post-start.sh
   hooks/postgres-post-stop.sh.erb: bin/hooks/postgres-post-stop.sh
+  used_postgresql_versions.yml: config/used_postgresql_versions.yml
 
 packages:
   - postgres-common
@@ -31,6 +32,7 @@ packages:
   - postgres-13
   - postgres-15
   - postgres-16
+  - postgres-yq-4
 
 provides:
 - name: postgres
@@ -42,6 +44,9 @@ provides:
   - databases.tls.ca
 
 properties:
+  databases.version:
+    description: "The database version e.g. 11, 13, 15 or 16"
+    default: 16
   databases.port:
     description: "The database port"
     default: 5432

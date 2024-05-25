@@ -68,6 +68,13 @@ function is_major() {
   [ "${pgversion_current%.*}" != "${pgversion_upgrade_from%.*}" ]
 }
 
+function check_postgresql_versions(){
+    if [[ $(echo -e "$pgversion_upgrade_from\n$pgversion_current" | sort --version-sort | head --lines=1) != $pgversion_upgrade_from ]]; then
+        echo "The downgrade of the database instance is not supported."
+        exit 1
+    fi
+}
+
 function init_data_dir(){
   if [ ! -f "${DATA_DIR}/postgresql.conf" ]; then
     # initdb creates data directories
@@ -77,7 +84,7 @@ function init_data_dir(){
 }
 
 function run_major_upgrade(){
-  if is_major; then
+  if is_major && check_postgresql_versions; then
     rm -rf ${DATA_DIR_PREVIOUS}
     echo "Running a PostgreSQL major upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
     touch "$POSTGRES_UPGRADE_LOCK"
@@ -105,7 +112,7 @@ EOF
   fi
 }
 function run_minor_upgrade(){
-  if ! is_major; then
+  if ! is_major && check_postgresql_versions; then
     rm -rf ${DATA_DIR_PREVIOUS}
     echo "Running a PostgreSQL minor upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
     <% if p("databases.skip_data_copy_in_minor") %>

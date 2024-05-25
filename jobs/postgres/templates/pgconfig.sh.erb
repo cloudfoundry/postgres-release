@@ -6,10 +6,10 @@ set -x # if you want tracing disabled, set 'databases.enable_traces: false' in t
 ENABLE_TRACE=0
 # set -x # uncomment it if you want to enable tracing in all control scripts
 <% end %>
-current_version="16.3"
-pgversion_current="postgres-${current_version}"
-
 JOB_DIR=/var/vcap/jobs/postgres
+current_version="<%=p('databases.version')%>"
+pgversion_current=postgres-$(MAJOR_VERSION=<%=p('databases.version')%> ${JOB_DIR}/packages/postgres-yq-4/bin/yq '.postgresql.major_version[env(MAJOR_VERSION)].minor_version' /var/vcap/jobs/postgres/config/used_postgresql_versions.yml)
+
 PACKAGE_DIR="/var/vcap/packages/${pgversion_current%.*}"
 STORE_DIR=/var/vcap/store
 PG_STORE_DIR=${STORE_DIR}/postgres

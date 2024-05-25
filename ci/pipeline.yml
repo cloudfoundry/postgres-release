@@ -86,6 +86,18 @@ jobs:
             options:
               access_key_id: ((postgres-release-blobstore-user.username))
               secret_access_key: ((postgres-release-blobstore-user.password))
+    - task: bump-yq-package
+      file: postgres-release/ci/tasks/bump-yq-packages/task.yml
+      image: bosh-cli-registry-image
+      input_mapping:
+        yq-src: postgres-yq-4-src
+      params:
+        MAJOR_VERSION: 4
+        PRIVATE_YML: |
+          blobstore:
+            options:
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
     - put: postgres-release
       params:
         repository: postgres-release
@@ -232,6 +244,13 @@ resources:
       regex: 'href="v(?P<version>16\.[0-9.]+)/"'
       uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
 
+  - name: postgres-yq-4-src
+    type: http-resource
+    source:
+      index: "https://api.github.com/repos/mikefarah/yq/releases"
+      regex: '"tag_name":"v(?P<version>4\.[0-9.]+)/"'
+      uri: "https://github.com/mikefarah/yq/releases/download/v{version}/yq_linux_amd64"
+
   - name: postgres-release
     type: git
     source:
@@ -263,4 +282,3 @@ resource_types:
     type: docker-image
     source:
       repository: aequitas/http-resource
-
