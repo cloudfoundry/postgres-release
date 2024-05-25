@@ -14,8 +14,8 @@ curl -s -L https://github.com/mikefarah/yq/releases/download/v${latest_yq_versio
 bosh -n create-release --final
 new_release_version="$(find releases -regex ".*postgres-[0-9]*.yml" | egrep -o "[0-9]+" | sort -n | tail -n 1)"
 
-current_major_version=$(/tmp/yq '.postgresql.default' jobs/postgres/config/used_postgresql_versions.yml)
-current_minor_version=$(CURRENT_MAJOR_VERSION=$current_major_version /tmp/yq '.postgresql.major_version[env(CURRENT_MAJOR_VERSION)].minor_version' jobs/postgres/config/used_postgresql_versions.yml)
+current_major_version=$(/tmp/yq '.postgresql.default' jobs/postgres/templates/used_postgresql_versions.yml)
+current_minor_version=$(CURRENT_MAJOR_VERSION=$current_major_version /tmp/yq '.postgresql.major_version[env(CURRENT_MAJOR_VERSION)].minor_version' jobs/postgres/templates/used_postgresql_versions.yml)
 sed -i "/^versions:/a\ \ ${new_release_version}: \"PostgreSQL ${current_minor_version}\"" versions.yml
 git add versions.yml
 

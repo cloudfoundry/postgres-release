@@ -24,7 +24,7 @@ pushd postgres-release
 
     echo "-----> $(date): Update the PostgreSQL version inside the used_postgresql_versions.yml file"
     current_minor_version=$(cat config/blobs.yml  | grep "postgresql-${MAJOR_VERSION}" | cut -f1 -d: | sed "s/postgres\/postgresql-//g" | sed "s/.tar.gz//g")
-    CURRENT_MINOR_VERSION=$current_minor_version /tmp/yq -i '.postgresql.major_version[env(MAJOR_VERSION)].minor_version = strenv(CURRENT_MINOR_VERSION)' jobs/postgres/config/used_postgresql_versions.yml
+    CURRENT_MINOR_VERSION=$current_minor_version /tmp/yq -i '.postgresql.major_version[env(MAJOR_VERSION)].minor_version = strenv(CURRENT_MINOR_VERSION)' jobs/postgres/templates/used_postgresql_versions.yml
 
     echo "-----> $(date): Creating git commit"
     git config user.name "$GIT_USER_NAME"
