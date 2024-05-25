@@ -24,9 +24,8 @@ end
  %>
 
 JOB_DIR="/var/vcap/jobs/bbr-postgres-db"
-current_version=postgres-$(MAJOR_VERSION=<%=p('postgres.version')%> ${JOB_DIR}/packages/postgres-yq-4/bin/yq '.postgresql.major_version[env(MAJOR_VERSION)].minor_version' /var/vcap/jobs/postgres/config/used_postgresql_versions.yml)
 
-PACKAGE_DIR="/var/vcap/packages/${current_version%.*}"
+PACKAGE_DIR="/var/vcap/packages/postgres-<%= p('postgres.version') %>"
 PORT="<%= port %>"
 DATABASES=(<%= databases.map{|d| d["name"]}.join(' ')%>)
 DBHOST=<%= dbhost %>
