@@ -38,6 +38,11 @@ jobs:
           trigger: true
         - get: postgres-16-src
           trigger: true
+        - get: yq-release
+          trigger: true
+          params:
+            globs:
+              - yq_linux_amd64
     - task: bump-postgres-11-package
       file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
       image: bosh-cli-registry-image
@@ -89,10 +94,7 @@ jobs:
     - task: bump-yq-package
       file: postgres-release/ci/tasks/bump-yq-packages/task.yml
       image: bosh-cli-registry-image
-      input_mapping:
-        yq-src: postgres-yq-4-src
       params:
-        MAJOR_VERSION: 4
         PRIVATE_YML: |
           blobstore:
             options:
@@ -244,12 +246,12 @@ resources:
       regex: 'href="v(?P<version>16\.[0-9.]+)/"'
       uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
 
-  - name: postgres-yq-4-src
-    type: http-resource
+  - name: yq-release
+    type: github-release
     source:
-      index: "https://api.github.com/repos/mikefarah/yq/releases"
-      regex: '"tag_name":"v(?P<version>4\.[0-9.]+)/"'
-      uri: "https://github.com/mikefarah/yq/releases/download/v{version}/yq_linux_amd64"
+      owner: mikefarah
+      repository: yq
+      tag_filter: v(4\.[0-9.]+)
 
   - name: postgres-release
     type: git
