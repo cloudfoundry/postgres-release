@@ -28,7 +28,6 @@ templates:
 
 packages:
   - postgres-common
-  - postgres-11
   - postgres-13
   - postgres-15
   - postgres-16
