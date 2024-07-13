@@ -69,6 +69,9 @@ properties:
   databases.max_connections:
     description: "Maximum number of database connections"
     default: 500
+  databases.password_authentication_algorithm:
+      description: "Defines the central algorithm for encrypting passwords e.g. md5 or scram-sha-256"
+      default: "scram-sha-256"
   databases.log_line_prefix:
     description: "The postgres `printf` style string that is output at the beginning of each log line"
     default: "%m: "

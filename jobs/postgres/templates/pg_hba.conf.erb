@@ -2,7 +2,7 @@ local   all             vcap                                    trust
 host    all             vcap            127.0.0.1/32            trust
 host    all             vcap            ::1/128                 trust
 <% if !p("databases.trust_local_connections").nil? && !p("databases.trust_local_connections") %>
-local   all             all                                     md5
+local   all             all                                     <%= p("databases.password_authentication_algorithm") %>
 <% else %>
 local   all             all                                     trust
 host    all             all             127.0.0.1/32            trust
@@ -18,4 +18,4 @@ host    all             all             ::1/128                 trust
 	line
 %>
 <% end %>
-host    all             all             0.0.0.0/0               md5
+host    all             all             0.0.0.0/0               <%= p("databases.password_authentication_algorithm") %>
