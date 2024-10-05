@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/tlsconfig v0.5.0
+# code.cloudfoundry.org/tlsconfig v0.6.0
 ## explicit; go 1.22
 code.cloudfoundry.org/tlsconfig
 # github.com/DATA-DOG/go-sqlmock v1.4.1
@@ -18,7 +18,7 @@ github.com/cloudfoundry/bosh-cli/director/directorfakes
 github.com/cloudfoundry/bosh-cli/director/template
 github.com/cloudfoundry/bosh-cli/io
 github.com/cloudfoundry/bosh-cli/uaa
-# github.com/cloudfoundry/bosh-utils v0.0.496
+# github.com/cloudfoundry/bosh-utils v0.0.498
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-utils/crypto
 github.com/cloudfoundry/bosh-utils/errors
@@ -28,13 +28,13 @@ github.com/cloudfoundry/bosh-utils/property
 github.com/cloudfoundry/bosh-utils/retrystrategy
 github.com/cloudfoundry/bosh-utils/system
 github.com/cloudfoundry/bosh-utils/uuid
-# github.com/cloudfoundry/config-server v0.1.206
+# github.com/cloudfoundry/config-server v0.1.208
 ## explicit; go 1.22.0
 github.com/cloudfoundry/config-server/types
 # github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.125
+# github.com/cloudfoundry/socks5-proxy v0.2.126
 ## explicit; go 1.22.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
@@ -57,7 +57,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20240927233043-f3f46ee36851
+# github.com/google/pprof v0.0.0-20241001023024-f4c0cfd0cf1d
 ## explicit; go 1.22
 github.com/google/pprof/profile
 # github.com/jpillora/backoff v1.0.0
@@ -110,7 +110,7 @@ github.com/onsi/gomega/types
 # github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20
 ## explicit
 github.com/pivotal-cf/paraphernalia/secure/tlsconfig
-# golang.org/x/crypto v0.27.0
+# golang.org/x/crypto v0.28.0
 ## explicit; go 1.20
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
@@ -123,7 +123,7 @@ golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 ## explicit; go 1.20
 golang.org/x/exp/constraints
 golang.org/x/exp/slices
-# golang.org/x/net v0.29.0
+# golang.org/x/net v0.30.0
 ## explicit; go 1.18
 golang.org/x/net/context
 golang.org/x/net/html
@@ -131,11 +131,11 @@ golang.org/x/net/html/atom
 golang.org/x/net/html/charset
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.25.0
+# golang.org/x/sys v0.26.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
-# golang.org/x/text v0.18.0
+# golang.org/x/text v0.19.0
 ## explicit; go 1.18
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
@@ -154,7 +154,7 @@ golang.org/x/text/internal/utf8internal
 golang.org/x/text/language
 golang.org/x/text/runes
 golang.org/x/text/transform
-# golang.org/x/tools v0.25.0
+# golang.org/x/tools v0.26.0
 ## explicit; go 1.22.0
 golang.org/x/tools/cover
 golang.org/x/tools/go/ast/inspector
