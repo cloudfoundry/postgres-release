@@ -2,19 +2,19 @@ postgres/postgresql-11.22.tar.gz:
   size: 26826810
   object_id: d63d6917-f1f1-4170-6990-bd57514e0cac
   sha: sha256:6445a4e1533c1e8bb616d4a3784bdc4c0226b541f6f0c8d996d9f27d581d49c3
-postgres/postgresql-13.15.tar.gz:
-  size: 28280167
-  object_id: b708b6d2-7a7e-4c70-7b52-75a1b7303904
-  sha: sha256:28e88226591247ea567ce26c4f5064ae5cc53cba94cb721ab8b6c6adea6218de
-postgres/postgresql-15.7.tar.gz:
-  size: 30332323
-  object_id: ac6ced12-6300-4bcd-56b8-e97892252a2c
-  sha: sha256:619541008e4c38560643a5dcfcfca49f39c7ba7f9b11896a88aaa2fd8eb71931
-postgres/postgresql-16.3.tar.gz:
-  size: 32616059
-  object_id: 67d44bf9-7305-445c-524f-64f5c401ce13
-  sha: sha256:bd3798c399bc1b6d08b94340f9dd7a75a30a7fa076788ef2f4848be2be6a5fc5
-yq/postgres-yq-4.44.1:
-  size: 9961624
-  object_id: 05370811-c9c3-4d49-738b-3935f3248d7b
-  sha: sha256:6dc2d0cd4e0caca5aeffd0d784a48263591080e4a0895abe69f3a76eb50d1ba3
+postgres/postgresql-13.18.tar.gz:
+  size: 28356591
+  object_id: cf4aee81-64e1-43b8-7428-a6d0e64704dc
+  sha: sha256:440f691a34e69829e2587b3d430294066cb1b933dcd41b8cf59effd26c8c08a7
+postgres/postgresql-15.10.tar.gz:
+  size: 30424979
+  object_id: 238b47e6-7a58-406b-6452-f8c6692b8fea
+  sha: sha256:173366605259a83dc189c4327ff4c37254afed65b4f866cbd8a5ef2ea449e8f3
+postgres/postgresql-16.6.tar.gz:
+  size: 32715613
+  object_id: 00b8b81d-189d-45ab-5823-39560ce8d82d
+  sha: sha256:520d173632e93507f26eb66713d953b687cfba5e72c467d3adbc8ec4dbb8148f
+yq/postgres-yq-4.44.5:
+  size: 10293400
+  object_id: 0a8c6a42-ccc8-4714-4538-6af3f55bc2c4
+  sha: sha256:638c4b251c49201fc94b598834b715f8f1c6e9b1854d2820772d2c79f0289002
