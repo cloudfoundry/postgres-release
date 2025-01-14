@@ -156,6 +156,7 @@ jobs:
         task-output-folder: blob-updates
 
 - name: create-final-release
+  disable_manual_trigger: true
   serial_groups:
     - version
   plan:
