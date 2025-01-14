@@ -113,44 +113,67 @@ jobs:
 - name: automatically-release-new-patch
   plan:
     - in_parallel:
-        - get: bosh-cli-registry-image
         - get: postgres-release
           trigger: true
           passed:
             - run-acceptance-tests
+        - get: current-version
+          resource: version
+        - get: patched-version
+          resource: version
+          params:
+            bump: patch
+        - get: bosh-shared-ci
+        - get: bosh-security-scanner-registry-image
     - try:
-        task: check-for-updated-blob
-        file: postgres-release/ci/tasks/check-for-updated-blob/task.yml
-        image: bosh-cli-registry-image
+        task: check-for-updated-blobs
+        file: bosh-shared-ci/tasks/release/check-for-updated-blobs.yml
+        image: bosh-security-scanner-registry-image
+        input_mapping:
+          input_repo: postgres-release
+          version: current-version
         params:
-          BLOB: postgresql-16
+          BLOBS:
+            - postgresql-11
+            - postgresql-13
+            - postgresql-15
+            - postgresql-16
+            - yq
         on_success:
-          put: final-release-trigger
+          do:
+            - put: release-notes
+              params:
+                file: release-notes/release-notes.md
+            - put: version
+              params:
+                file: patched-version/version
+    - task: ensure-blob-update-checker-succeeded
+      file: bosh-shared-ci/tasks/release/ensure-task-succeeded.yml
+      image: bosh-security-scanner-registry-image
+      input_mapping:
+        task-output-folder: blob-updates
 
 - name: create-final-release
   serial: true
   plan:
     - in_parallel:
+        - get: version
+          trigger: true
         - get: bosh-cli-registry-image
         - get: postgres-release
           passed:
             - run-acceptance-tests
-        - get: final-release-trigger
-          trigger: true
-          passed:
-            - automatically-release-new-patch
-    - try:
-        task: check-for-updated-blob
-        file: postgres-release/ci/tasks/check-for-updated-blob/task.yml
-        image: bosh-cli-registry-image
-        params:
-          BLOB: postgresql-16
+        - get: release-notes
+        - get: bosh-shared-ci
     - task: create-final-release
-      file: postgres-release/ci/tasks/create-final-release/task.yml
       image: bosh-cli-registry-image
+      file: bosh-shared-ci/tasks/release/create-final-release.yml
+      input_mapping:
+        release_repo: postgres-release
       params:
-        RELEASE_NAME: postgres
-        RELEASE_PRIVATE_YML: |
+        GIT_USER_NAME: CI Bot
+        GIT_USER_EMAIL: bots@cloudfoundry.org
+        PRIVATE_YML: |
           blobstore:
             options:
               access_key_id: ((postgres-release-blobstore-user.username))
@@ -158,15 +181,42 @@ jobs:
     - put: postgres-release
       no_get: true
       params:
-        repository: postgres-release
-        tag: postgres-release/version_number
+        repository: release_repo
+        tag: release_metadata/tag-name
     - put: postgres-github-release
       params:
+        name: release_metadata/tag-name
+        tag: release_metadata/tag-name
         body: release-notes/release-notes.md
-        commitish: postgres-release/.git/HEAD
+        commitish: release_repo/.git/HEAD
         generate_release_notes: true
-        name: postgres-release/version_number
-        tag: postgres-release/version_number
+    - put: release-notes
+      params:
+        file: release_metadata/empty-file
+
+- name: release-new-patch
+  serial_groups:
+    - version
+  plan:
+    - put: version
+      params:
+        bump: patch
+
+- name: release-new-minor
+  serial_groups:
+    - version
+  plan:
+    - put: version
+      params:
+        bump: minor
+
+- name: release-new-major
+  serial_groups:
+    - version
+  plan:
+    - put: version
+      params:
+        bump: major
 
 resources:
   - name: bbr-github-release
@@ -190,13 +240,12 @@ resources:
       username: ((dockerhub_username))
       password: ((dockerhub_password))
 
-  - name: final-release-trigger
-    type: time
-
-  - name: golang-release
-    type: git
+  - name: bosh-security-scanner-registry-image
+    type: registry-image
     source:
-      uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
+      repository: bosh/security-scanner
+      username: ((dockerhub_username))
+      password: ((dockerhub_password))
 
   - name: golang-release-registry-image
     type: registry-image
@@ -204,6 +253,17 @@ resources:
       repository: bosh/golang-release
       username: ((dockerhub_username))
       password: ((dockerhub_password))
+
+  - name: bosh-shared-ci
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/bosh-shared-ci.git
+      private_key: ((github_deploy_key_bosh-shared-ci.private_key))
+
+  - name: golang-release
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
 
   - name: postgres-13-src
     type: http-resource
@@ -259,8 +319,33 @@ resources:
       stop: 4:30
       days: [ Saturday ]
 
+  - name: release-notes
+    type: gcs-resource
+    source:
+      bucket: postgres-release-pipeline
+      json_key: ((gcp_json_key))
+      versioned_file: release-notes.md
+
+  - name: version
+    type: semver
+    source:
+      driver: git
+      uri: git@github.com:cloudfoundry/postgres-release.git
+      branch: release-semver
+      file: VERSION
+      private_key: ((github_deploy_key_postgres-release.private_key))
+
 resource_types:
   - name: http-resource
-    type: docker-image
+    type: registry-image
     source:
       repository: aequitas/http-resource
+      username: ((dockerhub_username))
+      password: ((dockerhub_password))
+
+  - name: gcs-resource
+    type: registry-image
+    source:
+      repository: frodenas/gcs-resource
+      username: ((dockerhub_username))
+      password: ((dockerhub_password))
