@@ -111,6 +111,8 @@ jobs:
       privileged: true
 
 - name: automatically-release-new-patch
+  serial_groups:
+    - version
   plan:
     - in_parallel:
         - get: postgres-release
@@ -154,7 +156,8 @@ jobs:
         task-output-folder: blob-updates
 
 - name: create-final-release
-  serial: true
+  serial_groups:
+    - version
   plan:
     - in_parallel:
         - get: version
