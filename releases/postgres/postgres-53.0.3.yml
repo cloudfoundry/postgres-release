@@ -1,0 +1,54 @@
+name: postgres
+version: 53.0.3
+commit_hash: 025df21
+uncommitted_changes: false
+jobs:
+- name: bbr-postgres-db
+  version: 81cb93000e63a8fcb2512f662031d77b1022501d579f664fa53dba2367a97fc1
+  fingerprint: 81cb93000e63a8fcb2512f662031d77b1022501d579f664fa53dba2367a97fc1
+  sha1: sha256:5656189ac1574844d3cd2ae297733c0531bc821497d147f4759413a099e5b4e3
+  packages:
+  - postgres-common
+  - postgres-13
+  - postgres-15
+  - postgres-16
+- name: postgres
+  version: 22cd30757f53d528b99456298e0f830881c869c2e56730dda031416a6a18f943
+  fingerprint: 22cd30757f53d528b99456298e0f830881c869c2e56730dda031416a6a18f943
+  sha1: sha256:4aa02addf5b1b38392ec1c24039019a2e7e2aa145be0700a68225062869ea259
+  packages:
+  - postgres-common
+  - postgres-13
+  - postgres-15
+  - postgres-16
+  - postgres-yq-4
+packages:
+- name: postgres-13
+  version: 9c8f80acd937221ed1575e7349a0fded862f31e068701c473968df65fb466d0e
+  fingerprint: 9c8f80acd937221ed1575e7349a0fded862f31e068701c473968df65fb466d0e
+  sha1: sha256:2f11296b2168a1f72b38bdff013833de551deb3060224aae1fcfd41abd15fd7d
+  dependencies: []
+- name: postgres-15
+  version: 611ede9ffed40137af7ec5862bcc9eabfaa0271f54d9fd957b53e76c7ddd636e
+  fingerprint: 611ede9ffed40137af7ec5862bcc9eabfaa0271f54d9fd957b53e76c7ddd636e
+  sha1: sha256:3c468a10582d5f3cecca3f3b9b4f8d4b8ab2f3d9304a15214d3562f3e27145f2
+  dependencies: []
+- name: postgres-16
+  version: c5cbce1f61d82a603c128531c6a72c76532ceb34e86e36eb09a282853b7b30d0
+  fingerprint: c5cbce1f61d82a603c128531c6a72c76532ceb34e86e36eb09a282853b7b30d0
+  sha1: sha256:88ddd9ebbad6a396f2766833282acf1d841e7dc185d4a0bdbd53309d819fa65c
+  dependencies: []
+- name: postgres-common
+  version: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  fingerprint: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  sha1: sha256:83121808b04b876f44bc7d8938ab29154f23577790b7189e66219f101f01e63a
+  dependencies: []
+- name: postgres-yq-4
+  version: 5c7f75d13fc6054499992270134cbf028a036c13988b57946f0a5c3bb3aa23a7
+  fingerprint: 5c7f75d13fc6054499992270134cbf028a036c13988b57946f0a5c3bb3aa23a7
+  sha1: sha256:478b9819d1f0e6f7117c38cf8facf75dd7868efd486b8b879246a19e1201d2c0
+  dependencies: []
+license:
+  version: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  fingerprint: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  sha1: sha256:5e119f04e78c965b423079ee762692010b129dd24b2973aba1b500459397844b
