@@ -36,6 +36,8 @@ jobs:
           trigger: true
         - get: postgres-16-src
           trigger: true
+        - get: postgres-17-src
+          trigger: true
         - get: yq-release
           trigger: true
           params:
@@ -72,6 +74,18 @@ jobs:
         postgres-src: postgres-16-src
       params:
         MAJOR_VERSION: 16
+        PRIVATE_YML: |
+          blobstore:
+            options:
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
+    - task: bump-postgres-17-package
+      file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
+      image: bosh-cli-registry-image
+      input_mapping:
+        postgres-src: postgres-17-src
+      params:
+        MAJOR_VERSION: 17
         PRIVATE_YML: |
           blobstore:
             options:
@@ -140,6 +154,7 @@ jobs:
             - postgresql-13
             - postgresql-15
             - postgresql-16
+            - postgresql-17
             - yq
         on_success:
           do:
@@ -288,6 +303,13 @@ resources:
     source:
       index: "https://ftp.postgresql.org/pub/source/"
       regex: 'href="v(?P<version>16\.[0-9.]+)/"'
+      uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
+
+  - name: postgres-17-src
+    type: http-resource
+    source:
+      index: "https://ftp.postgresql.org/pub/source/"
+      regex: 'href="v(?P<version>17\.[0-9.]+)/"'
       uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
 
   - name: yq-release
