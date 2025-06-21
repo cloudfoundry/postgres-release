@@ -31,6 +31,7 @@ packages:
   - postgres-13
   - postgres-15
   - postgres-16
+  - postgres-17
   - postgres-yq-4
 
 provides:
@@ -44,7 +45,7 @@ provides:
 
 properties:
   databases.version:
-    description: "The database version e.g. 11, 13, 15 or 16"
+    description: "The database version e.g. 11, 13, 15, 16 or 17"
     default: 16
   databases.port:
     description: "The database port"

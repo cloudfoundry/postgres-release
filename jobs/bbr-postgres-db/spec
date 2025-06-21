@@ -17,6 +17,7 @@ packages:
   - postgres-13
   - postgres-15
   - postgres-16
+  - postgres-17
 
 consumes:
 - name: database
@@ -41,13 +42,13 @@ properties:
     description: "If postgres is configured with a ca, setting this to 'true' changes sslmode to 'verify-full' rather than 'verify-ca'."
   postgres.client_certificate:
     default: ''
-    description: "Client certificate. Specify it if you want to auhtenticate using certificates."
+    description: "Client certificate. Specify it if you want to authenticate using certificates."
   postgres.client_certificate_key:
     default: ''
-    description: "Secret key used for the client certificate. Specify it if you want to auhtenticate using certificates."
+    description: "Secret key used for the client certificate. Specify it if you want to authenticate using certificates."
   postgres.single-transaction:
     default: false
     description: "uses singele transaction when restoring databases"
   postgres.version:
-    description: "The database version e.g. 11, 13, 15 or 16"
+    description: "The database version e.g. 11, 13, 15, 16 or 17"
     default: 16

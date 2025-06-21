@@ -1,0 +1,4 @@
+---
+name: postgres-17
+files:
+  - postgres/postgresql-17.*.tar.gz
