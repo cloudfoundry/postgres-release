@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/tlsconfig v0.29.0
+# code.cloudfoundry.org/tlsconfig v0.30.0
 ## explicit; go 1.23.0
 code.cloudfoundry.org/tlsconfig
 # github.com/DATA-DOG/go-sqlmock v1.4.1
@@ -18,7 +18,7 @@ github.com/cloudfoundry/bosh-cli/director/directorfakes
 github.com/cloudfoundry/bosh-cli/director/template
 github.com/cloudfoundry/bosh-cli/io
 github.com/cloudfoundry/bosh-cli/uaa
-# github.com/cloudfoundry/bosh-utils v0.0.545
+# github.com/cloudfoundry/bosh-utils v0.0.547
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-utils/crypto
 github.com/cloudfoundry/bosh-utils/errors
