@@ -28,7 +28,7 @@ jobs:
     - dependency-bumps
   plan:
     - in_parallel:
-        - get: bosh-cli-registry-image
+        - get: bosh-integration-image
         - get: postgres-release
         - get: postgres-13-src
           trigger: true
@@ -45,7 +45,7 @@ jobs:
               - yq_linux_amd64
     - task: bump-postgres-13-package
       file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
-      image: bosh-cli-registry-image
+      image: bosh-integration-image
       input_mapping:
         postgres-src: postgres-13-src
       params:
@@ -57,7 +57,7 @@ jobs:
               secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-15-package
       file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
-      image: bosh-cli-registry-image
+      image: bosh-integration-image
       input_mapping:
         postgres-src: postgres-15-src
       params:
@@ -69,7 +69,7 @@ jobs:
               secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-16-package
       file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
-      image: bosh-cli-registry-image
+      image: bosh-integration-image
       input_mapping:
         postgres-src: postgres-16-src
       params:
@@ -93,7 +93,7 @@ jobs:
               secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-yq-package
       file: postgres-release/ci/tasks/bump-yq-packages/task.yml
-      image: bosh-cli-registry-image
+      image: bosh-integration-image
       params:
         PRIVATE_YML: |
           blobstore:
@@ -178,14 +178,14 @@ jobs:
     - in_parallel:
         - get: version
           trigger: true
-        - get: bosh-cli-registry-image
+        - get: bosh-integration-image
         - get: postgres-release
           passed:
             - run-acceptance-tests
         - get: release-notes
         - get: bosh-shared-ci
     - task: create-final-release
-      image: bosh-cli-registry-image
+      image: bosh-integration-image
       file: bosh-shared-ci/tasks/release/create-final-release.yml
       input_mapping:
         release_repo: postgres-release
@@ -245,12 +245,13 @@ resources:
       repository: bosh-backup-and-restore
       access_token: ((github_public_repo_token))
 
-  - name: bosh-cli-registry-image
+  - name: bosh-integration-image
     type: registry-image
     source:
-      repository: bosh/cli
-      username: ((dockerhub_username))
-      password: ((dockerhub_password))
+      repository: ghcr.io/cloudfoundry/bosh/integration
+      tag: main
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
 
   - name: bosh-warden-cpi-registry-image
     type: registry-image
@@ -269,9 +270,9 @@ resources:
   - name: golang-release-registry-image
     type: registry-image
     source:
-      repository: bosh/golang-release
-      username: ((dockerhub_username))
-      password: ((dockerhub_password))
+      repository: ghcr.io/cloudfoundry/bosh/golang-release
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
 
   - name: bosh-shared-ci
     type: git
