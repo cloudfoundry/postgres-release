@@ -235,7 +235,7 @@ If you want to attempt the upgrade again or to roll back to the previous release
 
 ## CI
 
-The [CI pipeline](https://postgres.ci.cf-app.com/) runs:
+The [CI pipeline](https://bosh.ci.cloudfoundry.org/teams/main/pipelines/postgres-release/jobs/run-acceptance-tests)runs:
 
 - the postgres-release [acceptance tests](docs/acceptance-tests.md)
 - the supported [upgrade paths](#upgrade-test-policy)
