@@ -5,16 +5,29 @@ set -euo pipefail
 
 echo "${PRIVATE_YML}" > postgres-release/config/private.yml
 
+get_old_blob_path() {
+    local major_version="$1"
+    local blobs_file="config/blobs.yml"
+
+    if grep -q "postgresql-${major_version}" "$blobs_file"; then
+        cat $blobs_file | grep "postgresql-${major_version}" | cut -f1 -d:
+    else
+        echo ""
+    fi
+}
+
 pushd postgres-release
   CURRENT_BLOBS=$(bosh blobs)
   BLOB_PATH=$(ls ../postgres-src/postgresql-*.tar.gz)
   FILENAME=$( basename ${BLOB_PATH} )
-  OLD_BLOB_PATH=$(cat config/blobs.yml  | grep "postgresql-${MAJOR_VERSION}" | cut -f1 -d:)
+  OLD_BLOB_PATH=$(get_old_blob_path "${MAJOR_VERSION}")
   if ! echo "${CURRENT_BLOBS}" | grep "${FILENAME}" ; then
     NEED_COMMIT=true
     echo "adding ${FILENAME}"
     bosh add-blob --sha2 "${BLOB_PATH}" "postgres/${FILENAME}"
-    bosh remove-blob ${OLD_BLOB_PATH}
+    if [[ -n "${OLD_BLOB_PATH}" ]]; then
+          bosh remove-blob ${OLD_BLOB_PATH}
+    fi
     bosh upload-blobs
   fi
 

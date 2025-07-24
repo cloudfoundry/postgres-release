@@ -81,7 +81,7 @@ jobs:
               secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-17-package
       file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
-      image: bosh-cli-registry-image
+      image: bosh-integration-image
       input_mapping:
         postgres-src: postgres-17-src
       params:
