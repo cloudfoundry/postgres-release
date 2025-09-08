@@ -18,7 +18,7 @@ postgres/postgresql-17.6.tar.gz:
   size: 28141372
   object_id: 43eb1a8b-e66f-4a70-5922-cf2dd3b17766
   sha: sha256:2910b85283674da2dae6ac13fe5ebbaaf3c482446396cba32e6728d3cc736d86
-yq/postgres-yq-4.47.1:
-  size: 11440312
-  object_id: ba86bc26-ce88-4fc9-430b-0811de074bee
-  sha: sha256:0fb28c6680193c41b364193d0c0fc4a03177aecde51cfc04d506b1517158c2fb
+yq/postgres-yq-4.47.2:
+  size: 11477176
+  object_id: 5df2f722-0b51-4421-47ac-936e084497be
+  sha: sha256:1bb99e1019e23de33c7e6afc23e93dad72aad6cf2cb03c797f068ea79814ddb0
