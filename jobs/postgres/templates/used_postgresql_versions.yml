@@ -6,7 +6,7 @@ postgresql:
     15:
       minor_version: "15.14"
     13:
-      minor_version: "13.22"
+      minor_version: "13.23"
     11:
       minor_version: "11.22"
     17:
