@@ -21,7 +21,7 @@ github.com/cloudfoundry/bosh-cli/director/directorfakes
 github.com/cloudfoundry/bosh-cli/director/template
 github.com/cloudfoundry/bosh-cli/io
 github.com/cloudfoundry/bosh-cli/uaa
-# github.com/cloudfoundry/bosh-utils v0.0.581
+# github.com/cloudfoundry/bosh-utils v0.0.582
 ## explicit; go 1.24.0
 github.com/cloudfoundry/bosh-utils/crypto
 github.com/cloudfoundry/bosh-utils/errors
