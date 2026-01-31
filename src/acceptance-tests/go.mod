@@ -6,21 +6,21 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
 	github.com/cloudfoundry/bosh-utils v0.0.582
-	github.com/cloudfoundry/config-server v0.1.261
+	github.com/cloudfoundry/config-server v0.1.262
 	github.com/cppforlife/go-patch v0.2.0
-	github.com/lib/pq v1.10.9
-	github.com/onsi/ginkgo/v2 v2.27.5
-	github.com/onsi/gomega v1.38.2
+	github.com/lib/pq v1.11.1
+	github.com/onsi/ginkgo/v2 v2.28.1
+	github.com/onsi/gomega v1.39.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	code.cloudfoundry.org/tlsconfig v0.43.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.44.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
-	github.com/cloudfoundry/socks5-proxy v0.2.165 // indirect
+	github.com/cloudfoundry/socks5-proxy v0.2.166 // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect

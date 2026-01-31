@@ -1,4 +1,4 @@
-# code.cloudfoundry.org/tlsconfig v0.43.0
+# code.cloudfoundry.org/tlsconfig v0.44.0
 ## explicit; go 1.24.0
 code.cloudfoundry.org/tlsconfig
 # github.com/DATA-DOG/go-sqlmock v1.4.1
@@ -31,13 +31,13 @@ github.com/cloudfoundry/bosh-utils/property
 github.com/cloudfoundry/bosh-utils/retrystrategy
 github.com/cloudfoundry/bosh-utils/system
 github.com/cloudfoundry/bosh-utils/uuid
-# github.com/cloudfoundry/config-server v0.1.261
+# github.com/cloudfoundry/config-server v0.1.262
 ## explicit; go 1.23.0
 github.com/cloudfoundry/config-server/types
 # github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.165
+# github.com/cloudfoundry/socks5-proxy v0.2.166
 ## explicit; go 1.24.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
@@ -66,9 +66,13 @@ github.com/google/pprof/profile
 # github.com/jpillora/backoff v1.0.0
 ## explicit; go 1.13
 github.com/jpillora/backoff
-# github.com/lib/pq v1.10.9
-## explicit; go 1.13
+# github.com/lib/pq v1.11.1
+## explicit; go 1.21
 github.com/lib/pq
+github.com/lib/pq/internal/pgpass
+github.com/lib/pq/internal/pqsql
+github.com/lib/pq/internal/pqutil
+github.com/lib/pq/internal/proto
 github.com/lib/pq/oid
 github.com/lib/pq/scram
 # github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
@@ -76,8 +80,8 @@ github.com/lib/pq/scram
 github.com/nu7hatch/gouuid
 # github.com/nxadm/tail v1.4.8
 ## explicit; go 1.13
-# github.com/onsi/ginkgo/v2 v2.27.5
-## explicit; go 1.23.0
+# github.com/onsi/ginkgo/v2 v2.28.1
+## explicit; go 1.24.0
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
 github.com/onsi/ginkgo/v2/formatter
@@ -100,7 +104,7 @@ github.com/onsi/ginkgo/v2/internal/reporters
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.38.2
+# github.com/onsi/gomega v1.39.0
 ## explicit; go 1.23.0
 github.com/onsi/gomega
 github.com/onsi/gomega/format
