@@ -35,6 +35,7 @@ end
 listen_addresses = '0.0.0.0'
 port = <%= p("databases.port") %>
 max_connections = <%= p("databases.max_connections") %>
+password_encryption = <%= p("databases.password_authentication_algorithm") %>
 external_pid_file = '/var/vcap/sys/run/postgres/postgres.pid'
 authentication_timeout = 1min
 
