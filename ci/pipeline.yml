@@ -337,7 +337,7 @@ resources:
   - name: warden-ubuntu-noble-stemcell
     type: bosh-io-stemcell
     source:
-      name: bosh-warden-boshlite-ubuntu-noble-go_agent
+      name: bosh-warden-boshlite-ubuntu-noble
 
   - name: weekly
     type: time
