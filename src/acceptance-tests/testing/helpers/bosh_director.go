@@ -71,7 +71,7 @@ var DefaultCloudConfig = BOSHCloudConfig{
 	},
 	PersistentDiskType: "10GB",
 	VmType:             "small",
-	StemcellOs:         "ubuntu-jammy",
+	StemcellOs:         "ubuntu-noble",
 	StemcellVersion:    "latest",
 }
 
