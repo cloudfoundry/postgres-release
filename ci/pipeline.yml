@@ -113,7 +113,7 @@ jobs:
         - get: postgres-release
           trigger: true
         - get: stemcell
-          resource: warden-ubuntu-jammy-stemcell
+          resource: warden-ubuntu-noble-stemcell
           trigger: true
         - get: bbr-github-release
           params:
@@ -334,10 +334,10 @@ resources:
       repository: postgres-release
       access_token: ((github_public_repo_token))
 
-  - name: warden-ubuntu-jammy-stemcell
+  - name: warden-ubuntu-noble-stemcell
     type: bosh-io-stemcell
     source:
-      name: bosh-warden-boshlite-ubuntu-jammy-go_agent
+      name: bosh-warden-boshlite-ubuntu-noble-go_agent
 
   - name: weekly
     type: time
