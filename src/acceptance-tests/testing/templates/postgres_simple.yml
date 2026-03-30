@@ -48,7 +48,7 @@ instance_groups:
           permissions:
           - "SUPERUSER"
           - "CONNECTION LIMIT 33"
-          - "VALID UNTIL 'May 5 12:00:00 2025 +1'"
+          - "VALID UNTIL 'May 5 12:00:00 2035 +1'"
   persistent_disk_type: YOUR_DISK_TYPE
   vm_type: YOUR_VM_TYPE
   stemcell: linux
