@@ -256,9 +256,9 @@ resources:
   - name: bosh-warden-cpi-registry-image
     type: registry-image
     source:
-      repository: bosh/warden-cpi
-      username: ((dockerhub_username))
-      password: ((dockerhub_password))
+      repository: ghcr.io/cloudfoundry/bosh/warden-cpi
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
 
   - name: bosh-security-scanner-registry-image
     type: registry-image
@@ -337,7 +337,7 @@ resources:
   - name: warden-ubuntu-noble-stemcell
     type: bosh-io-stemcell
     source:
-      name: bosh-warden-boshlite-ubuntu-noble-go_agent
+      name: bosh-warden-boshlite-ubuntu-noble
 
   - name: weekly
     type: time
