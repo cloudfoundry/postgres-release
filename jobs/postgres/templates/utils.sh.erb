@@ -76,10 +76,11 @@ function check_postgresql_versions(){
 }
 
 function init_data_dir(){
+  local checksum_flag="${1:-}"
   if [ ! -f "${DATA_DIR}/postgresql.conf" ]; then
     # initdb creates data directories
     echo "Initializing data directory ${DATA_DIR}"
-    su - vcap -c "${PACKAGE_DIR}/bin/initdb -E utf8 --locale en_US.UTF-8 -D ${DATA_DIR}"
+    su - vcap -c "${PACKAGE_DIR}/bin/initdb -E utf8 --locale en_US.UTF-8 -D ${DATA_DIR} ${checksum_flag}"
   fi
 }
 
@@ -89,7 +90,16 @@ function run_major_upgrade(){
     echo "Running a PostgreSQL major upgrade from ${pgversion_upgrade_from} to ${pgversion_current}"
     touch "$POSTGRES_UPGRADE_LOCK"
     chmod 755 "$POSTGRES_UPGRADE_LOCK"
-    init_data_dir
+    # Match the old cluster's checksum setting to satisfy pg_upgrade requirements.
+    # --no-data-checksums was introduced in PG18 (PG17 initdb rejects the flag).
+    local checksum_flag=""
+    local new_major
+    new_major=$(${PACKAGE_DIR}/bin/postgres --version | grep -oE '[0-9]+' | head -1)
+    if [ "${new_major}" -ge 18 ] && \
+       ${PACKAGE_DIR_OLD}/bin/pg_controldata "${DATA_DIR_OLD}" | grep -q "^Data page checksum version: *0$"; then
+      checksum_flag="--no-data-checksums"
+    fi
+    init_data_dir "${checksum_flag}"
     # Move to a directory writeable by vcap user
     su - vcap <<EOF
     set -e
