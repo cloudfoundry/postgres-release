@@ -319,6 +319,7 @@ resources:
       owner: mikefarah
       repository: yq
       tag_filter: v(4\.[0-9.]+)
+      access_token: ((github_public_repo_token))
 
   - name: postgres-release
     type: git
