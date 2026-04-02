@@ -72,7 +72,7 @@ func (d *DeployHelper) InitializeVariables() {
 
 	d.variables["superuser_name"] = "superuser"
 	d.variables["superuser_password"] = "superpsw"
-	d.variables["superuser_valid_until"] = fmt.Sprintf("May 5 12:00:00 %d +1", time.Now().Year()+1)
+	d.variables["superuser_valid_until"] = time.Now().AddDate(0, 1, 0).Format("Jan 2 2006")
 	d.variables["testuser_name"] = "sshuser"
 	d.variables["postgres_dns"] = fmt.Sprintf("q-s0.postgres.%s.%s.bosh", d.networkName, d.name)
 }
