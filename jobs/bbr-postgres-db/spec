@@ -18,6 +18,7 @@ packages:
   - postgres-15
   - postgres-16
   - postgres-17
+  - postgres-18
 
 consumes:
 - name: database
@@ -50,5 +51,5 @@ properties:
     default: false
     description: "uses singele transaction when restoring databases"
   postgres.version:
-    description: "The database version e.g. 11, 13, 15, 16 or 17"
-    default: 16
+    description: "The database version e.g. 11, 13, 15, 16, 17 or 18"
+    default: 18
