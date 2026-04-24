@@ -30,8 +30,6 @@ jobs:
     - in_parallel:
         - get: bosh-integration-image
         - get: postgres-release
-        - get: postgres-13-src
-          trigger: true
         - get: postgres-15-src
           trigger: true
         - get: postgres-16-src
@@ -43,18 +41,6 @@ jobs:
           params:
             globs:
               - yq_linux_amd64
-    - task: bump-postgres-13-package
-      file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
-      image: bosh-integration-image
-      input_mapping:
-        postgres-src: postgres-13-src
-      params:
-        MAJOR_VERSION: 13
-        PRIVATE_YML: |
-          blobstore:
-            options:
-              access_key_id: ((postgres-release-blobstore-user.username))
-              secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-15-package
       file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
       image: bosh-integration-image
@@ -150,8 +136,6 @@ jobs:
           version: current-version
         params:
           BLOBS:
-            - postgresql-11
-            - postgresql-13
             - postgresql-15
             - postgresql-16
             - postgresql-17
@@ -284,13 +268,6 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
-
-  - name: postgres-13-src
-    type: http-resource
-    source:
-      index: "https://ftp.postgresql.org/pub/source/"
-      regex: 'href="v(?P<version>13\.[0-9.]+)/"'
-      uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
 
   - name: postgres-15-src
     type: http-resource
