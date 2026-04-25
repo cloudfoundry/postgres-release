@@ -28,7 +28,7 @@ github.com/cloudfoundry/bosh-utils/property
 github.com/cloudfoundry/bosh-utils/retrystrategy
 github.com/cloudfoundry/bosh-utils/system
 github.com/cloudfoundry/bosh-utils/uuid
-# github.com/cloudfoundry/config-server v0.1.274
+# github.com/cloudfoundry/config-server v0.1.275
 ## explicit; go 1.25.0
 github.com/cloudfoundry/config-server/types
 # github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
