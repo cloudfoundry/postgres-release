@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"strconv"
+	"time"
 )
 
 const DeployLatestVersion = -1
@@ -71,6 +72,7 @@ func (d *DeployHelper) InitializeVariables() {
 
 	d.variables["superuser_name"] = "superuser"
 	d.variables["superuser_password"] = "superpsw"
+	d.variables["superuser_valid_until"] = time.Now().AddDate(0, 1, 0).Format("2006-01-02")
 	d.variables["testuser_name"] = "sshuser"
 	d.variables["postgres_dns"] = fmt.Sprintf("q-s0.postgres.%s.%s.bosh", d.networkName, d.name)
 }
