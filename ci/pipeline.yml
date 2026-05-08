@@ -43,12 +43,20 @@ jobs:
               - yq_linux_amd64
               - checksums
               - checksums_hashes_order
+    - task: bump-yq-package
+      file: postgres-release/ci/tasks/bump-yq-packages/task.yml
+      image: bosh-integration-image
+      params:
+        PRIVATE_YML: |
+          blobstore:
+            options:
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
     - task: bump-postgres-15-package
       file: postgres-release/ci/tasks/bump-postgres-packages/task.yml
       image: bosh-integration-image
       input_mapping:
         postgres-src: postgres-15-src
-        yq-release: yq-release
       params:
         MAJOR_VERSION: 15
         PRIVATE_YML: |
@@ -61,7 +69,6 @@ jobs:
       image: bosh-integration-image
       input_mapping:
         postgres-src: postgres-16-src
-        yq-release: yq-release
       params:
         MAJOR_VERSION: 16
         PRIVATE_YML: |
@@ -74,18 +81,8 @@ jobs:
       image: bosh-integration-image
       input_mapping:
         postgres-src: postgres-17-src
-        yq-release: yq-release
       params:
         MAJOR_VERSION: 17
-        PRIVATE_YML: |
-          blobstore:
-            options:
-              access_key_id: ((postgres-release-blobstore-user.username))
-              secret_access_key: ((postgres-release-blobstore-user.password))
-    - task: bump-yq-package
-      file: postgres-release/ci/tasks/bump-yq-packages/task.yml
-      image: bosh-integration-image
-      params:
         PRIVATE_YML: |
           blobstore:
             options:

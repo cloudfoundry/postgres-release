@@ -4,7 +4,7 @@ platform: linux
 inputs:
 - name: postgres-release
 - name: postgres-src
-- name: yq-release
+- name: yq-bin
 
 outputs:
 - name: postgres-release
