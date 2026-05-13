@@ -1,4 +1,11 @@
 jobs:
+- name: set-pipeline
+  plan:
+    - get: postgres-release-ci
+      trigger: true
+    - set_pipeline: self
+      file: postgres-release-ci/ci/pipeline.yml
+
 - name: bump-golang-dependencies
   serial_groups:
     - dependency-bumps
@@ -306,6 +313,15 @@ resources:
       uri: git@github.com:cloudfoundry/postgres-release.git
       branch: main
       private_key: ((github_deploy_key_postgres-release.private_key))
+
+  - name: postgres-release-ci
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/postgres-release.git
+      branch: main
+      private_key: ((github_deploy_key_postgres-release.private_key))
+      paths:
+        - ci/**
 
   - name: postgres-github-release
     type: github-release
