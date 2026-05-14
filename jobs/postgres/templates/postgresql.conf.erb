@@ -16,6 +16,12 @@ p("databases.roles", []).each do |role|
 		end
 	end
 end
+
+_algo = p("databases.password_authentication_algorithm")
+unless ["md5", "scram-sha-256"].include?(_algo)
+  raise "databases.password_authentication_algorithm must be 'md5' or 'scram-sha-256', got: '#{_algo}'. " \
+        "These are the only values accepted by PostgreSQL's password_encryption parameter."
+end
 %>
 # Control the available listen_addresses via
 # deployment manifest - add networks to the job
