@@ -1,0 +1,34 @@
+name: Validate Concourse Pipeline
+
+on:
+  pull_request:
+    paths:
+      - ci/pipeline.yml
+  push:
+    branches:
+      - main
+    paths:
+      - ci/pipeline.yml
+
+jobs:
+  validate-ci-cd-pipeline:
+    name: Concourse Pipeline validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download fly CLI
+        run: |
+          curl -sSL \
+            "https://bosh.ci.cloudfoundry.org/api/v1/cli?arch=amd64&platform=linux" \
+            -o fly
+          chmod +x fly
+          sudo mv fly /usr/local/bin/fly
+          fly --version
+
+      - name: Validate pipeline definition
+        run: |
+          fly validate-pipeline \
+            --config ci/pipeline.yml \
+            --strict
+
