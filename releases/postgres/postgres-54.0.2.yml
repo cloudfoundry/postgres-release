@@ -1,0 +1,55 @@
+name: postgres
+version: 54.0.2
+commit_hash: 0998b4e
+uncommitted_changes: false
+jobs:
+- name: bbr-postgres-db
+  version: 6adb22e01eb9eb0e8c1fb2052c9f283439b8758f43d6b995cb11143d2cf2cd79
+  fingerprint: 6adb22e01eb9eb0e8c1fb2052c9f283439b8758f43d6b995cb11143d2cf2cd79
+  sha1: sha256:2d04668d96e2ea37231bcf6da5016a2922a8d16f38c4f3b67a2708036e322d5a
+  packages:
+  - postgres-common
+  - postgres-15
+  - postgres-16
+  - postgres-17
+- name: postgres
+  version: 12ad469062b29abfb90d8fdc37b131c2c746937eebabe7404202540e02db8ae5
+  fingerprint: 12ad469062b29abfb90d8fdc37b131c2c746937eebabe7404202540e02db8ae5
+  sha1: sha256:7c18329f7360f8ceb29c827d7430c979615ab772db9b6a08e5f87fefb9f9d8dd
+  packages:
+  - postgres-common
+  - postgres-15
+  - postgres-16
+  - postgres-17
+  - postgres-yq-4
+packages:
+- name: postgres-15
+  version: 9d1d04830c81c46ce2875524c2f646bb57e4046a06c470f73e36d8745094eb34
+  fingerprint: 9d1d04830c81c46ce2875524c2f646bb57e4046a06c470f73e36d8745094eb34
+  sha1: sha256:37825e8ffbca3f63dc6b90a010fa839a9d444e8dbe758b53feb8eabc74c8701b
+  dependencies: []
+- name: postgres-16
+  version: 306ec1687cf901ec48482576a8b534abf2c3181005d3ac7e15e1811cea7dd23e
+  fingerprint: 306ec1687cf901ec48482576a8b534abf2c3181005d3ac7e15e1811cea7dd23e
+  sha1: sha256:6d2fb9039defbb2fbfed8c843dce319ad03d67e35646e872590bad9261563958
+  dependencies: []
+- name: postgres-17
+  version: 899e847342b8df1e0ab87b87e6c6e9e2d235996e5dfb5fca6e850693cd77a63f
+  fingerprint: 899e847342b8df1e0ab87b87e6c6e9e2d235996e5dfb5fca6e850693cd77a63f
+  sha1: sha256:309bb0b4b69d48af5c0169e05355d865a1f38d8ef798aefc419ef8a25602f770
+  dependencies: []
+- name: postgres-common
+  version: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  fingerprint: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  sha1: sha256:83121808b04b876f44bc7d8938ab29154f23577790b7189e66219f101f01e63a
+  dependencies: []
+- name: postgres-yq-4
+  version: 3578614c9dc18110720595e8db03abe1f0b4a6f04552b3fb4f37534669f7de1b
+  fingerprint: 3578614c9dc18110720595e8db03abe1f0b4a6f04552b3fb4f37534669f7de1b
+  sha1: sha256:30c46e29eb54189f69e3b9d8db3c9cc7e4eb342c50edaf8f274f958f936d75af
+  dependencies: []
+license:
+  version: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  fingerprint: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  sha1: sha256:5e119f04e78c965b423079ee762692010b129dd24b2973aba1b500459397844b
+no_compression: false
