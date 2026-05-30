@@ -5,8 +5,8 @@ go 1.25.0
 require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
-	github.com/cloudfoundry/bosh-utils v0.0.612
-	github.com/cloudfoundry/config-server v0.1.279
+	github.com/cloudfoundry/bosh-utils v0.0.615
+	github.com/cloudfoundry/config-server v0.1.280
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/lib/pq v1.12.3
 	github.com/onsi/ginkgo/v2 v2.29.0
