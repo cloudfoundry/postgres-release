@@ -10,6 +10,7 @@ This is a [BOSH](https://www.bosh.io) release for [PostgreSQL](https://www.postg
 * [Contributing](#contributing)
 * [Known Limitation](#known-limitation)
 * [Upgrading](#upgrading)
+  * [Migrating password authentication from MD5 to SCRAM-SHA-256](#migrating-password-authentication-from-md5-to-scram-sha-256)
 * [CI](#ci)
 
 ## Deploying
@@ -193,6 +194,48 @@ Even if you deploy more instances, no replication is configured.
 ## Upgrading
 
 Refer to [versions.yml](versions.yml) in order to assess if a postgres-release version upgrades the PostgreSQL version.
+
+### Migrating password authentication from MD5 to SCRAM-SHA-256
+
+> **⚠ Upcoming breaking change**
+>
+> The current default for `databases.password_authentication_algorithm` is `md5` for backwards
+> compatibility. A future release will change the default to `scram-sha-256`, which is the modern,
+> cryptographically stronger algorithm recommended by the PostgreSQL project.
+
+**Why this matters**
+
+`databases.password_authentication_algorithm` controls both the `password_encryption` setting in
+`postgresql.conf` and the auth-method column in `pg_hba.conf`. If the value is changed to
+`scram-sha-256` while existing role passwords are still stored as MD5 hashes, those roles will
+**immediately fail to authenticate** — clients will receive an error until every affected role's
+password has been reset so PostgreSQL can re-hash it with SCRAM.
+
+**Migration procedure** (perform these steps in order)
+
+1. Set the property in your deployment manifest:
+   ```yaml
+   databases.password_authentication_algorithm: scram-sha-256
+   ```
+2. Re-deploy so the new `postgresql.conf` and `pg_hba.conf` are applied:
+   ```bash
+   bosh -d DEPLOYMENT_NAME deploy MANIFEST_PATH
+   ```
+3. Reset **every** role password so PostgreSQL re-hashes it with SCRAM.
+   Connect as a superuser and run for each role:
+   ```sql
+   ALTER ROLE <name> WITH PASSWORD '<password>';
+   ```
+   > Roles whose passwords are still stored as MD5 hashes cannot authenticate via SCRAM
+   > and will be locked out until this step is completed.
+4. Verify that no MD5 hashes remain:
+   ```sql
+   SELECT rolname, rolpassword
+   FROM pg_authid
+   WHERE rolpassword NOT LIKE 'SCRAM-SHA-256$%'
+     AND rolpassword IS NOT NULL;
+   ```
+   The query must return **zero rows** before the migration is complete.
 
 ### Upgrade Test Policy
 
