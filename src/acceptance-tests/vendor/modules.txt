@@ -18,7 +18,7 @@ github.com/cloudfoundry/bosh-cli/director/directorfakes
 github.com/cloudfoundry/bosh-cli/director/template
 github.com/cloudfoundry/bosh-cli/io
 github.com/cloudfoundry/bosh-cli/uaa
-# github.com/cloudfoundry/bosh-utils v0.0.627
+# github.com/cloudfoundry/bosh-utils v0.0.628
 ## explicit; go 1.25.0
 github.com/cloudfoundry/bosh-utils/crypto
 github.com/cloudfoundry/bosh-utils/errors
@@ -34,7 +34,7 @@ github.com/cloudfoundry/config-server/types
 # github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.181
+# github.com/cloudfoundry/socks5-proxy v0.2.182
 ## explicit; go 1.25.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
