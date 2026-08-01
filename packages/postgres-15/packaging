@@ -17,10 +17,13 @@ function extract_archive() {
 function compile() {
 
   pushd postgresql-* > /dev/null
-    if [[ "$(uname -a)" =~ "x86_64" || "$(uname -a)" =~ "ppc64le" ]] ; then
+    ARCH=$(uname -m)
+    if [[ "$ARCH" == "x86_64" || "$ARCH" == "ppc64le" ]]; then
+      ./configure --prefix="${BOSH_INSTALL_TARGET}" --with-openssl
+    elif [[ "$ARCH" == "aarch64" ]]; then
       ./configure --prefix="${BOSH_INSTALL_TARGET}" --with-openssl
     else
-      CFLAGS=-m32 LDFLAGS=-m32 CXXFLAGS=-m32 ./configure --prefix="${BOSH_INSTALL_TARGET}"  --with-openssl
+      CFLAGS=-m32 LDFLAGS=-m32 CXXFLAGS=-m32 ./configure --prefix="${BOSH_INSTALL_TARGET}" --with-openssl
     fi
 
     pushd src/bin/pg_config > /dev/null
