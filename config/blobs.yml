@@ -10,10 +10,10 @@ postgres/postgresql-17.11.tar.gz:
   size: 28397423
   object_id: 9b311d51-866b-4804-45bc-efd92a622fb2
   sha: sha256:5367f6fb2ec97efe1eb2e0c7926bb33438e51b0bd3a9733b88498056a7dc9a7e
-postgres/postgresql-18.4.tar.gz:
-  size: 29477735
-  object_id: c8ba6a21-f9a6-4a25-6278-7ed3549a4c63
-  sha: sha256:450aa8f2da06c46f8221916e82ae06b04fb1040f8f00643dbf8b7d663caac0b9
+postgres/postgresql-18.6.tar.gz:
+  size: 29598283
+  object_id: e62b849d-4d59-424a-4a05-84abd32e80a2
+  sha: sha256:983ee554ec53dbeb9b70797bef9fcf4e67e117e7e48ca1463cc80b3ff8e8ff3f
 yq/postgres-yq-4.53.3:
   size: 13750434
   object_id: eddb5b6c-12ad-4a66-44b5-3fab4524c934
