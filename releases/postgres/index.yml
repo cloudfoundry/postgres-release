@@ -111,6 +111,8 @@ builds:
     version: 54.0.5
   d371d260-738a-49c8-b174-60f41b0afbad:
     version: "7"
+  d9a55d28-c4d5-482d-5260-48c3cf84f263:
+    version: 56.0.2
   e0da8876-f4c7-473b-8d42-ee681d012c99:
     version: "24"
   e487d457-89a7-4796-6fe8-11a74f73789e:
