@@ -50,6 +50,7 @@ jobs:
           params:
             globs:
               - yq_linux_amd64
+              - yq_linux_arm64
               - checksums
               - checksums_hashes_order
     - task: bump-yq-package
