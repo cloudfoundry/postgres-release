@@ -16,8 +16,19 @@ get_old_blob_path() {
 
 pushd postgres-release
   CURRENT_BLOBS=$(bosh blobs)
-  BLOB_PATH=$(echo ../icu-src/icu4c-*-src.tgz)
+  BLOB_PATH=$(echo ../icu-src/icu4c-*-sources.tgz)
   FILENAME=$(basename "${BLOB_PATH}")
+
+  expected_sha512=$(awk -v fname="${FILENAME}" '$0 ~ ("\\*" fname "$") {print $1}' ../icu-src/SHASUM512.txt)
+  actual_sha512=$(sha512sum "${BLOB_PATH}" | awk '{print $1}')
+  if [ "$expected_sha512" != "$actual_sha512" ]; then
+    echo "SHA-512 verification failed for ${FILENAME}"
+    echo "Expected: $expected_sha512"
+    echo "Actual:   $actual_sha512"
+    exit 1
+  fi
+  echo "SHA-512 verified: $actual_sha512"
+
   OLD_BLOB_PATH=$(get_old_blob_path)
 
   if ! echo "${CURRENT_BLOBS}" | grep -q "${FILENAME}"; then

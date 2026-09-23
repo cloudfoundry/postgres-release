@@ -49,7 +49,8 @@ jobs:
           trigger: true
           params:
             globs:
-              - icu4c-*-src.tgz
+              - icu4c-*-sources.tgz
+              - SHASUM512.txt
         - get: yq-release
           trigger: true
           params:
@@ -340,10 +341,10 @@ resources:
     source:
       owner: unicode-org
       repository: icu
-      tag_filter: release-([0-9]+-[0-9]+)
+      tag_filter: release-([0-9]+\.[0-9]+)
       access_token: ((github_public_repo_token))
       globs:
-        - icu4c-*-src.tgz
+        - icu4c-*-sources.tgz
 
   - name: yq-release
     type: github-release
