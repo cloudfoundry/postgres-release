@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
-	github.com/cloudfoundry/bosh-utils v0.0.653
+	github.com/cloudfoundry/bosh-utils v0.0.655
 	github.com/cloudfoundry/config-server v0.1.287
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/lib/pq v1.12.3
@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/tlsconfig v0.67.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.68.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
