@@ -1,0 +1,4 @@
+---
+name: postgres-libicu
+files:
+  - icu/icu4c-*.tgz

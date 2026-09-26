@@ -1,5 +1,7 @@
 ---
 name: postgres-18
+dependencies:
+  - postgres-libicu
 files:
   - postgres/postgresql-18.*.tar.gz
 
