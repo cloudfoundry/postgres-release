@@ -1,3 +1,7 @@
+icu/icu4c-78.3-sources.tgz:
+  size: 27977255
+  object_id: 117fb3ae-d715-4053-6a9e-c33f369c0423
+  sha: sha256:3a2e7a47604ba702f345878308e6fefeca612ee895cf4a5f222e7955fabfe0c0
 postgres/postgresql-15.19.tar.gz:
   size: 30808781
   object_id: ee68c1e3-1067-429a-7df1-25b76c0b8491
