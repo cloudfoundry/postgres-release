@@ -1,0 +1,70 @@
+name: postgres
+version: 57.0.0
+commit_hash: 164b0c5
+uncommitted_changes: false
+jobs:
+- name: bbr-postgres-db
+  version: 2ad2c39940a4161e38f3c4963c548a49efb6f90bffe038523175f4d482c2eecb
+  fingerprint: 2ad2c39940a4161e38f3c4963c548a49efb6f90bffe038523175f4d482c2eecb
+  sha1: sha256:b4e1232ef9c522ba3a41df2c890a64309b9050245e6eebe82cae057bebb5fb1a
+  packages:
+  - postgres-common
+  - postgres-15
+  - postgres-16
+  - postgres-17
+  - postgres-18
+- name: postgres
+  version: 688a5cc850c32eb83866585294df115db494fefbcafdb784388481563e351d0a
+  fingerprint: 688a5cc850c32eb83866585294df115db494fefbcafdb784388481563e351d0a
+  sha1: sha256:1a81519635c0aaeedb358a8cf574a11f727674c3b425a2d9348504af42f132b1
+  packages:
+  - postgres-common
+  - postgres-15
+  - postgres-16
+  - postgres-17
+  - postgres-18
+  - postgres-yq-4
+packages:
+- name: postgres-15
+  version: 13f79b3ff7c45f39a411d334e598d4d873c0c5880da76b28fe5e6a2c5e17e0f3
+  fingerprint: 13f79b3ff7c45f39a411d334e598d4d873c0c5880da76b28fe5e6a2c5e17e0f3
+  sha1: sha256:4228430f639e794645e5daa30c4633d9658bca4dcc8036ce6451a84b64e7afa7
+  dependencies: []
+- name: postgres-16
+  version: 5883ce1d4c9327082a421b8c6841eff6f9aa1c7fbed586531d41a7f4f958a2e2
+  fingerprint: 5883ce1d4c9327082a421b8c6841eff6f9aa1c7fbed586531d41a7f4f958a2e2
+  sha1: sha256:3913578791f98293e5762a871994ad564c5e06b34e10540bcd05e848d5fc38bd
+  dependencies:
+  - postgres-libicu
+- name: postgres-17
+  version: f852c212f50e0ad3a6cb280cc2f28bc1e321e31ae599de4ef48592a535727cbd
+  fingerprint: f852c212f50e0ad3a6cb280cc2f28bc1e321e31ae599de4ef48592a535727cbd
+  sha1: sha256:969f8ab06b4bed8059a357960f015059036ffefa6611ca50d11249d386538c00
+  dependencies:
+  - postgres-libicu
+- name: postgres-18
+  version: 9414c3d4acc7700f52af5f233a1fd057a63e59cc3d9428eb67a42170874a0825
+  fingerprint: 9414c3d4acc7700f52af5f233a1fd057a63e59cc3d9428eb67a42170874a0825
+  sha1: sha256:fa3a10e235f7f35e3586eb14d49500cab681e16e8d6e92695d272dcbf0ff2a10
+  dependencies:
+  - postgres-libicu
+- name: postgres-common
+  version: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  fingerprint: 0decab2d201679efecdfc7a015623771671b542396fc8cb813a9246c68068ecd
+  sha1: sha256:83121808b04b876f44bc7d8938ab29154f23577790b7189e66219f101f01e63a
+  dependencies: []
+- name: postgres-libicu
+  version: bba75c21eb91cd482e9bbd1df46164cc5f9222b05af84cc63e43f5cabac506ef
+  fingerprint: bba75c21eb91cd482e9bbd1df46164cc5f9222b05af84cc63e43f5cabac506ef
+  sha1: sha256:e0bcf3be91fea94ba656709e64945dd9391e161482cbe69344c52fa8ba66a10c
+  dependencies: []
+- name: postgres-yq-4
+  version: 41f56d5bfe65f43364ee59b7f78d390c9b9a094ac79a4e293686fca50d240001
+  fingerprint: 41f56d5bfe65f43364ee59b7f78d390c9b9a094ac79a4e293686fca50d240001
+  sha1: sha256:26d604a1a5274e1c0dc1ea3a3e1a2edd833d2816df6befaa0ed1c5559fabe6ae
+  dependencies: []
+license:
+  version: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  fingerprint: 1c323139f99caf585939bf938289875b61ef9f9e54408c8d6f295d9c2ea0f50b
+  sha1: sha256:5e119f04e78c965b423079ee762692010b129dd24b2973aba1b500459397844b
+no_compression: false
