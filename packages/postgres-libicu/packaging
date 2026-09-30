@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -euo pipefail
+
+echo "Extracting ICU4C source..."
+tar xzf icu/icu4c-*.tgz
+
+pushd icu/source > /dev/null
+  ./configure --prefix="${BOSH_INSTALL_TARGET}" --enable-static --disable-shared --disable-samples --disable-tests
+  make -j$(nproc)
+  make install
+popd > /dev/null

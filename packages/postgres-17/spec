@@ -1,4 +1,6 @@
 ---
 name: postgres-17
+dependencies:
+  - postgres-libicu
 files:
   - postgres/postgresql-17.*.tar.gz

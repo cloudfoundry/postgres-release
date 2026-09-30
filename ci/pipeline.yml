@@ -45,6 +45,12 @@ jobs:
           trigger: true
         - get: postgres-18-src
           trigger: true
+        - get: icu-src
+          trigger: true
+          params:
+            globs:
+              - icu4c-*-sources.tgz
+              - SHASUM512.txt
         - get: yq-release
           trigger: true
           params:
@@ -54,6 +60,15 @@ jobs:
               - checksums_hashes_order
     - task: bump-yq-package
       file: postgres-release/ci/tasks/bump-yq-packages/task.yml
+      image: bosh-integration-image
+      params:
+        PRIVATE_YML: |
+          blobstore:
+            options:
+              access_key_id: ((postgres-release-blobstore-user.username))
+              secret_access_key: ((postgres-release-blobstore-user.password))
+    - task: bump-libicu-package
+      file: postgres-release/ci/tasks/bump-libicu-package/task.yml
       image: bosh-integration-image
       params:
         PRIVATE_YML: |
@@ -320,6 +335,16 @@ resources:
       index: "https://ftp.postgresql.org/pub/source/"
       regex: 'href="v(?P<version>18\.[0-9.]+)/"'
       uri: "https://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.gz"
+
+  - name: icu-src
+    type: github-release
+    source:
+      owner: unicode-org
+      repository: icu
+      tag_filter: release-([0-9]+\.[0-9]+)
+      access_token: ((github_public_repo_token))
+      globs:
+        - icu4c-*-sources.tgz
 
   - name: yq-release
     type: github-release
