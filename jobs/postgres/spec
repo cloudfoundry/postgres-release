@@ -69,6 +69,30 @@ properties:
   databases.max_connections:
     description: "Maximum number of database connections"
     default: 500
+  databases.password_authentication_algorithm:
+    description: |
+      Defines the password hashing algorithm used by PostgreSQL for both `password_encryption`
+      (postgresql.conf) and the auth-method column in pg_hba.conf.
+      Accepted values: "md5" or "scram-sha-256".
+
+      Default is "md5" for backwards compatibility with existing deployments.
+
+      *** IMPORTANT – BREAKING CHANGE NOTICE ***
+      A future release will change the default to "scram-sha-256", which is the modern,
+      cryptographically stronger algorithm recommended by the PostgreSQL project.
+
+      If you want to migrate now, or when the default changes, you MUST:
+        1. Set this property to "scram-sha-256" in your deployment manifest.
+        2. Restart / re-deploy PostgreSQL so the new postgresql.conf and pg_hba.conf are applied.
+        3. Reset every role password so PostgreSQL re-hashes it with SCRAM:
+               ALTER ROLE <name> WITH PASSWORD '<password>';
+           Roles whose passwords are still stored as MD5 hashes cannot authenticate
+           via SCRAM and will be locked out until their password is reset.
+        4. Verify with:
+               SELECT rolname, rolpassword FROM pg_authid
+               WHERE rolpassword NOT LIKE 'SCRAM-SHA-256$%' AND rolpassword IS NOT NULL;
+           The query should return zero rows when the migration is complete.
+    default: "md5"
   databases.log_line_prefix:
     description: "The postgres `printf` style string that is output at the beginning of each log line"
     default: "%m: "
