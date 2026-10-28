@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -14,7 +15,7 @@ const invalidate = "☠☠☠ MEMORY OVERWRITTEN ☠☠☠ "
 // CSVColumnParser is a function which converts trimmed csv
 // column string to a []byte representation. Currently
 // transforms NULL to nil
-var CSVColumnParser = func(s string) []byte {
+var CSVColumnParser = func(s string) interface{} {
 	switch {
 	case strings.ToLower(s) == "null":
 		return nil
@@ -120,6 +121,7 @@ func (rs *rowSets) invalidateRaw() {
 type Rows struct {
 	converter driver.ValueConverter
 	cols      []string
+	def       []*Column
 	rows      [][]driver.Value
 	pos       int
 	nextErr   map[int]error
@@ -164,7 +166,7 @@ func (r *Rows) RowError(row int, err error) *Rows {
 // of columns
 func (r *Rows) AddRow(values ...driver.Value) *Rows {
 	if len(values) != len(r.cols) {
-		panic("Expected number of values to match number of columns")
+		panic(fmt.Sprintf("Expected number of values to match number of columns: expected %d, actual %d", len(values), len(r.cols)))
 	}
 
 	row := make([]driver.Value, len(r.cols))
@@ -187,6 +189,16 @@ func (r *Rows) AddRow(values ...driver.Value) *Rows {
 	return r
 }
 
+// AddRows adds multiple rows composed from database driver.Value slice and
+// returns the same instance to perform subsequent actions.
+func (r *Rows) AddRows(values ...[]driver.Value) *Rows {
+	for _, value := range values {
+		r.AddRow(value...)
+	}
+
+	return r
+}
+
 // FromCSVString build rows from csv string.
 // return the same instance to perform subsequent actions.
 // Note that the number of values must match the number
@@ -197,8 +209,11 @@ func (r *Rows) FromCSVString(s string) *Rows {
 
 	for {
 		res, err := csvReader.Read()
-		if err != nil || res == nil {
-			break
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			panic(fmt.Sprintf("Parsing CSV string failed: %s", err.Error()))
 		}
 
 		row := make([]driver.Value, len(r.cols))

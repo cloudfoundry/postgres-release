@@ -21,6 +21,11 @@ maintain correct **TDD** workflow.
 interface, you will need to switch it to a pointer struct type. Also, **sqlmock.Rows** were used to implement **driver.Rows**
 interface, which was not required or useful for mocking and was removed. Hope it will not cause issues.
 
+## Looking for maintainers
+
+I do not have much spare time for this library and willing to transfer the repository ownership
+to person or an organization motivated to maintain it. Open up a conversation if you are interested. See #230.
+
 ## Install
 
     go get github.com/DATA-DOG/go-sqlmock
@@ -188,7 +193,7 @@ func (a AnyTime) Match(v driver.Value) bool {
 
 func TestAnyTimeArgument(t *testing.T) {
 	t.Parallel()
-	db, mock, err := New()
+	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Errorf("an error '%s' was not expected when opening a stub database connection", err)
 	}
@@ -196,7 +201,7 @@ func TestAnyTimeArgument(t *testing.T) {
 
 	mock.ExpectExec("INSERT INTO users").
 		WithArgs("john", AnyTime{}).
-		WillReturnResult(NewResult(1, 1))
+		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	_, err = db.Exec("INSERT INTO users(name, created_at) VALUES (?, ?)", "john", time.Now())
 	if err != nil {
@@ -217,6 +222,7 @@ It only asserts that argument is of `time.Time` type.
 
 ## Change Log
 
+- **2019-04-06** - added functionality to mock a sql MetaData request
 - **2019-02-13** - added `go.mod` removed the references and suggestions using `gopkg.in`.
 - **2018-12-11** - added expectation of Rows to be closed, while mocking expected query.
 - **2018-12-11** - introduced an option to provide **QueryMatcher** in order to customize SQL query matching.
