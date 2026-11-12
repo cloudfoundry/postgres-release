@@ -6,10 +6,10 @@ postgres/postgresql-15.20.tar.gz:
   size: 31561924
   object_id: 9bc3db33-f6f0-4001-51e2-31a084f643cf
   sha: sha256:9f47c08bb886abf66cdaf3ec871252793cf35083a6b0150e63776c5eb0ca005a
-postgres/postgresql-16.15.tar.gz:
-  size: 33138496
-  object_id: d60e26ba-01a1-4750-7d4e-b1acdff5e566
-  sha: sha256:4f200ca23dfb120ff9838f13ce06014aad1d3c432d16ee9f93ab2000c0eeef7b
+postgres/postgresql-16.16.tar.gz:
+  size: 33764287
+  object_id: 300a70f8-19aa-4759-76ea-b2e780d70a0d
+  sha: sha256:3e930f3366f675ab26e873d16201201f8e9b6d9bc13686e4465380271145ea2d
 postgres/postgresql-17.11.tar.gz:
   size: 28397423
   object_id: 9b311d51-866b-4804-45bc-efd92a622fb2
