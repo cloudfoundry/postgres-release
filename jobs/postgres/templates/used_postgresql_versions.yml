@@ -8,4 +8,4 @@ postgresql:
     17:
       minor_version: "17.12"
     18:
-      minor_version: "18.6"
+      minor_version: "18.7"
