@@ -20,6 +20,8 @@ function compile() {
     ARCH=$(uname -m)
     if [[ "$ARCH" == "x86_64" || "$ARCH" == "ppc64le" ]]; then
       ./configure --prefix="${BOSH_INSTALL_TARGET}" --with-openssl
+    elif [[ "$ARCH" == "aarch64" ]]; then
+      ./configure --prefix="${BOSH_INSTALL_TARGET}" --with-openssl
     else
       CFLAGS=-m32 LDFLAGS=-m32 CXXFLAGS=-m32 ./configure --prefix="${BOSH_INSTALL_TARGET}" --with-openssl
     fi

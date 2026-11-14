@@ -2,16 +2,22 @@
 
 function main() {
   install
-
 }
 
 function install() {
+  local arch
+  arch=$(uname -m)
 
   echo "Install yq..."
   mkdir -p "${BOSH_INSTALL_TARGET}/bin"
-  cp -a yq/postgres-yq-4.* "${BOSH_INSTALL_TARGET}/bin/yq"
-  chmod +x "${BOSH_INSTALL_TARGET}/bin/yq"
 
+  case "$arch" in
+    x86_64)  cp yq/postgres-yq-amd64-* "${BOSH_INSTALL_TARGET}/bin/yq" ;;
+    aarch64) cp yq/postgres-yq-arm64-* "${BOSH_INSTALL_TARGET}/bin/yq" ;;
+    *) echo "Unsupported architecture: $arch"; exit 1 ;;
+  esac
+
+  chmod +x "${BOSH_INSTALL_TARGET}/bin/yq"
 }
 
 main

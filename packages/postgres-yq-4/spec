@@ -1,4 +1,5 @@
 ---
 name: postgres-yq-4
 files:
-  - yq/postgres-yq-4.*
+  - yq/postgres-yq-amd64-*
+  - yq/postgres-yq-arm64-*

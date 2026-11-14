@@ -19,6 +19,10 @@ function compile() {
       ICU_CFLAGS="-I${BOSH_PACKAGES_PATH:-/var/vcap/packages}/postgres-libicu/include" \
       ICU_LIBS="-L${BOSH_PACKAGES_PATH:-/var/vcap/packages}/postgres-libicu/lib -licui18n -licuuc -licudata -lstdc++" \
         ./configure --prefix="${BOSH_INSTALL_TARGET}" --with-openssl
+    elif [[ "$ARCH" == "aarch64" ]]; then
+      ICU_CFLAGS="-I${BOSH_PACKAGES_PATH:-/var/vcap/packages}/postgres-libicu/include" \
+      ICU_LIBS="-L${BOSH_PACKAGES_PATH:-/var/vcap/packages}/postgres-libicu/lib -licui18n -licuuc -licudata -lstdc++" \
+        ./configure --prefix="${BOSH_INSTALL_TARGET}" --with-openssl
     else
       ICU_CFLAGS="-I${BOSH_PACKAGES_PATH:-/var/vcap/packages}/postgres-libicu/include" \
       ICU_LIBS="-L${BOSH_PACKAGES_PATH:-/var/vcap/packages}/postgres-libicu/lib -licui18n -licuuc -licudata -lstdc++" \
